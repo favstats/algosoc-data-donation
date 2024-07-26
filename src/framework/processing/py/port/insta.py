@@ -42,6 +42,27 @@ def safe_get(data: Dict[str, Any], *keys: str, default: Any = None) -> Any:
         else:
             return default
     return data
+  
+def parse_following(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    logger.info("Parsing following data")
+    following = safe_get(data, 'following.json', 'relationships_following', default=[])
+    logger.info(f"Found {len(following)} accounts being followed")
+    parsed_following = []
+    for account in following:
+        try:
+            string_list_data = account.get('string_list_data', [{}])[0]
+            parsed_following.append({
+                'data_type': 'instagram_following',
+                'Action': 'Follow',
+                'title': string_list_data.get('value', 'Unknown Account'),
+                'URL': string_list_data.get('href', ''),
+                'Date': datetime.fromtimestamp(int(string_list_data.get('timestamp', 0))).isoformat(),
+                'details': json.dumps({})
+            })
+        except Exception as e:
+            logger.error(f"Error parsing following account: {str(e)}")
+    logger.info(f"Successfully parsed {len(parsed_following)} following accounts")
+    return parsed_following
 
 def parse_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     logger.info("Parsing posts data")
@@ -198,6 +219,8 @@ def process_insta_data(instagram_zip: str) -> pd.DataFrame:
     all_data.extend(parse_ads_viewed(extracted_data))
     all_data.extend(parse_posts_viewed(extracted_data))
     all_data.extend(parse_videos_watched(extracted_data))
+    all_data.extend(parse_following(extracted_data))
+
     
     if all_data:
         combined_df = parse_data(all_data)
@@ -238,6 +261,11 @@ def posts_viewed_to_df(instagram_zip: str) -> pd.DataFrame:
 def videos_watched_to_df(instagram_zip: str) -> pd.DataFrame:
     df = process_insta_data(instagram_zip)
     return df[df['data_type'] == 'instagram_video_watched'].drop(columns['data_type'])
+
+def following_to_df(instagram_zip: str) -> pd.DataFrame:
+    df = process_insta_data(instagram_zip)
+    return df[df['data_type'] == 'instagram_following'].drop(columns=['data_type'])
+
 
 if __name__ == "__main__":
     logger.info("Instagram data processing script started")
