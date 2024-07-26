@@ -1,5 +1,8 @@
 import port.api.props as props
 from port.api.commands import (CommandSystemDonate, CommandUIRender, CommandSystemExit)
+import port.google as google
+import port.tiktok as tiktok
+import port.insta as insta
 
 import pandas as pd
 import zipfile
@@ -69,21 +72,32 @@ def extract_the_data_you_are_interested_in(zip_file: str) -> pd.DataFrame:
 
     You could extract anything here
     """
-    out = pd.DataFrame()
+    
+    df = google.process_google_data(zip_file)
+    
+    if df.empty:
+      df = insta.process_insta_data(zip_file)
+    
+    if df.empty:
+      df = tiktok.process_tiktok_data(zip_file)
+    
 
-    try:
-        file = zipfile.ZipFile(zip_file)
-        data = []
-        for name in file.namelist():
-            info = file.getinfo(name)
-            data.append((name, info.compress_size, info.file_size))
+    
+    # out = pd.DataFrame()
+    # 
+    # try:
+    #     file = zipfile.ZipFile(zip_file)
+    #     data = []
+    #     for name in file.namelist():
+    #         info = file.getinfo(name)
+    #         data.append((name, info.compress_size, info.file_size))
+    # 
+    #     out = pd.DataFrame(data, columns=["File name", "Compressed file size", "File size"])
+# 
+#     except Exception as e:
+#         print(f"Something went wrong: {e}")
 
-        out = pd.DataFrame(data, columns=["File name", "Compressed file size", "File size"])
-
-    except Exception as e:
-        print(f"Something went wrong: {e}")
-
-    return out
+    return df
 
 
 def validate_the_participants_input(zip_file: str) -> bool:
@@ -226,63 +240,64 @@ def exit_port(code, info):
 
 # Uncomment all these lines to see the answer in action
 
-#def extract_statistics_you_are_interested_in(zip_file: str) -> pd.DataFrame:
+# def extract_statistics_you_are_interested_in(zip_file: str) -> pd.DataFrame:
 #    """
 #    Function that extracts the desired statistics
 #    """
 #    out = pd.DataFrame()
-#    count = 0 
+#    count = 0
 #    total_number_of_bytes = 0
 #    total_a_count = 0
-#
+# 
 #    try:
 #        file = zipfile.ZipFile(zip_file)
+#        print(file)
 #        for name in file.namelist():
 #            info = file.getinfo(name)
 #            count += 1
 #            total_number_of_bytes += info.file_size
-#
+# 
 #            # Check if the file is a text file
 #            # if so, open it and count the letter a
 #            if name.endswith('.txt'):
 #                with file.open(name) as txt_file:
 #                    content = txt_file.read().decode('utf-8')
 #                    total_a_count += content.count('a')
-#
+# 
 #        data = [
 #            ("Total number of files", count),
 #            ("Total number of bytes", total_number_of_bytes),
 #            ("Total occurrences of 'a' in text files", total_a_count),
 #        ]
-#
+# 
 #        out = pd.DataFrame(data, columns=["Statistic", "Value"])
-#
+# 
 #    except Exception as e:
 #        print(f"Something went wrong: {e}")
-#
+# 
 #    return out
-#
-#
-#def process(session_id: str):
+# 
+# 
+# def process(session_id: str):
 #    platform = "Platform of interest"
-#
+# 
 #    # Start of the data donation flow
 #    while True:
 #        # Ask the participant to submit a file
 #        file_prompt = generate_file_prompt(platform, "application/zip, text/plain")
 #        file_prompt_result = yield render_page(platform, file_prompt)
-#
+# 
 #        # If the participant submitted a file: continue
 #        if file_prompt_result.__type__ == 'PayloadString':
-#
+# 
 #            # Validate the file the participant submitted
-#            # In general this is wise to do 
+#            # In general this is wise to do
 #            is_data_valid = validate_the_participants_input(file_prompt_result.value)
-#
+# 
 #            # Happy flow:
 #            # The file the participant submitted is valid
 #            if is_data_valid == True:
-#
+# 
 #                # Extract the data you as a researcher are interested in, and put it in a pandas DataFrame
 #                # Show this data to the participant in a table on screen
 #                # The participant can now decide to donate
@@ -290,30 +305,30 @@ def exit_port(code, info):
 #                extracted_data_statistics = extract_statistics_you_are_interested_in(file_prompt_result.value)
 #                consent_prompt = generate_consent_prompt(extracted_data, extracted_data_statistics)
 #                consent_prompt_result = yield render_page(platform, consent_prompt)
-#
+# 
 #                # If the participant wants to donate the data gets donated
 #                if consent_prompt_result.__type__ == "PayloadJSON":
 #                    yield donate(f"{session_id}-{platform}", consent_prompt_result.value)
-#
+# 
 #                break
-#
+# 
 #            # Sad flow:
 #            # The data was not valid, ask the participant to retry
 #            if is_data_valid == False:
 #                retry_prompt = generate_retry_prompt(platform)
 #                retry_prompt_result = yield render_page(platform, retry_prompt)
-#
+# 
 #                # The participant wants to retry: start from the beginning
 #                if retry_prompt_result.__type__ == 'PayloadTrue':
 #                    continue
 #                # The participant does not want to retry or pressed skip
 #                else:
 #                    break
-#
+# 
 #        # The participant did not submit a file and pressed skip
 #        else:
 #            break
-#
+# 
 #    yield exit_port(0, "Success")
 #    yield render_end_page()
-#
+

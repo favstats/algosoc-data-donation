@@ -4,6 +4,7 @@ from typing import Optional, TypedDict
 import pandas as pd
 
 
+
 class Translations(TypedDict):
     """Typed dict containing text that is  display in a speficic language
 
@@ -305,7 +306,6 @@ class PropsUIPageDonation:
         dict["body"] = self.body.toDict()
         dict["footer"] = self.footer.toDict() if self.footer else None
         return dict
-
 
 class PropsUIPageEnd:
     """An ending page to show the user they are done"""
