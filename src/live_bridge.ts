@@ -23,7 +23,6 @@ export default class LiveBridge implements Bridge {
 
   send (command: CommandSystem): void {
     if (isCommandSystem(command)) {
-      this.log('info', 'send', command)
       this.port.postMessage(command)
     } else {
       this.log('error', 'received unknown command', command)
@@ -32,6 +31,6 @@ export default class LiveBridge implements Bridge {
 
   private log (level: 'info' | 'error', ...message: any[]): void {
     const logger = level === 'info' ? console.log : console.error
-    logger('[LiveBridge]', ...message)
+    logger(`[${this.constructor.name}]`, ...message)
   }
 }

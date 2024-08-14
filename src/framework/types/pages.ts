@@ -1,18 +1,14 @@
 import { isInstanceOf } from '../helpers'
-import { 
-    PropsUIHeader,
-    PropsUIFooter
-} from './elements'
-import { 
-    PropsUIPromptFileInput, 
-    PropsUIPromptConfirm,
-    PropsUIPromptConsentForm,
-    PropsUIPromptRadioInput,
-    PropsUIPromptQuestionnaire 
+import { PropsUIFooter, PropsUIHeader } from './elements'
+import {
+  PropsUIPromptFileInput,
+  PropsUIPromptConfirm,
+  PropsUIPromptConsentForm,
+  PropsUIPromptRadioInput,
+  PropsUIPromptQuestionnaire
 } from './prompts'
 
 export type PropsUIPage =
-  PropsUIPageSplashScreen |
   PropsUIPageDonation |
   PropsUIPageEnd |
   PropsUIPageError
@@ -25,16 +21,12 @@ export function isPropsUIPage (arg: any): arg is PropsUIPage {
   )
 }
 
-export interface PropsUIPageSplashScreen {
-  __type__: 'PropsUIPageSplashScreen'
-}
-
 export interface PropsUIPageDonation {
   __type__: 'PropsUIPageDonation'
   platform: string
   header: PropsUIHeader
   body: PropsUIPromptFileInput | PropsUIPromptConfirm | PropsUIPromptConsentForm | PropsUIPromptRadioInput | PropsUIPromptQuestionnaire
-  footer: PropsUIFooter
+  footer?: PropsUIFooter
 }
 export function isPropsUIPageDonation (arg: any): arg is PropsUIPageDonation {
   return isInstanceOf<PropsUIPageDonation>(arg, 'PropsUIPageDonation', ['platform', 'header', 'body'])

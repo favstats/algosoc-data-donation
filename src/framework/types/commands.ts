@@ -90,6 +90,22 @@ export function isCommandSystem (arg: any): arg is CommandSystem {
   return isCommandSystemDonate(arg) || isCommandSystemEvent(arg) || isCommandSystemExit(arg)
 }
 
+export type CommandUI =
+  CommandUIRender
+
+export function isCommandUI (arg: any): arg is CommandUI {
+  return isCommandUIRender(arg)
+}
+
+export interface CommandSystemDonate {
+  __type__: 'CommandSystemDonate'
+  key: string
+  json_string: string
+}
+export function isCommandSystemDonate (arg: any): arg is CommandSystemDonate {
+  return isInstanceOf<CommandSystemDonate>(arg, 'CommandSystemDonate', ['key', 'json_string'])
+}
+
 export interface CommandSystemEvent {
   __type__: 'CommandSystemEvent'
   name: string
@@ -105,22 +121,6 @@ export interface CommandSystemExit {
 }
 export function isCommandSystemExit (arg: any): arg is CommandSystemExit {
   return isInstanceOf<CommandSystemExit>(arg, 'CommandSystemExit', ['code', 'info'])
-}
-
-export type CommandUI =
-  CommandUIRender
-
-export function isCommandUI (arg: any): arg is CommandUI {
-  return isCommandUIRender(arg)
-}
-
-export interface CommandSystemDonate {
-  __type__: 'CommandSystemDonate'
-  key: string
-  json_string: string
-}
-export function isCommandSystemDonate (arg: any): arg is CommandSystemDonate {
-  return isInstanceOf<CommandSystemDonate>(arg, 'CommandSystemDonate', ['key', 'json_string'])
 }
 
 export interface CommandUIRender {

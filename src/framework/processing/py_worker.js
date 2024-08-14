@@ -100,7 +100,7 @@ function startPyodide() {
 
 function loadPackages() {
   console.log('[ProcessingWorker] loading packages')
-  return self.pyodide.loadPackage(['micropip', 'numpy', 'pandas', 'tqdm'])
+  return self.pyodide.loadPackage(['micropip', 'numpy', 'pandas', 'beautifulsoup4', 'lxml'])
 }
 
 function installPortPackage() {
@@ -109,14 +109,14 @@ function installPortPackage() {
     import micropip
     await micropip.install("../../port-0.0.0-py3-none-any.whl", deps=False)
     import port
-  `);  
+  `)
 }
 
 function generateErrorMessage(stacktrace) {
   return {
-    __type__: "CommandUIRender",
+    __type__: 'CommandUIRender',
     page: {
-      __type__: "PropsUIPageError",
+      __type__: 'PropsUIPageError',
       stacktrace: stacktrace
     }
   }

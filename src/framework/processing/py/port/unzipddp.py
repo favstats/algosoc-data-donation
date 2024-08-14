@@ -12,11 +12,8 @@ import io
 
 import pandas as pd
 
-# if !local: 
 from port.my_exceptions import FileNotFoundInZipError
-# else:
-# from my_exceptions import FileNotFoundInZipError
-  
+
 logger = logging.getLogger(__name__)
 
 def extract_file_from_zip(zfile: str, file_to_extract: str) -> io.BytesIO:
@@ -29,12 +26,12 @@ def extract_file_from_zip(zfile: str, file_to_extract: str) -> io.BytesIO:
     try:
         with zipfile.ZipFile(zfile, "r") as zf:
             file_found = False
-            print(zf.namelist())
+
             for f in zf.namelist():
                 # skipping this log because for twitter (with huge nr of files)
                 # the console logs greatly slow down the browser
                 # logger.debug("Contained in zip: %s", f)
-                if f == file_to_extract:
+                if Path(f).name == file_to_extract:
                     #print('extract_file_from_zip found a message json', f)
 
                     file_to_extract_bytes = io.BytesIO(zf.read(f))
@@ -158,4 +155,5 @@ def read_csv_from_bytes_to_df(json_bytes: io.BytesIO) -> pd.DataFrame:
     expects io.BytesIO as input (from extract_file_from_zip)
     """
     return pd.DataFrame(read_csv_from_bytes(json_bytes))
+
 

@@ -4,6 +4,10 @@ import warnings
 import math
 import logging
 import re
+from collections import deque
+from dateutil import parser
+from zoneinfo import ZoneInfo
+
 
 from dateutil.parser import parse
 import pandas as pd
@@ -190,6 +194,27 @@ def dict_denester(
     return new  # type: ignore
 
 
+# Function using breadth-first search
+def find_items_bfs(d: dict, key_to_match: str) -> str:
+    try:
+        queue = deque([d])
+        
+        while queue:
+            current = queue.popleft()
+            
+            if isinstance(current, dict):
+                if key_to_match in current:
+                    return current[key_to_match]
+                queue.extend(current.values())
+            elif isinstance(current, list):
+                queue.extend(current)
+        
+        return ''
+    except Exception as e:
+        logger.error("bork bork: %s", e)
+        return ''
+      
+
 
 def find_items(d: dict[Any, Any],  key_to_match: str) -> str:
     """
@@ -301,3 +326,105 @@ def replace_months(input_string):
     return input_string
 
 
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
+from dateutil import parser
+import logging
+import re
+from typing import Any
+
+logger = logging.getLogger(__name__)
+
+def epoch_to_iso(epoch_timestamp: str | int) -> str:
+    """
+    Convert epoch timestamp to an ISO 8601 string. Assumes UTC.
+    """
+    out = str(epoch_timestamp)
+    try:
+        epoch_timestamp = int(float(epoch_timestamp))
+        out = datetime.fromtimestamp(epoch_timestamp, tz=timezone.utc).isoformat()
+    except (OverflowError, OSError, ValueError, TypeError) as e:
+        logger.error("Could not convert epoch time timestamp, %s", e)
+    return out
+
+
+
+def robust_datetime_parser(timestamp: Any) -> str:
+    """
+    A robust function to convert various timestamp formats to ISO 8601.
+    
+    Args:
+    timestamp (Any): The input timestamp (can be string, int, or float).
+    
+    Returns:
+    str: The timestamp converted to ISO 8601 format, or an empty string if conversion fails.
+    """
+    # Convert input to string if it's not already
+    timestamp = str(timestamp).strip().lower()
+    
+    if not timestamp:
+        return ""
+
+    # Handle Unix timestamps (seconds since epoch)
+    if timestamp.isdigit() or (timestamp.replace('.', '', 1).isdigit() and timestamp.count('.') < 2):
+        try:
+            return datetime.fromtimestamp(int(float(timestamp)), tz=timezone.utc).isoformat()
+        except ValueError:
+            return ""
+
+    # Replace Dutch month abbreviations with English ones
+    month_mapping = {
+        'jan': 'jan', 'feb': 'feb', 'mrt': 'mar', 'apr': 'apr', 
+        'mei': 'may', 'jun': 'jun', 'jul': 'jul', 'aug': 'aug', 
+        'sep': 'sep', 'okt': 'oct', 'nov': 'nov', 'dec': 'dec'
+    }
+    for dutch, english in month_mapping.items():
+        timestamp = re.sub(r'\b' + dutch + r'\b', english, timestamp)
+
+    # Try parsing with dateutil
+    try:
+        dt = parser.parse(timestamp, dayfirst=False, fuzzy=True)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        return dt.isoformat()
+    except Exception:
+        pass
+
+    # Custom parsing for specific formats
+    formats_to_try = [
+        "%b %d, %Y, %I:%M %p",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d",
+        "%d/%m/%Y %H:%M:%S",
+        "%d/%m/%Y",
+        "%m/%d/%Y %H:%M:%S",
+        "%m/%d/%Y",
+        "%d-%m-%Y %H:%M:%S",
+        "%d-%m-%Y",
+        "%Y/%m/%d %H:%M:%S",
+        "%Y/%m/%d",
+        "%b %d %Y %H:%M:%S",
+        "%b %d %Y",
+        "%d %b %Y %H:%M:%S",
+        "%d %b %Y",
+        "%B %d, %Y %H:%M:%S",
+        "%B %d, %Y"
+    ]
+
+    for fmt in formats_to_try:
+        try:
+            dt = datetime.strptime(timestamp, fmt)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            return dt.isoformat()
+        except ValueError:
+            continue
+
+    return ""
+
+
+# robust_datetime_parser("Jul 24, 2024, 11:54 PM")
+# robust_datetime_parser("1721418966")
+# try_to_convert_any_timestamp_to_iso8601("1721418966")
+# epoch_to_iso("1721418966")
+# robust_datetime_parser("jul 19, 2024, 9:32 am")

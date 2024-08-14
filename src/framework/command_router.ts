@@ -1,4 +1,4 @@
-import { Command, Response, isCommandSystem, isCommandSystemExit, isCommandUI, CommandUI, CommandSystem } from './types/commands'
+import { Command, Response, isCommandSystem, isCommandUI, CommandUI, CommandSystem } from './types/commands'
 import { CommandHandler, Bridge, VisualisationEngine } from './types/modules'
 
 export default class CommandRouter implements CommandHandler {
@@ -17,7 +17,7 @@ export default class CommandRouter implements CommandHandler {
       } else if (isCommandUI(command)) {
         this.onCommandUI(command, resolve)
       } else {
-        reject(new TypeError('[CommandRouter] Unknown command' + JSON.stringify(command)))
+        reject(new TypeError('Unknown command' + JSON.stringify(command)))
       }
     })
   }

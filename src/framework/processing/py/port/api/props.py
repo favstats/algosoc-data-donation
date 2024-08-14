@@ -1,8 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional, TypedDict
+from typing import TypedDict, Optional, Literal
 
 import pandas as pd
-
 
 
 class Translations(TypedDict):
@@ -12,15 +11,12 @@ class Translations(TypedDict):
         en: English string to display
         nl: Dutch string to display
     """
-
     en: str
     nl: str
 
-
 @dataclass
 class Translatable:
-    """Wrapper class for Translations"""
-
+    """Wrapper class for Translations""" 
     translations: Translations
 
     def toDict(self):
@@ -34,7 +30,6 @@ class PropsUIHeader:
     Attributes:
         title: title of the page
     """
-
     title: Translatable
 
     def toDict(self):
@@ -51,10 +46,12 @@ class PropsUIFooter:
     Attributes:
         progressPercentage: float indicating the progress in the flow
     """
+    progressPercentage: float
 
     def toDict(self):
         dict = {}
         dict["__type__"] = "PropsUIFooter"
+        dict["progressPercentage"] = self.progressPercentage
         return dict
 
 
@@ -62,15 +59,14 @@ class PropsUIFooter:
 class PropsUIPromptConfirm:
     """Retry submitting a file page
 
-    Prompt the user if they want to submit a new file.
-    This can be used in case a file could not be processed.
+    Prompt the user if they want to submit a new file. 
+    This can be used in case a file could not be processed. 
 
     Attributes:
         text: message to display
         ok: message to display if the user wants to try again
         cancel: message to display if the user wants to continue regardless
     """
-
     text: Translatable
     ok: Translatable
     cancel: Translatable
@@ -83,24 +79,120 @@ class PropsUIPromptConfirm:
         dict["cancel"] = self.cancel.toDict()
         return dict
 
+@dataclass
+class PropsUIChartGroup:
+    """Grouping variable for aggregating the data
+
+    Attributes:
+        column: name of the column to aggregate
+        label: Optionally, a label to display in the visualization (default is the column name)
+        dateFormat: if given, transforms a data column to the specified date format for aggregation
+    """
+    column: str
+    label: Optional[str] = None
+    dateFormat: Optional[str] = None
+
+    def toDict(self):
+        dict = {}
+        dict["__type__"] = "PropsUIChartGroup"
+        dict["column"] = self.column
+        dict["label"] = self.label
+        dict["dateFormat"] = self.dateFormat
+        return dict
+
+@dataclass
+class PropsUIChartValue:
+    """Value to aggregate
+
+    Attributes:
+        column: name of the column to aggregate
+        label: Optionally, a label to display in the visualization (default is the column name)
+        aggregate: function for aggregating the values
+        addZeroes: if true, add zeroes for missing values
+    """
+    column: str
+    label: Optional[str] = None
+    aggregate: Optional[str] = "count"
+    addZeroes: Optional[bool] = False
+
+    def toDict(self):
+        dict = {}
+        dict["__type__"] = "PropsUIChartValue"
+        dict["column"] = self.column
+        dict["label"] = self.label
+        dict["aggregate"] = self.aggregate
+        dict["addZeroes"] = self.addZeroes
+        return dict
+
+@dataclass
+class PropsUIChartVisualization:
+    """Data visualization
+
+    Attributes:
+        title: title of the visualization
+        type: type of visualization
+        group: grouping variable for aggregating the data
+        values: list of values to aggregate
+    """
+    title: Translatable
+    type: Literal["bar", "line", "area"]
+    group: PropsUIChartGroup
+    values: list[PropsUIChartValue]
+        
+    def toDict(self):
+        dict = {}
+        dict["__type__"] = "PropsUIChartVisualization"
+        dict["title"] = self.title.toDict()
+        dict["type"] = self.type
+        dict["group"] = self.group.toDict()
+        dict["values"] = [value.toDict() for value in self.values]
+        return dict
+    
+@dataclass
+class PropsUITextVisualization:
+    """Word cloud visualization
+
+    """
+    title: Translatable
+    type: Literal["wordcloud"]
+    text_column: str
+    value_column: Optional[str] = None
+    tokenize: Optional[bool] = False
+    extract: Optional[Literal["url_domain"]] = None
+
+    def toDict(self):
+        dict = {}
+        dict["__type__"] = "PropsUITextVisualization"
+        dict["title"] = self.title.toDict()
+        dict["type"] = self.type
+        dict["textColumn"] = self.text_column
+        dict["valueColumn"] = self.value_column
+        dict["tokenize"] = self.tokenize
+        dict["extract"] = self.extract
+        return dict
+
 
 @dataclass
 class PropsUIPromptConsentFormTable:
-    """Table to be shown to the participant prior to donation
+    """Table to be shown to the participant prior to donation 
 
     Attributes:
         id: a unique string to itentify the table after donation
         title: title of the table
         data_frame: table to be shown
-        visualizations: optional visualizations to be shown. (see TODO for input format)
+        editable: determines whether the table has an editable mode that can be toggled with a button
+        visualizations: optional list of visualizations to be shown
     """
-
     id: str
     title: Translatable
     data_frame: pd.DataFrame
     description: Optional[Translatable] = None
-    visualizations: Optional[list] = None
-    folded: Optional[bool] = False
+    visualizations: Optional[list[PropsUIChartVisualization | PropsUITextVisualization]] = None
+
+    def translate_visualizations(self):
+        if self.visualizations is None:
+            return None
+        return [vis.toDict() for vis in self.visualizations]
 
     def toDict(self):
         dict = {}
@@ -108,26 +200,23 @@ class PropsUIPromptConsentFormTable:
         dict["id"] = self.id
         dict["title"] = self.title.toDict()
         dict["data_frame"] = self.data_frame.to_json()
-        dict["description"] = self.description.toDict() if self.description else None
-        dict["visualizations"] = self.visualizations if self.visualizations else None
-        dict["folded"] = self.folded
+        dict["description"] = self.description.toDict() if self.description is not None else None
+        dict["visualizations"] = self.translate_visualizations()
         return dict
+    
+
 
 
 @dataclass
 class PropsUIPromptConsentForm:
-    """Tables to be shown to the participant prior to donation
+    """Tables and Visualization to be shown to the participant prior to donation 
 
     Attributes:
         tables: a list of tables
         meta_tables: a list of optional tables, for example for logging data
     """
-
     tables: list[PropsUIPromptConsentFormTable]
     meta_tables: list[PropsUIPromptConsentFormTable]
-    description: Optional[Translatable] = None
-    donate_question: Optional[Translatable] = None
-    donate_button: Optional[Translatable] = None
 
     def translate_tables(self):
         output = []
@@ -146,9 +235,6 @@ class PropsUIPromptConsentForm:
         dict["__type__"] = "PropsUIPromptConsentForm"
         dict["tables"] = self.translate_tables()
         dict["metaTables"] = self.translate_meta_tables()
-        dict["description"] = self.description and self.description.toDict()
-        dict["donateQuestion"] = self.donate_question and self.donate_question.toDict()
-        dict["donateButton"] = self.donate_button and self.donate_button.toDict()
         return dict
 
 
@@ -160,7 +246,6 @@ class PropsUIPromptFileInput:
         description: text with an explanation
         extensions: accepted mime types, example: "application/zip, text/plain"
     """
-
     description: Translatable
     extensions: str
 
@@ -179,7 +264,6 @@ class RadioItem(TypedDict):
         id: id of radio button
         value: text to be displayed
     """
-
     id: int
     value: str
 
@@ -195,7 +279,6 @@ class PropsUIPromptRadioInput:
         description: short description of the radio group
         items: a list of radio buttons
     """
-
     title: Translatable
     description: Translatable
     items: list[RadioItem]
@@ -211,8 +294,14 @@ class PropsUIPromptRadioInput:
 
 @dataclass
 class PropsUIQuestionOpen:
-    """
-    NO DOCS YET
+    """Question: Open Question
+
+    This class can be used to ask an open question to a user. 
+    The user can type the answer in the a text field
+
+    Attributes:
+        id: Should be a unique ID to identify the question, example: "1"
+        question: The question that will be asked
     """
     id: int
     question: Translatable
@@ -227,8 +316,14 @@ class PropsUIQuestionOpen:
 
 @dataclass
 class PropsUIQuestionMultipleChoiceCheckbox:
-    """
-    NO DOCS YET
+    """Question: Multiple choice checkbox
+
+    This class can be used to ask an multiple choice question to a user. 
+    Multiple answers can be given
+
+    Attributes:
+        id: Should be a unique ID to identify the question, example: "1"
+        question: The question that will be asked
     """
     id: int
     question: Translatable
@@ -245,8 +340,14 @@ class PropsUIQuestionMultipleChoiceCheckbox:
 
 @dataclass
 class PropsUIQuestionMultipleChoice:
-    """
-    NO DOCS YET
+    """Question: Multiple choice
+
+    This class can be used to ask an multiple choice question to a user. 
+    Only one answer can be given
+
+    Attributes:
+        id: Should be a unique ID to identify the question, example: "1"
+        question: The question that will be asked
     """
     id: int
     question: Translatable
@@ -263,8 +364,19 @@ class PropsUIQuestionMultipleChoice:
 
 @dataclass
 class PropsUIPromptQuestionnaire:
-    """
-    NO DOCS YET
+    """A class to collection questions
+
+    This class can be used to assemble question in a questionnaire.
+    This class can be used as a body in PropsUIPageDonation
+
+    * All questions are optional 
+    * Results are returned to the script after the user clicks the continue button
+        The results will be in your_results.value, example: 
+        {"1": "answer 1", "2": ["answer 1", "answer 2"], "3": "open answer"}
+
+    Attributes:
+        description: Short descrition
+        questions: List of questions that need to be asked
     """
     description: Translatable
     questions: list[PropsUIQuestionMultipleChoice | PropsUIQuestionMultipleChoiceCheckbox | PropsUIQuestionOpen]
@@ -285,18 +397,17 @@ class PropsUIPageDonation:
         platform: the platform name the user is curently in the process of donating data from
         header: page header
         body: main body of the page, see the individual classes for an explanation
+        footer: page footer
     """
-
     platform: str
     header: PropsUIHeader
-    body: (
-        PropsUIPromptRadioInput
-        | PropsUIPromptConsentForm
-        | PropsUIPromptFileInput
-        | PropsUIPromptConfirm
-        | PropsUIPromptQuestionnaire
-    )
-    footer: Optional[PropsUIFooter] = None
+    body: PropsUIPromptRadioInput | PropsUIPromptConsentForm | PropsUIPromptFileInput | PropsUIPromptConfirm | PropsUIPromptQuestionnaire
+    footer: Optional[PropsUIFooter]
+
+    def translate_footer(self):
+        if self.footer is None:
+            return None
+        return self.footer.toDict()
 
     def toDict(self):
         dict = {}
@@ -304,12 +415,13 @@ class PropsUIPageDonation:
         dict["platform"] = self.platform
         dict["header"] = self.header.toDict()
         dict["body"] = self.body.toDict()
-        dict["footer"] = self.footer.toDict() if self.footer else None
+        dict["footer"] = self.translate_footer()
         return dict
+    
+
 
 class PropsUIPageEnd:
     """An ending page to show the user they are done"""
-
     def toDict(self):
         dict = {}
         dict["__type__"] = "PropsUIPageEnd"

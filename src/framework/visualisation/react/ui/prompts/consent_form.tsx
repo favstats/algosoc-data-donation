@@ -1,34 +1,35 @@
-import { assert, Weak } from "../../../../helpers"
+import { assert, Weak } from '../../../../helpers'
 import {
   PropsUITable,
   PropsUITableBody,
   PropsUITableHead,
   PropsUITableRow,
   TableWithContext,
-  TableContext,
-} from "../../../../types/elements"
-import { PropsUIPromptConsentForm, PropsUIPromptConsentFormTable } from "../../../../types/prompts"
-import { LabelButton, PrimaryButton } from "../elements/button"
-import { BodyLarge } from "../elements/text"
-import TextBundle from "../../../../text_bundle"
-import { Translator } from "../../../../translator"
-import { ReactFactoryContext } from "../../factory"
-import { useCallback, useEffect, useState } from "react"
-import _ from "lodash"
+  TableContext
+} from '../../../../types/elements'
+import { PropsUIPromptConsentForm, PropsUIPromptConsentFormTable } from '../../../../types/prompts'
+import { LabelButton, PrimaryButton } from '../elements/button'
+import { BodyLarge } from '../elements/text'
+import TextBundle from '../../../../text_bundle'
+import { Translator } from '../../../../translator'
+import { ReactFactoryContext } from '../../factory'
+import { useCallback, useEffect, useState } from 'react'
+import _ from 'lodash'
 
-import useUnloadWarning from "../hooks/useUnloadWarning"
+import useUnloadWarning from '../hooks/useUnloadWarning'
 
-import { TableContainer } from "../elements/table_container"
+import { TableContainer } from '../elements/table_container'
 
 type Props = Weak<PropsUIPromptConsentForm> & ReactFactoryContext
 
 export const ConsentForm = (props: Props): JSX.Element => {
   useUnloadWarning()
   const [tables, setTables] = useState<TableWithContext[]>(() => parseTables(props.tables))
-  const [metaTables, setMetaTables] = useState<TableWithContext[]>(() => parseTables(props.metaTables))
+  const [metaTables, setMetaTables] = useState<TableWithContext[]>(() =>
+    parseTables(props.metaTables)
+  )
   const { locale, resolve } = props
   const { description, donateQuestion, donateButton, cancelButton } = prepareCopy(props)
-  const [isDonating, setIsDonating] = useState(false)
 
   useEffect(() => {
     setTables(parseTables(props.tables))
@@ -74,12 +75,14 @@ export const ConsentForm = (props: Props): JSX.Element => {
     for (let row = 0; row <= n; row++) {
       const id = `${row}`
       const cells = columnNames(data).map((column: string) => rowCell(data, column, row))
-      result.push({ id, cells })
+      result.push({ __type__: 'PropsUITableRow', id, cells })
     }
     return result
   }
 
-  function parseTables(tablesData: PropsUIPromptConsentFormTable[]): Array<PropsUITable & TableContext> {
+  function parseTables(
+    tablesData: PropsUIPromptConsentFormTable[]
+  ): Array<PropsUITable & TableContext> {
     return tablesData.map((table) => parseTable(table))
   }
 
@@ -87,20 +90,16 @@ export const ConsentForm = (props: Props): JSX.Element => {
     const id = tableData.id
     const title = Translator.translate(tableData.title, props.locale)
     const description =
-      tableData.description !== undefined ? Translator.translate(tableData.description, props.locale) : ""
+      tableData.description !== undefined
+        ? Translator.translate(tableData.description, props.locale)
+        : ''
     const deletedRowCount = 0
     const dataFrame = JSON.parse(tableData.data_frame)
     const headCells = columnNames(dataFrame).map((column: string) => column)
-    const head: PropsUITableHead = {
-      __type__: "PropsUITableHead",
-      cells: headCells,
-    }
-    const body: PropsUITableBody = {
-      __type__: "PropsUITableBody",
-      rows: rows(dataFrame),
-    }
+    const head: PropsUITableHead = { __type__: 'PropsUITableHead', cells: headCells }
+    const body: PropsUITableBody = { __type__: 'PropsUITableBody', rows: rows(dataFrame) }
     return {
-      __type__: "PropsUITable",
+      __type__: 'PropsUITable',
       id,
       head,
       body,
@@ -110,19 +109,17 @@ export const ConsentForm = (props: Props): JSX.Element => {
       annotations: [],
       originalBody: body,
       deletedRows: [],
-      visualizations: tableData.visualizations,
-      folded: tableData.folded || false,
+      visualizations: tableData.visualizations
     }
   }
 
   function handleDonate(): void {
-    setIsDonating(true)
     const value = serializeConsentData()
-    resolve?.({ __type__: "PayloadJSON", value })
+    resolve?.({ __type__: 'PayloadJSON', value })
   }
 
   function handleCancel(): void {
-    resolve?.({ __type__: "PayloadFalse", value: false })
+    resolve?.({ __type__: 'PayloadFalse', value: false })
   }
 
   function serializeConsentData(): string {
@@ -169,15 +166,19 @@ export const ConsentForm = (props: Props): JSX.Element => {
   return (
     <>
       <div className="max-w-3xl">
-        {description.split("\n").map((line, index) => (
-          <BodyLarge key={"description" + String(index)} text={line} />
-        ))}
+        <BodyLarge text={description} />
       </div>
       <div className="flex flex-col gap-16 w-full">
         <div className="grid gap-8 max-w-full">
           {tables.map((table) => {
             return (
-              <TableContainer key={table.id} id={table.id} table={table} updateTable={updateTable} locale={locale} />
+              <TableContainer
+                key={table.id}
+                id={table.id}
+                table={table}
+                updateTable={updateTable}
+                locale={locale}
+              />
             )
           })}
         </div>
@@ -189,7 +190,6 @@ export const ConsentForm = (props: Props): JSX.Element => {
               label={donateButton}
               onClick={handleDonate}
               color="bg-success text-white"
-              spinning={isDonating}
             />
             <LabelButton label={cancelButton} onClick={handleCancel} color="text-grey1" />
           </div>
@@ -206,29 +206,29 @@ interface Copy {
   cancelButton: string
 }
 
-function prepareCopy({ donateQuestion, donateButton, description, locale }: Props): Copy {
+function prepareCopy({ locale }: Props): Copy {
   return {
-    description: Translator.translate(description ?? defaultDescription, locale),
-    donateQuestion: Translator.translate(donateQuestion ?? defaultDonateQuestionLabel, locale),
-    donateButton: Translator.translate(donateButton ?? defaultDonateButtonLabel, locale),
-    cancelButton: Translator.translate(cancelButtonLabel, locale),
+    description: Translator.translate(description, locale),
+    donateQuestion: Translator.translate(donateQuestionLabel, locale),
+    donateButton: Translator.translate(donateButtonLabel, locale),
+    cancelButton: Translator.translate(cancelButtonLabel, locale)
   }
 }
 
-const defaultDonateQuestionLabel = new TextBundle()
-  .add("en", "Do you want to donate the above data?")
-  .add("nl", "Wilt u de bovenstaande gegevens doneren?")
+const donateQuestionLabel = new TextBundle()
+  .add('en', 'Do you want to donate the above data?')
+  .add('nl', 'Wilt u de bovenstaande gegevens doneren?')
 
-const defaultDonateButtonLabel = new TextBundle().add("en", "Yes, donate").add("nl", "Ja, doneer")
+const donateButtonLabel = new TextBundle().add('en', 'Yes, donate').add('nl', 'Ja, doneer')
 
-const defaultDescription = new TextBundle()
+const cancelButtonLabel = new TextBundle().add('en', 'No').add('nl', 'Nee')
+
+const description = new TextBundle()
   .add(
-    "en",
-    "Determine whether you would like to donate the data below. Carefully check the data and adjust when required. With your donation you contribute to the previously described research. Thank you in advance."
+    'en',
+    'Determine whether you would like to donate the data below. Carefully check the data and adjust when required. With your donation you contribute to the previously described research. Thank you in advance.'
   )
   .add(
-    "nl",
-    "Bepaal of u de onderstaande gegevens wilt doneren. Bekijk de gegevens zorgvuldig en pas zo nodig aan. Met uw donatie draagt u bij aan het eerder beschreven onderzoek. Alvast hartelijk dank."
+    'nl',
+    'Bepaal of u de onderstaande gegevens wilt doneren. Bekijk de gegevens zorgvuldig en pas zo nodig aan. Met uw donatie draagt u bij aan het eerder beschreven onderzoek. Alvast hartelijk dank.'
   )
-
-const cancelButtonLabel = new TextBundle().add("en", "No").add("nl", "Nee")

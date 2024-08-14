@@ -1,7 +1,11 @@
 import { Weak } from '../../../../helpers'
 import { PropsUISearchBar } from '../../../../types/elements'
 
-export const SearchBar = ({ search, onSearch, placeholder }: Weak<PropsUISearchBar>): JSX.Element => {
+export const SearchBar = ({
+  search,
+  onSearch,
+  placeholder
+}: Weak<PropsUISearchBar>): JSX.Element => {
   function handleKeyPress (event: React.KeyboardEvent<HTMLInputElement>): void {
     if (event.key === 'Enter') {
       event.preventDefault()
