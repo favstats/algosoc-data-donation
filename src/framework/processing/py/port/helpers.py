@@ -7,6 +7,7 @@ import re
 from collections import deque
 from dateutil import parser
 from zoneinfo import ZoneInfo
+from lxml import html  # Make sure this import is present
 
 
 from dateutil.parser import parse
@@ -428,3 +429,40 @@ def robust_datetime_parser(timestamp: Any) -> str:
 # try_to_convert_any_timestamp_to_iso8601("1721418966")
 # epoch_to_iso("1721418966")
 # robust_datetime_parser("jul 19, 2024, 9:32 am")
+
+
+
+def html_tables(lxml_html):
+    # Parse the HTML content
+    tree = html.fromstring(lxml_html)
+    
+    # Find all tables in the HTML
+    tables = tree.xpath('//table')
+    
+    # List to store DataFrames
+    dfs = []
+    
+    # Loop through each table found
+    for table in tables:
+        # Extract the rows
+        rows = table.xpath('.//tr')
+        
+        # Extract the headers (if any)
+        headers = [header.text_content().strip() for header in rows[0].xpath('.//th')]
+        
+        # Extract the table rows
+        table_data = []
+        for row in rows[1:]:
+            row_data = [cell.text_content().strip() for cell in row.xpath('.//td')]
+            table_data.append(row_data)
+        
+        # Create the DataFrame
+        if headers:
+            df = pd.DataFrame(table_data, columns=headers)
+        else:
+            df = pd.DataFrame(table_data)
+        
+        # Append the DataFrame to the list
+        dfs.append(df)
+    
+    return dfs

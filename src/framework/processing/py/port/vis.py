@@ -43,7 +43,7 @@ def create_chart(type: Literal["bar", "line", "area"],
         values=values
     )
 
-    logger.debug("Chart configuration:\n%s", json.dumps(chart.toDict(), indent=2))
+    # logger.debug("Chart configuration:\n%s", json.dumps(chart.toDict(), indent=2))
 
     return chart
 

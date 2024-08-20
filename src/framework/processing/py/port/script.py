@@ -1,9 +1,8 @@
 import logging
 import json
 import io
+import random
 from typing import Optional, Literal
-
-
 import pandas as pd
 
 import port.api.props as props
@@ -42,6 +41,9 @@ def process(session_id):
         ("TikTok", tiktok.process_tiktok_data, tiktok.validate)
     ]
 
+    # Randomize the order of the platforms
+    random.shuffle(platforms)
+
     subflows = len(platforms)
     steps = 2
     step_percentage = (100 / subflows) / steps
@@ -50,33 +52,40 @@ def process(session_id):
     while True:
         LOGGER.info("Prompt for file")
         yield donate_logs(f"{session_id}-tracking")
-
-        promptFile = prompt_file("application/zip, text/plain, application/json", "Social Media")
+    
+        promptFile = prompt_file("application/zip", "Social Media")
         file_result = yield render_donation_page("Social Media", promptFile, progress)
-
+    
+        LOGGER.info("Uploaded a file")
         if file_result.__type__ == "PayloadString":
-            for platform_name, extraction_fun, validation_fun in platforms:
+            table_list = None  # Initialize table_list before the loop
+            for idx, (platform_name, extraction_fun, validation_fun) in enumerate(platforms):
+                LOGGER.info(f"Attempting to process as {platform_name} data")
                 validation = validation_fun(file_result.value)
-
+                
                 if validation.status_code.id == 0:
-                    LOGGER.info(f"Attempting to process as {platform_name} data")
+                  
                     yield donate_logs(f"{session_id}-tracking")
-
+    
                     table_list = extraction_fun(file_result.value)
-
+    
                     if table_list and len(table_list) > 0:
                         LOGGER.info(f"Successfully processed as {platform_name} data")
                         break
                 else:
                     LOGGER.info(f"Not a valid {platform_name} zip; trying next platform")
-
+    
             if table_list and len(table_list) > 0:
                 break
             else:
                 LOGGER.info("No valid data found; prompt retry_confirmation")
+                # Check if it's the final platform or if it's the last successful validation
+                LOGGER.error("All platforms failed. Showing file names now.")
+                for p in validation.validated_paths:
+                  LOGGER.debug("Found: %s in zip", p)
                 yield donate_logs(f"{session_id}-tracking")
                 retry_result = yield render_donation_page("Social Media", retry_confirmation("Social Media"), progress)
-
+    
                 if retry_result.__type__ == "PayloadTrue":
                     continue
                 else:
@@ -87,6 +96,7 @@ def process(session_id):
             LOGGER.info("Skipped file upload")
             yield donate_logs(f"{session_id}-tracking")
             break
+
 
     progress += step_percentage
 

@@ -3,6 +3,7 @@ Contains classes to deal with input validation of DDPs
 """
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import List  # Ensure this is imported
 
 import logging
 
@@ -54,7 +55,8 @@ class ValidateInput:
     ddp_categories: list[DDPCategory]
     status_code: StatusCode | None = None
     ddp_category: DDPCategory | None = None
-
+    validated_paths: List[str] = field(default_factory=list)
+    
     ddp_categories_lookup: dict[str, DDPCategory] = field(init=False)
     status_codes_lookup: dict[int, StatusCode] = field(init=False)
 
@@ -74,10 +76,11 @@ class ValidateInput:
         if max(prop_category.values()) >= 5:
             highest = max(prop_category, key=prop_category.get)  # type: ignore
             self.ddp_category = self.ddp_categories_lookup[highest]
+            self.validated_paths = file_list_input  # Store validated paths
             logger.info("Detected DDP category: %s", self.ddp_category.id)
             return True
 
-        logger.info("Not a valid input; not enough files matched when performing input validation")
+        logger.info("Not enough files matched when performing input validation")
         return False
 
     def set_status_code(self, code: int) -> None:

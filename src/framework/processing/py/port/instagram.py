@@ -26,7 +26,7 @@ DDP_CATEGORIES = [
         id="json_en",
         ddp_filetype=DDPFiletype.JSON,
         language=Language.EN,
-        known_files=[
+        known_files = [
             "accounts_you're_not_interested_in.json",
             "ads_viewed.json",
             "posts_viewed.json",
@@ -35,6 +35,13 @@ DDP_CATEGORIES = [
             "post_comments.json",
             "liked_posts.json",
             "following.json",
+            "ads_clicked.json",
+            "liked_comments.json",
+            "live_videos.json",
+            "posts.json",
+            "reels.json",
+            "stories.json",
+            "word_or_phrase_searches.json"
         ],
     ),
     DDPCategory(
@@ -50,6 +57,13 @@ DDP_CATEGORIES = [
             "post_comments.html",
             "liked_posts.html",
             "following.html",
+            "ads_clicked.html",
+            "liked_comments.html",
+            "live_videos.html",
+            "posts.html",
+            "reels.html",
+            "stories.html",
+            "word_or_phrase_searches.html"
         ],
     )
 ]
@@ -60,25 +74,63 @@ STATUS_CODES = [
     StatusCode(id=2, description="Bad zipfile", message="Bad zip"),
 ]
 
+def parse_data(data: List[Dict[str, Any]]) -> pd.DataFrame:
+    df = pd.DataFrame(data)
+    
+    required_columns = ['data_type', 'Action', 'title', 'URL', 'Date', 'details']
+    for col in required_columns:
+        if col not in df.columns:
+            df[col] = pd.NA
+    
+    return df
+
 def validate(file: Path) -> ValidateInput:
     validation = ValidateInput(STATUS_CODES, DDP_CATEGORIES)
     
     try:
         paths = []
+        file_name = file.lower()  # Convert file name to lowercase for consistent checks
+        
         with zipfile.ZipFile(file, "r") as zf:
             for f in zf.namelist():
                 p = Path(f)
                 if p.suffix in (".json", ".html"):
-                    logger.debug("Found: %s in zip", p.name)
-                    paths.append(p.name)
+                    paths.append(p.name.lower())  # Convert to lowercase for consistent checks
 
         validation.infer_ddp_category(paths)
         
         if validation.ddp_category is None:
             logger.warning("Could not infer DDP category")
             validation.set_status_code(1)  # Not a valid DDP
+        elif validation.ddp_category.ddp_filetype in (DDPFiletype.JSON, DDPFiletype.HTML):
+            # Check if the file name indicates Facebook or Instagram
+            if "facebook" in file_name and "instagram" not in file_name:
+                validation.set_status_code(1)  # Not a valid DDP for Instagram
+                logger.warning("Found Facebook in zip file so can't be Instagram!")
+            # elif "instagram" in file_name and "facebook" not in file_name:
+            #     validation.set_status_code(0)  # Valid DDP for Instagram
+            #     
+            #     # Log the valid Instagram files found
+            #     for p in paths:
+            #         logger.debug("Found: %s in zip", p)
+            # 
+            # If file name does not indicate, fallback to checking paths
+            elif any("facebook" in path for path in paths) and not any("instagram" in path for path in paths):
+                validation.set_status_code(1)  # Not a valid DDP for Instagram
+                logger.warning("Found Facebook in file names so can't be Instagram!")
+            # 
+            # elif any("instagram" in path for path in paths) and not any("facebook" in path for path in paths):
+            #     validation.set_status_code(0)  # Valid DDP for Instagram
+            #     
+            else:
+                validation.set_status_code(0)  # Assume it is a valid DDP 
+                # Log the valid Instagram files found
+                for p in paths:
+                    logger.debug("Found: %s in zip", p)
+              
         else:
-            validation.set_status_code(0)  # Valid DDP
+            logger.warning("Could not infer DDP category")
+            validation.set_status_code(1)  # Not a valid DDP
 
     except zipfile.BadZipFile:
         logger.error("Bad zip file")
@@ -86,15 +138,17 @@ def validate(file: Path) -> ValidateInput:
     except Exception as e:
         logger.error(f"Unexpected error during validation: {str(e)}")
         validation.set_status_code(1)  # Not a valid DDP
-
+    
+    validation.validated_paths = paths  # Store the validated paths
     return validation
+
 
 def extract_instagram_data(instagram_zip: str) -> Dict[str, Any]:
     global DATA_FORMAT
-    validation = validate(Path(instagram_zip))
-    if validation.status_code is None or validation.status_code.id != 0:
-        logger.error(f"Invalid zip file: {validation.status_code.description if validation.status_code else 'Unknown error'}")
-        return {}
+    # validation = validate(Path(instagram_zip))
+    # if validation.status_code is None or validation.status_code.id != 0:
+    #     logger.error(f"Invalid zip file: {validation.status_code.description if validation.status_code else 'Unknown error'}")
+    #     return {}
 
     data = {}
     try:
@@ -270,7 +324,7 @@ def parse_posts_viewed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           'Action': 'PostView',
           'title': post.get("string_map_data", {}).get("Author", {}).get("value", "Unknown Author"),
           'URL': '',
-          'Date': helpers.epoch_to_iso(post.get("string_map_data", {}).get("Time", {}).get("timestamp", 0)),
+          'Date': helpers.robust_datetime_parser(post.get("string_map_data", {}).get("Time", {}).get("timestamp", 0)),
           'details': json.dumps({})
       } for post in posts]
     elif DATA_FORMAT == "html":
@@ -336,7 +390,7 @@ def parse_videos_watched(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           'Action': 'VideoWatch',
           'title': video.get("string_map_data", {}).get("Author", {}).get("value", "Unknown Author"),
           'URL': '',
-          'Date': helpers.epoch_to_iso(video.get("string_map_data", {}).get("Time", {}).get("timestamp", 0)),
+          'Date': helpers.robust_datetime_parser(video.get("string_map_data", {}).get("Time", {}).get("timestamp", 0)),
           'details': json.dumps({})
       } for video in videos]
     elif DATA_FORMAT == "html":
@@ -390,21 +444,116 @@ def parse_videos_watched(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             logger.error(f"Error parsing 'videos_watched.html': {str(e)}")
             return []
       
+def parse_advertisers_using_activity(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+        advertisers = helpers.find_items_bfs(data, "ig_custom_audiences_all_types")
+        if not advertisers:
+          return []
+        return [{
+            'data_type': 'instagram_advertiser_activity',
+            'Action': 'AdvertiserActivity',
+            'title': advertiser.get("advertiser_name", ""),
+            'URL': '',
+            'Date': '',
+            'details': json.dumps({
+                'has_data_file_custom_audience': advertiser.get("has_data_file_custom_audience", False),
+                'has_remarketing_custom_audience': advertiser.get("has_remarketing_custom_audience", False),
+                'has_in_person_store_visit': advertiser.get("has_in_person_store_visit", False)
+            })
+        } for advertiser in advertisers]
+    elif DATA_FORMAT == "html":
+        html_content = helpers.find_items_bfs(data,"advertisers_using_your_activity_or_information.html")
+        if not html_content:
+          return []
+        
+        try: 
+            
+          parsed_table = helpers.html_tables(html_content)
+          df = pd.DataFrame(parsed_table[1])
+          result = []
+          
+          for _, row in df.iterrows():
+              result.append({
+                  'data_type': 'instagram_advertiser_activity',
+                  'Action': 'AdvertiserActivity',
+                  'title': row[0],
+                  'URL': '',
+                  'Date': '',
+                  'details': json.dumps({
+                      'has_data_file_custom_audience': row[1] == 'x' if len(row) > 1 else False ,
+                      'has_remarketing_custom_audience': row[2] == 'x' if len(row) > 2 else False ,
+                      'has_in_person_store_visit': row[3] == 'x' if len(row) > 3 else False 
+                  })
+              })
+            
+          return result
+        except Exception as e:
+            logger.error(f"Error parsing 'advertisers_using_your_activity_or_information.html': {str(e)}")
+            return []
+
+## todo: fix html
+def parse_subscription_for_no_ads(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+        subscriptions = helpers.find_items_bfs(data, "subscription_for_no_ads.json")
+        subscriptions = helpers.find_items_bfs(subscriptions, "label_values")
+        if not subscriptions:
+          return []
+        return [{
+            'data_type': 'instagram_subscription',
+            'Action': 'SubscriptionStatus',
+            'title': "Your Ad-Opt-Out Subscription Status" + ": " + sub.get("value", ""),
+            'URL': '',
+            'Date': '',
+            'details': json.dumps({})
+        } for sub in subscriptions]
+    elif DATA_FORMAT == "html":
+        html_content = helpers.find_items_bfs(data, "subscription_for_no_ads.html")
+        if not html_content:
+          return []
+        
+        try: 
+        
+          tree = html.fromstring(html_content)
+          subscriptions = []
+          
+          # Find all table rows in the main content
+          subscription_rows = tree.xpath('//div[@role="main"]//table//tr')
+          
+          for row in subscription_rows:
+              label = row.xpath('.//td[1]/text()')[0].strip() if row.xpath('.//td[1]/text()') else ""
+              value = row.xpath('.//td[2]/text()')[0].strip() if row.xpath('.//td[2]/text()') else ""
+              
+              subscriptions.append({
+                  'data_type': 'instagram_subscription',
+                  'Action': 'SubscriptionStatus',
+                  'title': 'Your Ad-Opt-Out Subscription' + ": " + value,
+                  'URL': '',
+                  'Date': '',
+                  'details': json.dumps({})
+              })
+        
+          return subscriptions
+        
+        except Exception as e:
+            logger.error(f"Error parsing 'subscription_for_no_ads.html': {str(e)}")
+            return []      
+      
       
       
 def parse_post_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
-      comments = helpers.find_items_bfs(data, "comments_media_comments")
+      comments = helpers.find_items_bfs(data, "comments_media_comments") or helpers.find_items_bfs(data, "post_comments_1.json")
 
       if not comments:
         return []
       return [{
           'data_type': 'instagram_post_comment',
           'Action': 'Comment',
-          'title': comment.get("string_map_data", {}).get("Media Owner", {}).get("value", "Unknown Media Owner"),
-          'URL': '',
-          'Date': helpers.epoch_to_iso(comment.get("string_map_data", {}).get("Time", {}).get("timestamp", 0)),
-          'details': json.dumps({'comment': comment.get("string_map_data", {}).get("Comment", {}).get("value", "")})
+          'title': comment.get("string_map_data", {}).get("Comment", {}).get("value", ""),
+          'URL': "https://www.instagram.com/" + comment.get("string_map_data", {}).get("Media Owner", {}).get("value", ""),
+          'Date': helpers.robust_datetime_parser(comment.get("string_map_data", {}).get("Time", {}).get("timestamp", 0)),
+          'details': json.dumps({})
+          
       } for comment in comments]
     elif DATA_FORMAT == "html":
         elements = helpers.find_items_bfs(data, "post_comments_1.html")
@@ -433,10 +582,10 @@ def parse_post_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                         date = post.xpath('.//div[1]//text()')[5]
                     except Exception as e:
                         date = post.xpath('.//div[1]//text()')[3]
-                        author = 'Unknown Author'
+                        author = ''
 
                     # Ensure lists are not empty before accessing elements
-                    author_text = author.strip() if author else 'Unknown Author'
+                    author_text = author.strip() if author else ''
                     title_text = title.strip() if title else 'Unknown Text'
 
                     date_text = helpers.robust_datetime_parser(date.strip()) if date else ''
@@ -444,9 +593,8 @@ def parse_post_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     parsed_item = {
                         'data_type': 'instagram_post_comment',
                         'Action': 'Comment',
-                        'title': author_text,
-                        'origin': title_text,
-                        'URL': '',
+                        'title': title_text,
+                        'URL': "https://www.instagram.com/" + author_text,
                         'Date': date_text,
                         'details': json.dumps({})
                     }
@@ -471,9 +619,9 @@ def parse_liked_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return [{
           'data_type': 'instagram_liked_post',
           'Action': 'LikePost',
-          'title': post.get("string_list_data", [{}])[0].get("value", "Unknown Post"),
+          'title': helpers.find_items_bfs(post, "title"),
           'URL': post.get("string_list_data", [{}])[0].get("href", ""),
-          'Date': helpers.epoch_to_iso(post.get("string_list_data", [{}])[0].get("timestamp", 0)),
+          'Date': helpers.robust_datetime_parser(post.get("string_list_data", [{}])[0].get("timestamp", 0)),
           'details': json.dumps({})
       } for post in liked_posts]
     elif DATA_FORMAT == "html":
@@ -528,6 +676,136 @@ def parse_liked_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             return []
 
 
+def parse_liked_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+      liked_comments = helpers.find_items_bfs(data, "likes_comment_likes")
+
+      if not liked_comments:
+        return []
+      return [{
+          'data_type': 'instagram_liked_comment',
+          'Action': 'LikeComment',
+          'title': helpers.find_items_bfs(comment, "title"),
+          'URL': comment.get("string_list_data", [{}])[0].get("href", ""),
+          'Date': helpers.robust_datetime_parser(comment.get("string_list_data", [{}])[0].get("timestamp", 0)),
+          'details': json.dumps({})
+      } for comment in liked_comments]
+    elif DATA_FORMAT == "html":
+        elements = helpers.find_items_bfs(data, "liked_comments.html")
+        if not elements:
+            logger.warning("No content found for 'liked_comments.html'.")
+            return []
+
+        try:
+            tree = html.fromstring(elements)
+            main_content = tree.xpath('//div[@role="main"]')
+
+            if not main_content:
+                logger.warning("No main content found in the HTML document.")
+                return []
+
+            comment_elements = main_content[0]
+            logger.debug(f"Found {len(comment_elements)} comment views.")
+
+            parsed_data = []
+            for comment in comment_elements:
+                try: 
+                    try: 
+                        author = comment.xpath('.//div[1]//text()')[0]
+                        date = comment.xpath('.//div[1]//text()')[2]
+                    except Exception as e:
+                        author = 'Unknown Author'
+                        date = comment.xpath('.//div[1]//text()')[1]
+                        
+                    # Ensure lists are not empty before accessing elements
+                    title_text = author.strip() if author else 'Unknown Author'
+                    date_text = helpers.robust_datetime_parser(date.strip()) if date else ''
+
+                    parsed_item = {
+                        'data_type': 'instagram_liked_comment',
+                        'Action': 'LikeComment',
+                        'title': title_text,
+                        'URL': '',
+                        'Date': date_text,
+                        'details': json.dumps({})
+                    }
+                    # print(f"Constructed parsed item: {parsed_item}")
+                    parsed_data.append(parsed_item)
+
+                except Exception as e:
+                    logger.error(f"Error parsing ad element: {str(e)}")
+
+            return parsed_data
+
+        except Exception as e:
+            logger.error(f"Error parsing 'liked_comments.html': {str(e)}")
+            return []
+          
+def parse_story_likes(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+      liked_stories = helpers.find_items_bfs(data, "story_activities_story_likes") or helpers.find_items_bfs(data, "story_likes.json")
+
+      if not liked_stories:
+        return []
+      return [{
+          'data_type': 'instagram_liked_story',
+          'Action': 'LikeStory',
+          'title': helpers.find_items_bfs(story, "title"),
+          'URL': "https://www.instagram.com/" + helpers.find_items_bfs(story, "title"),
+          'Date': helpers.robust_datetime_parser(story.get("string_list_data", [{}])[0].get("timestamp", 0)),
+          'details': json.dumps({})
+      } for story in liked_stories]
+    elif DATA_FORMAT == "html":
+        elements = helpers.find_items_bfs(data, "story_likes.html")
+        if not elements:
+            logger.warning("No content found for 'story_likes.html'.")
+            return []
+
+        try:
+            tree = html.fromstring(elements)
+            main_content = tree.xpath('//div[@role="main"]')
+
+            if not main_content:
+                logger.warning("No main content found in the HTML document.")
+                return []
+
+            story_elements = main_content[0]
+            logger.debug(f"Found {len(story_elements)} story likes.")
+
+            parsed_data = []
+            for story in story_elements:
+                try: 
+                    try: 
+                        author = story.xpath('.//div[1]//text()')[0]
+                        date = story.xpath('.//div[1]//text()')[1]
+                    except Exception as e:
+                        author = 'Unknown Author'
+                        date = story.xpath('.//div[1]//text()')[0]
+                        
+                    # Ensure lists are not empty before accessing elements
+                    title_text = author.strip() if author else 'Unknown Author'
+                    date_text = helpers.robust_datetime_parser(date.strip()) if date else ''
+
+                    parsed_item = {
+                        'data_type': 'instagram_liked_story',
+                        'Action': 'LikeStory',
+                        'title': title_text,
+                        'URL': "https://www.instagram.com/" + title_text,
+                        'Date': date_text,
+                        'details': json.dumps({})
+                    }
+                    # print(f"Constructed parsed item: {parsed_item}")
+                    parsed_data.append(parsed_item)
+
+                except Exception as e:
+                    logger.error(f"Error parsing ad element: {str(e)}")
+
+            return parsed_data
+
+        except Exception as e:
+            logger.error(f"Error parsing 'story_likes.html': {str(e)}")
+            return []
+
 def parse_following(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
     if DATA_FORMAT == "json":
@@ -539,7 +817,7 @@ def parse_following(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           'Action': 'Follow',
           'title': account.get("string_list_data", [{}])[0].get("value", "Unknown Account"),
           'URL': account.get("string_list_data", [{}])[0].get("href", ""),
-          'Date': helpers.epoch_to_iso(account.get("string_list_data", [{}])[0].get("timestamp", 0)),
+          'Date': helpers.robust_datetime_parser(account.get("string_list_data", [{}])[0].get("timestamp", 0)),
           'details': json.dumps({})
       } for account in following]
     elif DATA_FORMAT == "html":
@@ -577,7 +855,7 @@ def parse_following(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                         'data_type': 'instagram_following',
                         'Action': 'Follow',
                         'title': title_text,
-                        'URL': '',
+                        'URL':  "https://www.instagram.com/" + title_text,
                         'Date': date_text,
                         'details': json.dumps({})
                     }
@@ -593,20 +871,100 @@ def parse_following(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             logger.error(f"Error parsing 'following.html': {str(e)}")
             return []
           
+def parse_account_searches(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+      searches = helpers.find_items_bfs(data, "searches_user")
+      if not searches:
+          return []
+      
+      return [{
+          'data_type': 'instagram_account_search',
+          'Action': 'Search',
+          'title': search_word,
+          'URL': "https://www.instagram.com/explore/search/keyword/?q=" + search_word,
+          'Date': helpers.robust_datetime_parser(
+              search['string_map_data'].get('Time', {}).get('timestamp') or 
+              search['string_map_data'].get('Tijd', {}).get('timestamp')
+          ),
+          'details': json.dumps({})
+      } for search in searches if (search_word := (
+          search['string_map_data'].get('Search', {}).get('value') or 
+          search['string_map_data'].get('Zoekopdracht', {}).get('value') or 
+          search['string_map_data'].get('Zoeken', {}).get('value')
+      ))]
+    elif DATA_FORMAT == "html":
+        searches = helpers.find_items_bfs(data, "account_searches.html")
+        if not searches:
+            logger.warning("No content found for 'account_searches.html'.")
+            return []
+
+        try:
+            tree = html.fromstring(searches)
+            main_content = tree.xpath('//div[@role="main"]')
+
+            if not main_content:
+                logger.warning("No main content found in the HTML document.")
+                return []
+
+            post_elements = main_content[0]
+            logger.debug(f"Found {len(post_elements)} post views.")
+
+            parsed_data = []
+            for post in post_elements:
+                try: 
+                    author = post.xpath('.//div[1]//text()')[1]
+                    try: 
+                        date = post.xpath('.//div[1]//text()')[3]
+                    except Exception as e:
+                        date = post.xpath('.//div[1]//text()')[1]
+                        author = 'Unknown Author'
+
+                    # Ensure lists are not empty before accessing elements
+                    title_text = author.strip() if author else 'Unknown Author'
+                    date_text = helpers.robust_datetime_parser(date.strip()) if date else ''
+
+                    parsed_item = {
+                        'data_type': 'instagram_account_search',
+                        'Action': 'Search',
+                        'title': title_text,
+                        'URL': "https://www.instagram.com/explore/search/keyword/?q=" + title_text,
+                        'Date': date_text,
+                        'details': json.dumps({})
+                    }
+                    # print(f"Constructed parsed item: {parsed_item}")
+                    parsed_data.append(parsed_item)
+
+                except Exception as e:
+                    logger.error(f"Error parsing ad element: {str(e)}")
+
+            return parsed_data
+
+        except Exception as e:
+            logger.error(f"Error parsing 'account_searches.html': {str(e)}")
+            return []
+          
 def parse_searches(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
       searches = helpers.find_items_bfs(data, "searches_keyword")
       if not searches:
           return []
-      
+            
       return [{
           'data_type': 'instagram_search',
           'Action': 'Search',
-          'title': search['string_map_data']['Search']['value'],
-          'URL': '',
-          'Date': helpers.epoch_to_iso(search['string_map_data']['Time']['timestamp']),
+          'title': search_word,
+          'URL': "https://www.instagram.com/explore/search/keyword/?q=" + search_word,
+          'Date': helpers.robust_datetime_parser(
+              search['string_map_data'].get('Time', {}).get('timestamp') or 
+              search['string_map_data'].get('Tijd', {}).get('timestamp')
+          ),
           'details': json.dumps({})
-      } for search in searches]
+      } for search in searches if (search_word := (
+          search['string_map_data'].get('Search', {}).get('value') or 
+          search['string_map_data'].get('Zoekopdracht', {}).get('value') or 
+          search['string_map_data'].get('Zoeken', {}).get('value')
+      ))]
+
     elif DATA_FORMAT == "html":
         searches = helpers.find_items_bfs(data, "word_or_phrase_searches.html")
         if not searches:
@@ -642,7 +1000,7 @@ def parse_searches(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                         'data_type': 'instagram_search',
                         'Action': 'Search',
                         'title': title_text,
-                        'URL': '',
+                        'URL': "https://www.instagram.com/explore/search/keyword/?q=" + title_text,
                         'Date': date_text,
                         'details': json.dumps({})
                     }
@@ -658,7 +1016,7 @@ def parse_searches(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             logger.error(f"Error parsing 'word_or_phrase_searches.html': {str(e)}")
             return []
 
-def parse_posted_reels(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+def parse_posted_reels_insights(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
       reels = helpers.find_items_bfs(data, "organic_insights_reels")
       if not reels:
@@ -669,7 +1027,7 @@ def parse_posted_reels(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           'Action': 'PostedReel',
           'title': reel['string_map_data'].get('Caption', {}).get('value', '') or reel['media_map_data']['Media Thumbnail'].get('title', ''),
           'URL': '',
-          'Date': helpers.epoch_to_iso(reel['string_map_data']['Upload Timestamp']['timestamp']),
+          'Date': helpers.robust_datetime_parser(reel['string_map_data']['Upload Timestamp']['timestamp']),
           'details': json.dumps({
               'duration': reel['string_map_data'].get('Duration', {}).get('value', ''),
               'accounts_reached': reel['string_map_data'].get('Accounts reached', {}).get('value', ''),
@@ -768,7 +1126,7 @@ def parse_posted_reels(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             logger.error(f"Error parsing HTML content for reels: {str(e)}")
             return []
 
-def parse_posted_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+def parse_posted_posts_insights(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
       posts = helpers.find_items_bfs(data, "organic_insights_posts")
       if not posts:
@@ -779,7 +1137,7 @@ def parse_posted_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           'Action': 'PostedPost',
           'title': post['media_map_data']['Media Thumbnail'].get('title', ''),
           'URL': '',
-          'Date': helpers.epoch_to_iso(post['string_map_data']['Creation Timestamp']['timestamp']),
+          'Date': helpers.robust_datetime_parser(post['string_map_data']['Creation Timestamp']['timestamp']),
           'details': json.dumps({
               'profile_visits': post['string_map_data'].get('Profile visits', {}).get('value', ''),
               'impressions': post['string_map_data'].get('Impressions', {}).get('value', ''),
@@ -791,11 +1149,118 @@ def parse_posted_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
               'shares': post['string_map_data'].get('Shares', {}).get('value', ''),
           })
       } for post in posts]
+    if DATA_FORMAT == "html":
+      return []
+
+
+def parse_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+      posts = data.get("posts_1.json", []) or helpers.find_items_bfs(item, "title")
+      if isinstance(posts, dict):
+          posts = [posts]
+      return [{
+          'data_type': 'instagram_post',
+          'Action': 'Post',
+          'title': helpers.find_items_bfs(item, "title"),
+          'URL': '',
+          'Date': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "creation_timestamp")),
+          'details': json.dumps({})
+      } for item in posts]
+    elif DATA_FORMAT == "html":
+        posts_html = helpers.find_items_bfs(data, "posts_1.html")
+        if not posts_html:
+          logger.warning("No content found for 'posts_1.html'.")
+          return []
+        try:
+          tree = html.fromstring(posts_html)
+          posts = tree.xpath('//div[@role="main"]/div')
+          return [{
+              'data_type': 'instagram_post',
+              'Action': 'Post',
+              'title': "No Text" if (post.xpath('div/text()') and post.xpath('div[last()]/text()') 
+                                  and post.xpath('div/text()')[0] == post.xpath('div[last()]/text()')[0]) 
+                    else (post.xpath('div/text()')[0].strip() if post.xpath('div/text()') else ''),              'URL': '',
+              'Date': helpers.robust_datetime_parser(post.xpath('div[last()]/text()')[0] if post.xpath('div[last()]/text()') else ''),
+              'details': json.dumps({})
+          } for post in posts]
+        except Exception as e:
+            logger.error(f"Error parsing 'posts_1.html': {str(e)}")
+            return []   
+    
+    
+def parse_reels(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+      posts = data.get("reels.json", []) or helpers.find_items_bfs(item, "ig_reels_media")
+      if isinstance(posts, dict):
+          posts = [posts]
+      return [{
+          'data_type': 'instagram_reel',
+          'Action': 'Post',
+          'title': helpers.find_items_bfs(item, "title"),
+          'URL': '',
+          'Date': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "creation_timestamp")),
+          'details': json.dumps({})
+      } for item in posts]
+    elif DATA_FORMAT == "html":
+        posts_html = helpers.find_items_bfs(data, "reels.html")
+        if not posts_html:
+          logger.warning("No content found for 'reels.html'.")
+          return []
+        try:
+          tree = html.fromstring(posts_html)
+          posts = tree.xpath('//div[@role="main"]/div')
+          return [{
+              'data_type': 'instagram_reel',
+              'Action': 'Post',
+              'title': "No Text" if (post.xpath('div/text()') and post.xpath('div[last()]/text()') 
+                                  and post.xpath('div/text()')[0] == post.xpath('div[last()]/text()')[0]) 
+                    else (post.xpath('div/text()')[0].strip() if post.xpath('div/text()') else ''),
+              'URL': '',
+              'Date': helpers.robust_datetime_parser(post.xpath('div[last()]/text()')[0] if post.xpath('div[last()]/text()') else ''),
+              'details': json.dumps({})
+          } for post in posts]
+        except Exception as e:
+            logger.error(f"Error parsing 'reels.html': {str(e)}")
+            return []    
+          
+def parse_stories(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+      posts = data.get("stories.json", []) or helpers.find_items_bfs(item, "ig_stories")
+      if isinstance(posts, dict):
+          posts = [posts]
+      return [{
+          'data_type': 'instagram_story',
+          'Action': 'Post',
+          'title': helpers.find_items_bfs(item, "title"),
+          'URL': '',
+          'Date': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "creation_timestamp")),
+          'details': json.dumps({})
+      } for item in posts]
+    elif DATA_FORMAT == "html":
+        posts_html = helpers.find_items_bfs(data, "stories.html")
+        if not posts_html:
+          logger.warning("No content found for 'stories.html'.")
+          return []
+        try:
+          tree = html.fromstring(posts_html)
+          posts = tree.xpath('//div[@role="main"]/div')
+          return [{
+              'data_type': 'instagram_story',
+              'Action': 'Post',
+              'title': "No Text" if (post.xpath('div/text()') and post.xpath('div[last()]/text()') 
+                                  and post.xpath('div/text()')[0] == post.xpath('div[last()]/text()')[0]) 
+                    else (post.xpath('div/text()')[0].strip() if post.xpath('div/text()') else ''),              'URL': '',
+              'Date': helpers.robust_datetime_parser(post.xpath('div[last()]/text()')[0] if post.xpath('div[last()]/text()') else ''),
+              'details': json.dumps({})
+          } for post in posts]
+        except Exception as e:
+            logger.error(f"Error parsing 'stories.html': {str(e)}")
+            return []
 
 
 def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsentFormTable]:
     extracted_data = extract_instagram_data(instagram_zip)
-    
+    logger.info(f"Extracted data keys: {extracted_data.keys() if extracted_data else 'None'}")
     
     all_data = []
     parsing_functions = [
@@ -804,10 +1269,16 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
         parse_videos_watched,
         parse_post_comments,
         parse_liked_posts, 
+        parse_liked_comments,
+        parse_story_likes,
         parse_following,
         parse_searches, 
-        parse_posted_reels,
-        parse_posted_posts,
+        parse_account_searches,
+        parse_posted_reels_insights,
+        parse_posted_posts_insights,
+        parse_posts,
+        parse_reels,
+        parse_stories,
         parse_ads_clicked
         
     ]
@@ -823,9 +1294,33 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
     tables_to_render = []
     
     if all_data:
-        combined_df = pd.DataFrame(all_data)
+        combined_df = parse_data(all_data)
         try: 
           combined_df['Date'] = pd.to_datetime(combined_df['Date'], errors='coerce')
+          combined_df = combined_df.dropna(subset=['Date'])  # Drop rows where 'Date' is NaN
+          
+          # Convert all datetime objects to timezone-naive
+          combined_df['Date'] = combined_df['Date'].dt.tz_convert(None)
+          # Check for entries with dates before 2016
+          pre_2000_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
+          if pre_2000_count > 0:
+              logger.info(f"Found {pre_2000_count} entries with dates before 2000.")
+          
+              # Filter out dates before 2000
+              try:
+                  # Filter out dates before 2000
+                  combined_df = combined_df[combined_df['Date'] >= pd.Timestamp('2000-01-01')]  
+                  # Confirm deletion
+                  if pre_2000_count > 0:
+                      post_filter_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
+                      if post_filter_count == 0:
+                          logger.info(f"Successfully deleted {pre_2000_count} entries with dates before 2000.")
+                      else:
+                          logger.info(f"Failed to delete some entries with dates before 2000. Remaining: {post_filter_count}.")
+                      
+              except Exception as e:
+                  logger.info(f"Error filtering dates before 2000: {e}")
+
           combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
           combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
@@ -848,6 +1343,50 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
         logger.info(f"Successfully processed {len(combined_df)} total entries from Instagram data")
     else:
         logger.warning("No data was successfully extracted and parsed")
+   
+   
+    ### this is for all things without dates
+    all_data = []
+    parsing_functions = [
+        parse_subscription_for_no_ads, parse_advertisers_using_activity
+    ]
+    
+    for parse_function in parsing_functions:
+        try:
+            parsed_data = parse_function(extracted_data)
+            logger.info(f"{parse_function.__name__} returned {len(parsed_data)} items")
+            all_data.extend(parsed_data)
+        except Exception as e:
+            logger.error(f"Error in {parse_function.__name__}: {str(e)}")
+    
+    
+    if all_data:
+        combined_df = parse_data(all_data)
+        logger.info(f"Combined data frame shape: {combined_df.shape}")
+        
+        if not combined_df.empty:
+            # Remove the 'Date' column if it exists
+            if 'Date' in combined_df.columns:
+                combined_df = combined_df.drop(columns=['Date'])
+            # combined_df['Date'] = pd.to_datetime(combined_df['Date'], errors='coerce')
+            # combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
+            # combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
+       
+            # if 'details' in combined_df.columns:
+            #     combined_df = combined_df.drop(columns=['details'])
+            # Create a single table with all data
+            table_title = props.Translatable({"en": "Instagram Ad Info", "nl": "Instagram Gegevens"})
+
+
+            # Pass the ungrouped data for the table and grouped data for the chart
+            table = props.PropsUIPromptConsentFormTable("instagram_all_data2", table_title, combined_df)
+            tables_to_render.append(table)
+            
+            logger.info(f"Successfully processed Second {len(combined_df)} total entries from Instagram data")
+        else:
+            logger.warning("Second Combined DataFrame is empty")
+    else:
+        logger.warning("Second Combined DataFrame: No data was successfully extracted and parsed")
     
     return tables_to_render
 

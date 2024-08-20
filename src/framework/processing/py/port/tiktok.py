@@ -80,7 +80,7 @@ def validate(file: Path) -> ValidateInput:
             for f in zf.namelist():
                 p = Path(f)
                 if p.suffix in (".json", ".txt"):
-                    logger.debug("Found: %s in zip", p.name)
+                    # logger.debug("Found: %s in zip", p.name)
                     paths.append(p.name)
 
         validation.infer_ddp_category(paths)
@@ -90,7 +90,11 @@ def validate(file: Path) -> ValidateInput:
             validation.set_status_code(1)  # Not a valid DDP
         elif validation.ddp_category.ddp_filetype in (DDPFiletype.JSON, DDPFiletype.TXT):
             validation.set_status_code(0)  # Valid DDP
+            # Log the valid TikTok files found
+            for p in paths:
+                logger.debug("Found: %s in zip", p)
         else:
+            logger.warning("Could not infer DDP category")
             validation.set_status_code(1)  # Not a valid DDP
 
     except zipfile.BadZipFile:
@@ -99,7 +103,7 @@ def validate(file: Path) -> ValidateInput:
     except Exception as e:
         logger.error(f"Unexpected error during validation: {str(e)}")
         validation.set_status_code(1)  # Not a valid DDP
-
+    validation.validated_paths = paths  # Store the validated paths
     return validation
 
 def extract_tiktok_data(tiktok_zip: str) -> Dict[str, Any]:
@@ -227,11 +231,7 @@ def parse_login_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             'title': f"Login from {login.get(device_model_key, 'Unknown')} ({login.get(device_system_key, 'Unknown')})",
             'URL': '',
             'Date': login.get('Date', ''),
-            'details': json.dumps({
-                'IP': login.get('IP', ''),
-                'NetworkType': login.get(network_type_key, ''),
-                'Carrier': login.get('Carrier', '')
-            })
+            'details': json.dumps({})
         } for login in logins if isinstance(login, dict)
     ]
 
@@ -296,6 +296,46 @@ def parse_like_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             'details': json.dumps({})
         } for like in likes if isinstance(like, dict)
     ]
+    
+def parse_fav_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+        like_key = "FavoriteVideoList"
+    elif DATA_FORMAT == "txt":
+        like_key = "Favorite Videos"
+    
+    likes = helpers.find_items_bfs(data, like_key)
+    if not likes:
+      return []
+    return [
+        {
+            'data_type': 'tiktok_favorite',
+            'Action': 'Favorite',
+            'title': 'Favorited video',
+            'URL': like.get('Link', ''),
+            'Date': like.get('Date', ''),
+            'details': json.dumps({})
+        } for like in likes if isinstance(like, dict)
+    ]
+    
+def parse_fav_hashtag(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+        like_key = "FavoriteHashtagList"
+    elif DATA_FORMAT == "txt":
+        like_key = "Favorite HashTags"
+    
+    likes = helpers.find_items_bfs(data, like_key)
+    if not likes:
+      return []
+    return [
+        {
+            'data_type': 'tiktok_favorite_hashtag',
+            'Action': 'Favorite',
+            'title': 'Favorited Hashtag',
+            'URL': like.get('Link', like.get('HashTag Link', like.get('HashTag Link:', ''))),
+            'Date': like.get('Date', ''),
+            'details': json.dumps({})
+        } for like in likes if isinstance(like, dict)
+    ]
 
 def parse_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
@@ -324,7 +364,7 @@ def parse_ad_info(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         ad_key = "AdInterestCategories"
     elif DATA_FORMAT == "txt":
         ad_key = "Ad Interests"
-    
+
     ad_interests = helpers.find_items_bfs(data, ad_key)
     if not ad_interests:
       return []
@@ -338,6 +378,27 @@ def parse_ad_info(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             'details': json.dumps({})
         } for interest in ad_interests if isinstance(interest, str)
     ]
+    
+def parse_ad_ca(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+        ad_key = "OffTikTokActivityDataList"
+    elif DATA_FORMAT == "txt":
+        ad_key = "Off TikTok Activity"
+    
+    ad_interests = helpers.find_items_bfs(data, ad_key)
+    if not ad_interests:
+      return []
+    return [
+        {
+            'data_type': 'tiktok_custom_audiences',
+            'Action': interest.get("Event", 'Unknown action'),
+            'title': interest.get("Source", 'Unknown uploader'),
+            'URL': '',
+            'Date': interest.get("TimeStamp", interest.get("Date", '')),
+            'details': json.dumps({})
+        } for interest in ad_interests if isinstance(interest, dict) and interest.get("Source") != "admin8888"
+    ]
+
 
 def parse_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
@@ -381,7 +442,9 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
         # parse_hashtags, 
         parse_login_history, parse_video_history, 
         parse_share_history, parse_like_history, 
-        parse_search_history,  # parse_ad_info,
+        parse_fav_hashtag,
+        parse_fav_history, parse_ad_ca,
+        parse_search_history,   parse_ad_info,
         parse_comments, parse_following_list
     ]
     
@@ -401,10 +464,35 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
         
         if not combined_df.empty:
             combined_df['Date'] = pd.to_datetime(combined_df['Date'], errors='coerce')
+            
+             # Check for entries with dates before 2016
+            pre_2016_count = (combined_df['Date'] < pd.Timestamp('2016-01-01')).sum()
+            if pre_2016_count > 0:
+                logger.info(f"Found {pre_2016_count} entries with dates before 2016.")
+           
+                # Filter out dates before 2016
+                try:
+                    # Filter out dates before 2016
+                    combined_df = combined_df[combined_df['Date'] >= pd.Timestamp('2016-01-01')]
+
+                    # Confirm deletion
+                    if pre_2016_count > 0:
+                        post_filter_count = (combined_df['Date'] < pd.Timestamp('2016-01-01')).sum()
+                        if post_filter_count == 0:
+                            logger.info(f"Successfully deleted {pre_2016_count} entries with dates before 2016.")
+                        else:
+                            logger.info(f"Failed to delete some entries with dates before 2016. Remaining: {post_filter_count}.")
+
+                        
+                except Exception as e:
+                    logger.info(f"Error filtering dates before 2016: {e}")
+            
             combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
             combined_df['Count'] = 1  # Add a Count column to the original data
 
             combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
+            
+
             # Create a single table with all data
             table_title = props.Translatable({"en": "TikTok Activity Data", "nl": "TikTok Gegevens"})
             visses = [vis.create_chart(
@@ -432,7 +520,7 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
     ### this is for all things without dates
     all_data = []
     parsing_functions = [
-        parse_hashtags, parse_ad_info
+        parse_hashtags#, parse_ad_info
     ]
     
     for parse_function in parsing_functions:
@@ -470,7 +558,7 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
         else:
             logger.warning("Second Combined DataFrame is empty")
     else:
-        logger.warning("No data was successfully extracted and parsed")
+        logger.warning("Second Combined DataFrame: No data was successfully extracted and parsed")
     
     return tables_to_render
 

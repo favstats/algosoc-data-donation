@@ -90,9 +90,8 @@ def validate(file: Path) -> ValidateInput:
             for f in zf.namelist():
                 p = Path(f)
                 if p.suffix in (".json", ".html", ".csv"):
-                    logger.debug("Found: %s in zip", p.name)
                     paths.append(p.name)
-
+        
         validation.infer_ddp_category(paths)
         
         if validation.ddp_category is None:
@@ -100,7 +99,11 @@ def validate(file: Path) -> ValidateInput:
             validation.set_status_code(1)  # Not a valid DDP
         elif validation.ddp_category.ddp_filetype in (DDPFiletype.JSON, DDPFiletype.HTML):
             validation.set_status_code(0)  # Valid DDP
+            # Log the valid Google files found
+            for p in paths:
+                logger.debug("Found: %s in zip", p)
         else:
+            logger.warning("Could not infer DDP category")
             validation.set_status_code(1)  # Not a valid DDP
 
     except zipfile.BadZipFile:
@@ -109,15 +112,16 @@ def validate(file: Path) -> ValidateInput:
     except Exception as e:
         logger.error(f"Unexpected error during validation: {str(e)}")
         validation.set_status_code(1)  # Not a valid DDP
-
+    validation.validated_paths = paths  # Store the validated paths
     return validation
+
 
 def extract_zip_content(google_zip: str) -> Dict[str, Any]:
     global DATA_FORMAT
-    validation = validate(Path(google_zip))
-    if validation.status_code is None or validation.status_code.id != 0:
-        logger.error(f"Invalid zip file: {validation.status_code.description if validation.status_code else 'Unknown error'}")
-        return {}
+    # validation = validate(Path(google_zip))
+    # if validation.status_code is None or validation.status_code.id != 0:
+    #     logger.error(f"Invalid zip file: {validation.status_code.description if validation.status_code else 'Unknown error'}")
+    #     return {}
     
     file_paths = {
         "ads": ["Takeout/Mijn activiteit/Advertenties/My Activity.json", "Takeout/Mijn activiteit/Advertenties/My Activities.json", "Takeout/Mijn activiteit/Advertenties/MyActivities.json", "Takeout/Mijn activiteit/Advertenties/MyActivity.json", "Takeout/My Activity/Ads/My Activity.json", "Takeout/My Activity/Ads/My Activities.json", "Takeout/My Activity/Ads/MyActivities.json", "Takeout/My Activity/Ads/MyActivity.json"],
@@ -277,7 +281,7 @@ def make_timestamps_consistent(df: pd.DataFrame) -> pd.DataFrame:
 
 def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormTable]:
     extracted_data = extract_zip_content(google_zip)
-    
+    logger.info(f"Extracted data keys: {extracted_data.keys() if extracted_data else 'None'}")
     all_data = []
     total_items = sum(len(data) for data in extracted_data.values())
     
