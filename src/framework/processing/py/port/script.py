@@ -31,6 +31,8 @@ LOGGER = logging.getLogger("script")
 
 
 def process(session_id):
+    global validation
+
     LOGGER.info("Starting the donation flow")
     yield donate_logs(f"{session_id}-tracking")
 
@@ -81,8 +83,9 @@ def process(session_id):
                 LOGGER.info("No valid data found; prompt retry_confirmation")
                 # Check if it's the final platform or if it's the last successful validation
                 LOGGER.error("All platforms failed. Showing file names now.")
+                validation = validation_fun(file_result.value)
                 for p in validation.validated_paths:
-                  LOGGER.debug("Found: %s in zip", p)
+                    LOGGER.debug("Found: %s in zip", p)
                 yield donate_logs(f"{session_id}-tracking")
                 retry_result = yield render_donation_page("Social Media", retry_confirmation("Social Media"), progress)
     

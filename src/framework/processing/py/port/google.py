@@ -160,23 +160,23 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             for data_type, paths in file_paths.items():
                 for path in paths:
                     try:
-                        if path.endswith(f'.{DATA_FORMAT}'):
-                            with zf.open(path) as file:
-                                if DATA_FORMAT == "json":
-                                    data = json.load(io.TextIOWrapper(file, encoding='utf-8'))
-                                # elif DATA_FORMAT == "csv":
-                                #     csv_content = file.read()
-                                #     data = parse_csv_content(csv_content)
-                                elif DATA_FORMAT == "html":
-                                    html_content = file.read().decode('utf-8')
-                                    data = parse_html_content(html_content, data_type)
-                                else:
-                                    continue
-                                
-                                if data:
-                                    extracted_data[data_type] = data
-                                    logger.info(f"Successfully extracted {data_type} data from {path}")
-                                    break
+                        # if path.endswith(f'.{DATA_FORMAT}'):
+                        with zf.open(path) as file:
+                            if path.endswith('.json'):
+                                data = json.load(io.TextIOWrapper(file, encoding='utf-8'))
+                            elif path.endswith('.csv'):
+                                csv_content = file.read()
+                                data = parse_csv_content(csv_content)
+                            elif path.endswith('.html'):
+                                html_content = file.read().decode('utf-8')
+                                data = parse_html_content(html_content, data_type)
+                            else:
+                                continue
+                            
+                            if data:
+                                extracted_data[data_type] = data
+                                logger.info(f"Successfully extracted {data_type} data from {path}")
+                                break
                     except KeyError:
                         continue
                     except Exception as e:
@@ -217,21 +217,37 @@ def parse_csv_content(csv_content: bytes) -> List[Dict[str, Any]]:
 
 def parse_html_content(html_content: str, data_type: str) -> List[Dict[str, Any]]:
     parsed_data = []
-    doc = lxml.html.fromstring(html_content)
     
-    for item in doc.xpath('//div[@class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1"]'):
-        title = item.xpath('.//a/text()')
-        url = item.xpath('.//a/@href')
-        date = item.xpath('.//div/text()')
+    try:
+        doc = lxml.html.fromstring(html_content)
         
-        parsed_data.append({
-            'data_type': data_type,
-            'Action': 'View',
-            'title': title[0] if title else None,
-            'URL': url[0] if url else None,
-            'Date': pd.to_datetime(date[0] if date else None, errors='coerce'),
-            'details': json.dumps({'content_length': len(html_content)})
-        })
+        # Extracting content cells
+        items = doc.xpath('//div[contains(@class, "content-cell mdl-cell")]')
+        
+        for item in items:
+            # Extract title and URL
+            title = item.xpath('.//a/text()')
+            url = item.xpath('.//a/@href')
+            
+            # Extract date
+            date = item.xpath('.//div/text()')
+            
+            # Cleaning and formatting extracted data
+            parsed_item = {
+                'data_type': data_type,
+                'Action': 'View',
+                'title': title[0].strip() if title else None,
+                'URL': url[0].strip() if url else None,
+                'Date': helpers.robust_datetime_parser(date[0].strip()),
+                'details': json.dumps({'content_length': len(html_content)})
+            }
+            
+            parsed_data.append(parsed_item)
+        
+    except Exception as e:
+        logger.error(f"Error parsing HTML content: {e}")
+    
+    return parsed_data
     
 def parse_data(data: List[Dict[str, Any]], data_type: str) -> pd.DataFrame:
     parsed_data = []

@@ -364,14 +364,18 @@ def robust_datetime_parser(timestamp: Any) -> str:
     timestamp = str(timestamp).strip().lower()
     
     if not timestamp:
+        # logger.warning("Received an empty or invalid timestamp.")
         return ""
 
     # Handle Unix timestamps (seconds since epoch)
     if timestamp.isdigit() or (timestamp.replace('.', '', 1).isdigit() and timestamp.count('.') < 2):
         try:
-            return datetime.fromtimestamp(int(float(timestamp)), tz=timezone.utc).isoformat()
-        except ValueError:
-            return ""
+            result = datetime.fromtimestamp(int(float(timestamp)), tz=timezone.utc).isoformat()
+            # logger.debug(f"Parsed Unix timestamp: {result}")
+            return result
+        except ValueError as e:
+            # logger.error(f"Failed to parse Unix timestamp: {timestamp} - {e}")
+            pass
 
     # Replace Dutch month abbreviations with English ones
     month_mapping = {
@@ -387,8 +391,10 @@ def robust_datetime_parser(timestamp: Any) -> str:
         dt = parser.parse(timestamp, dayfirst=False, fuzzy=True)
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=timezone.utc)
-        return dt.isoformat()
-    except Exception:
+        result = dt.isoformat()
+        # logger.debug(f"Parsed with dateutil: {result}")
+        return result
+    except Exception as e:
         pass
 
     # Custom parsing for specific formats
@@ -417,10 +423,13 @@ def robust_datetime_parser(timestamp: Any) -> str:
             dt = datetime.strptime(timestamp, fmt)
             if dt.tzinfo is None:
                 dt = dt.replace(tzinfo=timezone.utc)
-            return dt.isoformat()
+            result = dt.isoformat()
+            # logger.debug(f"Parsed with custom format {fmt}: {result}")
+            return result
         except ValueError:
             continue
 
+    # logger.warning(f"Failed to parse timestamp: {timestamp}")
     return ""
 
 
