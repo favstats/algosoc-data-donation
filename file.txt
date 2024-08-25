@@ -1,0 +1,440 @@
+Takeout/Mijn activiteit/Advertenties/MyActivity.html
+Takeout/My Activity/Ads/My Activity.json
+Takeout/My Activity/Chrome/My Activity.json
+Takeout/My Activity/Search/My Activity.json
+Takeout/My Activity/Video Search/My Activity.json
+Takeout/My Activity/YouTube/My Activity.json
+Takeout/YouTube and YouTube Music/comments/comments.csv
+Takeout/YouTube and YouTube Music/history/search-history.json
+Takeout/YouTube and YouTube Music/history/watch-history.json
+Takeout/YouTube and YouTube Music/subscriptions/subscriptions.csv
+Takeout/YouTube and YouTube Music/subscriptions/subscriptions.csv
+Takeout/YouTube and YouTube Music/comments/comments.csv
+Takeout/My Activity/News/My Activity.json
+Takeout/My Activity/Discover/My Activity.json
+Takeout/My Activity/Google News/My Activity.json
+Takeout/My Activity/Video Search/My Activity.json
+Takeout/YouTube and YouTube Music/history/search-history.json
+Takeout/My Activity/Ads/My Activity.json
+Takeout/My Activity/Image Search/My Activity.json
+Takeout/My Activity/Chrome/My Activity.json
+Takeout/YouTube and YouTube Music/history/watch-history.json
+Takeout/My Activity/Search/My Activity.json
+Takeout/My Activity/YouTube/My Activity.json
+Takeout/YouTube and YouTube Music/subscriptions/subscriptions.csv
+Takeout/YouTube and YouTube Music/comments/comments.csv
+Takeout/My Activity/News/My Activity.json
+Takeout/My Activity/Discover/My Activity.json
+Takeout/My Activity/Google News/My Activity.json
+Takeout/My Activity/Video Search/My Activity.json
+Takeout/YouTube and YouTube Music/history/search-history.json
+Takeout/My Activity/Ads/My Activity.json
+Takeout/My Activity/Image Search/My Activity.json
+Takeout/My Activity/Chrome/My Activity.json
+Takeout/YouTube and YouTube Music/history/watch-history.json
+Takeout/My Activity/Search/My Activity.json
+Takeout/My Activity/YouTube/My Activity.json
+Takeout/Google Shopping/Addresses/Addresses.txt
+Takeout/Drive/Colab Notebooks/Untitled0.ipynb
+Takeout/Google Finance/Watchlists/Watchlist.json
+Takeout/YouTube en YouTube Music/abonnementen/abonnementen.csv
+Takeout/Google Shopping/Shopping Cart/Save for Later Cart from Youtube/Save for Later Cart from Youtube.txt
+Takeout/Google Shopping/Shopping Cart/Shopping Cart from Youtube/Shopping Cart from Youtube.txt
+Takeout/Google Shopping/Shopping Cart/Shopping Cart from Google Shopping/Shopping Cart from Google Shopping.txt
+Takeout/Opdrachten/Collaborations/Collaborations.json
+Takeout/Google Shopping/Loyalty/Loyalty.txt
+Takeout/Maps/Instellingen voor elektrische voertuigen/Instellingen voor elektrische voertuigen.json
+Takeout/Maps/Toegevoegde gerechten, producten en activiteiten/Toegevoegde gerechten, producten en activiteiten.json
+Takeout/Google Shopping/Merchant Reviews/Merchant Reviews.txt
+Takeout/Maps/Vragen en antwoorden/Vragen en antwoorden.json
+Takeout/Google Shopping/Product Reviews/Product Reviews.txt
+Takeout/Maps/Je lokale gevolgde plaatsen/Je lokale gevolgde plaatsen.csv
+Takeout/Maps/Verzoeken voor services/Verzoeken voor services.json
+Takeout/Mijn activiteit/Google Analytics/MyActivity.json
+Takeout/Mijn activiteit/Afbeeldingen zoeken/MyActivity.json
+Takeout/Google Pay/Geldverzendingen en -verzoeken/Geldverzendingen en -verzoeken.csv
+Takeout/Mijn activiteit/Advertenties/MyActivity.json
+Takeout/Mijn activiteit/Takeout/MyActivity.json
+Takeout/Mijn activiteit/Zoeken/MyActivity.json
+Takeout/Google Pay/Opgeslagen items, waaronder klantenkaarten en cade/Klantenkaarten, cadeaukaarten en aanbiedingen.pdf
+Takeout/Google-bedrijfsprofiel/account-109571331034103363416/data.json
+Takeout/Mijn activiteit/YouTube/MyActivity.json
+Takeout/YouTube en YouTube Music/geschiedenis/kijkgeschiedenis.json
+Takeout/YouTube en YouTube Music/geschiedenis/zoekgeschiedenis.json
+Takeout/YouTube and YouTube Music/subscriptions/subscriptions.csv
+Takeout/My Activity/Books/MyActivity.json
+Takeout/My Activity/Hotels/MyActivity.json
+Takeout/My Activity/Shopping/MyActivity.json
+Takeout/My Activity/Google Play Books/MyActivity.json
+Takeout/My Activity/Google Play Movies & TV/MyActivity.json
+Takeout/My Activity/Developers/MyActivity.json
+Takeout/My Activity/Flights/MyActivity.json
+Takeout/My Activity/Takeout/MyActivity.json
+Takeout/My Activity/Gemini Apps/MyActivity.json
+Takeout/My Activity/Google Play Games/MyActivity.json
+Takeout/My Activity/Travel/MyActivity.json
+Takeout/My Activity/Video Search/MyActivity.json
+Takeout/My Activity/Google Translate/MyActivity.json
+Takeout/YouTube and YouTube Music/history/watch-history.json
+Takeout/My Activity/News/MyActivity.json
+Takeout/My Activity/Android/MyActivity.json
+Takeout/My Activity/Drive/MyActivity.json
+Takeout/My Activity/YouTube/MyActivity.json
+Takeout/My Activity/Help/MyActivity.json
+Takeout/My Activity/Assistant/MyActivity.json
+Takeout/My Activity/Assistant/2020-06-24_12_26_53_718_UTC.mp3
+Takeout/My Activity/Assistant/2020-06-29_20_13_20_871_UTC.mp3
+Takeout/My Activity/Discover/MyActivity.json
+Takeout/My Activity/Assistant/2020-06-29_20_13_18_347_UTC.mp3
+Takeout/My Activity/Assistant/2020-06-24_12_26_54_327_UTC.mp3
+Takeout/My Activity/Assistant/2020-06-24_12_26_52_750_UTC.mp3
+Takeout/My Activity/Assistant/2020-06-24_12_26_53_218_UTC.mp3
+Takeout/My Activity/Assistant/2020-06-29_20_13_19_616_UTC.mp3
+Takeout/My Activity/Assistant/2020-06-29_20_13_17_318_UTC.mp3
+Takeout/My Activity/Google News/MyActivity.json
+Takeout/My Activity/Google Lens/MyActivity.json
+Takeout/My Activity/Image Search/MyActivity.json
+Takeout/My Activity/Google Play Store/MyActivity.json
+Takeout/My Activity/Maps/MyActivity.json
+Takeout/My Activity/Chrome/MyActivity.json
+Takeout/My Activity/Search/MyActivity.json
+Takeout/YouTube and YouTube Music/subscriptions/subscriptions.csv
+Takeout/YouTube and YouTube Music/comments/comments.csv
+Takeout/My Activity/Discover/My Activity.json
+Takeout/My Activity/Google News/My Activity.json
+Takeout/My Activity/News/My Activity.json
+Takeout/My Activity/Video Search/My Activity.json
+Takeout/YouTube and YouTube Music/history/search-history.json
+Takeout/My Activity/Ads/My Activity.json
+Takeout/My Activity/Image Search/My Activity.json
+Takeout/My Activity/Chrome/My Activity.json
+Takeout/YouTube and YouTube Music/history/watch-history.json
+Takeout/My Activity/Search/My Activity.json
+Takeout/My Activity/YouTube/My Activity.json
+Takeout/نشاطي/البحث السمعي/نشاطي.json
+Takeout/نشاطي/بحث الفيديو/نشاطي.json
+Takeout/نشاطي/أخبار Google/نشاطي.json
+Takeout/YouTube وYouTube Music/السجلّ/سجلّ البحث.json
+Takeout/نشاطي/الإعلانات/نشاطي.json
+Takeout/نشاطي/Chrome/نشاطي.json
+Takeout/YouTube وYouTube Music/السجلّ/سجل المشاهدة.json
+Takeout/نشاطي/البحث/نشاطي.json
+Takeout/نشاطي/YouTube/نشاطي.json
+Takeout/YouTube and YouTube Music/subscriptions/subscriptions.csv
+Takeout/YouTube and YouTube Music/comments/comments.csv
+Takeout/My Activity/Discover/MyActivity.html
+Takeout/My Activity/News/MyActivity.html
+Takeout/My Activity/Google News/MyActivity.html
+Takeout/My Activity/Video Search/MyActivity.html
+Takeout/YouTube and YouTube Music/history/search-history.html
+Takeout/My Activity/Ads/MyActivity.html
+Takeout/My Activity/Image Search/MyActivity.html
+Takeout/My Activity/Chrome/MyActivity.html
+Takeout/YouTube and YouTube Music/history/watch-history.html
+Takeout/My Activity/Search/MyActivity.html
+Takeout/My Activity/YouTube/MyActivity.html
+Takeout/YouTube and YouTube Music/history/search-history.html
+Takeout/My Activity/Search/MyActivity.html
+Takeout/My Activity/YouTube/MyActivity.html
+Takeout/YouTube and YouTube Music/history/watch-history.html
+Takeout/My Activity/Video Search/MyActivity.html
+Takeout/My Activity/Ads/MyActivity.html
+Takeout/YouTube und YouTube Music/Abos/Abos.csv
+Takeout/YouTube und YouTube Music/musik-mediathek-songs/musik-mediathek-songs.csv
+Takeout/Meine Aktivitäten/Datenexport/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Reisen/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Drive/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Android/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Flüge/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Play Filme & Serien/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Shopping/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Books/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Arts & Culture/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Store/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Lens/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Discover/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Hilfe/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Musiksuche/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Assistant/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Assistant Memory/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Play Spiele/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Developers/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Hotels/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Assistant/2022-11-07_21_29_39_562_UTC.mp3
+Takeout/Meine Aktivitäten/Google Play Bücher/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Assistant/2022-11-07_21_29_44_732_UTC.mp3
+Takeout/Meine Aktivitäten/Google Assistant/2019-04-15_07_23_12_427_UTC.mp3
+Takeout/Meine Aktivitäten/Google Assistant/2022-11-07_21_29_26_358_UTC.mp3
+Takeout/Meine Aktivitäten/Google Assistant/2019-04-15_07_23_11_427_UTC.mp3
+Takeout/Meine Aktivitäten/Google Assistant/2019-04-15_07_23_09_312_UTC.mp3
+Takeout/Meine Aktivitäten/Google News/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Assistant/2022-11-07_21_29_34_868_UTC.mp3
+Takeout/Meine Aktivitäten/Google Assistant/2019-04-15_07_23_08_656_UTC.mp3
+Takeout/Meine Aktivitäten/Gemini-Apps/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Gemini-Apps/image-e8a11233345e7fd1.png
+Takeout/Meine Aktivitäten/Gemini-Apps/image-296ab9a16b39a13e.jpg
+Takeout/Meine Aktivitäten/Gemini-Apps/image-de83045ba75d5d14.png
+Takeout/Meine Aktivitäten/Gemini-Apps/image-c9eadc4c794e89ef.png
+Takeout/Meine Aktivitäten/Gemini-Apps/1708098527094475072212130834185-74e3220a158ae7f5.jpg
+Takeout/Meine Aktivitäten/Gemini-Apps/1708098422184883069413456389413-7b8d85a96469cdda.jpg
+Takeout/Meine Aktivitäten/Gemini-Apps/image-e57e69a5f17afdfe.png
+Takeout/Meine Aktivitäten/Gemini-Apps/electoral_family-49a180ceb4c32e6e.png
+Takeout/Meine Aktivitäten/Videosuche/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Gemini-Apps/image-8a7beefc37bc126f.png
+Takeout/YouTube und YouTube Music/Verlauf/Suchverlauf.html
+Takeout/Meine Aktivitäten/Google Übersetzer/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google TV/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Pay/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Analytics/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Anzeigen/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Bildersuche/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Google Play Store/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Maps/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/Chrome/MeineAktivitäten.html
+Takeout/YouTube und YouTube Music/Verlauf/Wiedergabeverlauf.html
+Takeout/Meine Aktivitäten/Google Suche/MeineAktivitäten.html
+Takeout/Meine Aktivitäten/YouTube/MeineAktivitäten.html
+takeout-nl-html-advertenties/Takeout/Mijn activiteit/Advertenties
+Takeout/Mijn activiteit/Advertenties/MyActivity.html
+Takeout/Mijn activiteit/Chrome/MyActivity.html
+Takeout/Mijn activiteit/Discover/MyActivity.html
+Takeout/Mijn activiteit/Zoeken/MyActivity.html
+Takeout/YouTube en YouTube Music/abonnementen/abonnementen.csv
+Takeout/YouTube en YouTube Music/reacties/reacties.csv
+Takeout/Mijn activiteit/Discover/MyActivity.html
+Takeout/Mijn activiteit/Nieuws/MyActivity.html
+Takeout/Mijn activiteit/Google Nieuws/MyActivity.html
+Takeout/YouTube en YouTube Music/geschiedenis/zoekgeschiedenis.html
+Takeout/Mijn activiteit/Advertenties/MyActivity.html
+Takeout/Mijn activiteit/Chrome/MyActivity.html
+Takeout/YouTube en YouTube Music/geschiedenis/kijkgeschiedenis.html
+Takeout/Mijn activiteit/Zoeken/MyActivity.html
+Takeout/Mijn activiteit/YouTube/MyActivity.html
+Takeout/YouTube en YouTube Music/abonnementen/abonnementen.csv
+Takeout/Mijn activiteit/Discover/MyActivity.json
+Takeout/Mijn activiteit/Video_s zoeken/MyActivity.json
+Takeout/Mijn activiteit/Nieuws/MyActivity.json
+Takeout/YouTube en YouTube Music/geschiedenis/zoekgeschiedenis.json
+Takeout/Mijn activiteit/Advertenties/MyActivity.json
+Takeout/Mijn activiteit/Afbeeldingen zoeken/MyActivity.json
+Takeout/Mijn activiteit/Chrome/MyActivity.json
+Takeout/YouTube en YouTube Music/geschiedenis/kijkgeschiedenis.json
+Takeout/Mijn activiteit/Zoeken/MyActivity.json
+Takeout/Mijn activiteit/YouTube/MyActivity.json
+Takeout/My Activity/Google News/MyActivity.json
+Takeout/My Activity/Maps/MyActivity.json
+Takeout/My Activity/Assistant/.DS_Store
+Takeout/My Activity/Assistant/MyActivity.json
+Takeout/My Activity/Google Play Movies & TV/MyActivity.json
+Takeout/My Activity/Ads/MyActivity.json
+Takeout/My Activity/Assistant Memory/MyActivity.json
+Takeout/My Activity/Google Lens/.DS_Store
+Takeout/My Activity/Google Lens/MyActivity.json
+Takeout/My Activity/Google TV/MyActivity.json
+Takeout/My Activity/Discover/MyActivity.json
+Takeout/My Activity/Shopping/MyActivity.json
+Takeout/My Activity/Flights/MyActivity.json
+Takeout/My Activity/Gemini Apps/image-3af93d23f2cda66b.png
+Takeout/My Activity/Gemini Apps/image-0dcd10812d27ac4d.png
+Takeout/My Activity/Gemini Apps/MyActivity.json
+Takeout/My Activity/Video Search/MyActivity.json
+Takeout/My Activity/Hotels/MyActivity.json
+Takeout/My Activity/Guidebooks/MyActivity.json
+Takeout/My Activity/Sound Search/.DS_Store
+Takeout/My Activity/Sound Search/MyActivity.json
+Takeout/My Activity/Google Play Store/.DS_Store
+Takeout/My Activity/Google Play Store/MyActivity.json
+Takeout/My Activity/Books/MyActivity.json
+Takeout/My Activity/Google Play Games/MyActivity.json
+Takeout/My Activity/YouTube/MyActivity.json
+Takeout/My Activity/Podcasts/MyActivity.json
+Takeout/My Activity/Search/.DS_Store
+Takeout/My Activity/Search/MyActivity.json
+Takeout/My Activity/Google Pay/MyActivity.json
+Takeout/My Activity/Android/MyActivity.json
+Takeout/My Activity/Chrome/MyActivity.json
+Takeout/My Activity/Google Store/MyActivity.json
+Takeout/My Activity/Google Translate/MyActivity.json
+Takeout/My Activity/My Ad Center/MyActivity.json
+Takeout/My Activity/Image Search/MyActivity.json
+Takeout/My Activity/Drive/MyActivity.json
+Takeout/My Activity/Google Play Books/MyActivity.json
+Takeout/My Activity/Travel/MyActivity.json
+Takeout/My Activity/Gmail/MyActivity.json
+Takeout/My Activity/Takeout/MyActivity.json
+Takeout/My Activity/Help/MyActivity.json
+Takeout/My Activity/Developers/MyActivity.json
+Takeout/YouTube and YouTube Music/live chats/live chats.csv
+Takeout/YouTube and YouTube Music/comments/comments.csv
+Takeout/YouTube and YouTube Music/playlists/Watch later-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Finds-videos.csv
+Takeout/YouTube and YouTube Music/playlists/To be a cat-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Sleep-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Favorite Songs-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Work-out Videos-videos.csv
+Takeout/YouTube and YouTube Music/playlists/nyXiNsane-videos.csv
+Takeout/YouTube and YouTube Music/playlists/playlists.csv
+Takeout/YouTube and YouTube Music/playlists/Aftercare-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Coding-videos.csv
+Takeout/YouTube and YouTube Music/playlists/HipHop-videos.csv
+Takeout/YouTube and YouTube Music/playlists/EDM-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Keto-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Beauty Videos-videos.csv
+Takeout/YouTube and YouTube Music/music-library-songs/music-library-songs.csv
+Takeout/YouTube and YouTube Music/subscriptions/subscriptions.csv
+Takeout/YouTube and YouTube Music/history/search-history.json
+Takeout/YouTube and YouTube Music/history/watch-history.json
+Takeout/YouTube and YouTube Music/music-uploads/.DS_Store
+Takeout/YouTube and YouTube Music/music-uploads/music-uploads-metadata.csv
+Takeout/YouTube and YouTube Music/channels/channel images.csv
+Takeout/YouTube and YouTube Music/channels/channel page settings.csv
+Takeout/YouTube and YouTube Music/channels/channel.csv
+Takeout/YouTube and YouTube Music/channels/channel feature data.csv
+Takeout/YouTube and YouTube Music/channels/channel URL configs.csv
+Takeout/YouTube y YouTube Music/suscripciones/suscripciones.csv
+Takeout/YouTube y YouTube Music/canciones-biblioteca-musica/canciones-biblioteca-musica.csv
+Takeout/Mi actividad/Vuelos/MiActividad.html
+Takeout/Mi actividad/Programadores/MiActividad.html
+Takeout/Mi actividad/Google Arts & Culture/MiActividad.html
+Takeout/Mi actividad/Buscador de sonido/MiActividad.html
+Takeout/Mi actividad/Ayuda/MiActividad.html
+Takeout/Mi actividad/Takeout/MiActividad.html
+Takeout/Mi actividad/Memoria del Asistente/MiActividad.html
+Takeout/Mi actividad/Google Store/MiActividad.html
+Takeout/Mi actividad/Viajes/MiActividad.html
+Takeout/Mi actividad/Hoteles/MiActividad.html
+Takeout/Mi actividad/Google Play Libros/MiActividad.html
+Takeout/Mi actividad/Google Lens/MiActividad.html
+Takeout/Mi actividad/Shopping/MiActividad.html
+Takeout/Mi actividad/Libros/MiActividad.html
+Takeout/Mi actividad/Búsqueda de vídeos/MiActividad.html
+Takeout/Mi actividad/Drive/MiActividad.html
+Takeout/Mi actividad/Google Play Juegos/MiActividad.html
+Takeout/Mi actividad/Android/MiActividad.html
+Takeout/Mi actividad/Aplicaciones de Gemini/MiActividad.html
+Takeout/Mi actividad/Aplicaciones de Gemini/image-e8a11233345e7fd1.png
+Takeout/Mi actividad/Aplicaciones de Gemini/image-296ab9a16b39a13e.jpg
+Takeout/Mi actividad/Aplicaciones de Gemini/image-de83045ba75d5d14.png
+Takeout/Mi actividad/Aplicaciones de Gemini/image-c9eadc4c794e89ef.png
+Takeout/Mi actividad/Discover/MiActividad.html
+Takeout/Mi actividad/Aplicaciones de Gemini/1708098422184883069413456389413-7b8d85a96469cdda.jpg
+Takeout/Mi actividad/Aplicaciones de Gemini/1708098527094475072212130834185-74e3220a158ae7f5.jpg
+Takeout/Mi actividad/Google Play Películas/MiActividad.html
+Takeout/Mi actividad/Aplicaciones de Gemini/image-e57e69a5f17afdfe.png
+Takeout/Mi actividad/Aplicaciones de Gemini/image-8a7beefc37bc126f.png
+Takeout/Mi actividad/Aplicaciones de Gemini/electoral_family-49a180ceb4c32e6e.png
+Takeout/Mi actividad/Google News/MiActividad.html
+Takeout/Mi actividad/Asistente/MiActividad.html
+Takeout/YouTube y YouTube Music/historial/historial-de-búsqueda.html
+Takeout/Mi actividad/Asistente/2019-04-15_07_23_12_427_UTC.mp3
+Takeout/Mi actividad/Asistente/2019-04-15_07_23_08_656_UTC.mp3
+Takeout/Mi actividad/Asistente/2019-04-15_07_23_11_427_UTC.mp3
+Takeout/Mi actividad/Asistente/2022-11-07_21_29_44_732_UTC.mp3
+Takeout/Mi actividad/Asistente/2019-04-15_07_23_09_312_UTC.mp3
+Takeout/Mi actividad/Asistente/2022-11-07_21_29_39_562_UTC.mp3
+Takeout/Mi actividad/Asistente/2022-11-07_21_29_34_868_UTC.mp3
+Takeout/Mi actividad/Asistente/2022-11-07_21_29_26_358_UTC.mp3
+Takeout/Mi actividad/Google TV/MiActividad.html
+Takeout/Mi actividad/Google Pay/MiActividad.html
+Takeout/Mi actividad/Traductor de Google/MiActividad.html
+Takeout/Mi actividad/Google Analytics/MiActividad.html
+Takeout/Mi actividad/Publicidad/MiActividad.html
+Takeout/Mi actividad/Búsqueda de imágenes/MiActividad.html
+Takeout/Mi actividad/Google Play Store/MiActividad.html
+Takeout/Mi actividad/Maps/MiActividad.html
+Takeout/Mi actividad/Chrome/MiActividad.html
+Takeout/YouTube y YouTube Music/historial/historial-de-reproducciones.html
+Takeout/Mi actividad/Búsqueda/MiActividad.html
+Takeout/Mi actividad/YouTube/MiActividad.html
+Takeout/YouTube and YouTube Music/subscriptions/subscriptions.csv
+Takeout/YouTube and YouTube Music/comments/comments.csv
+Takeout/My Activity/News/My Activity.json
+Takeout/My Activity/Video Search/My Activity.json
+Takeout/My Activity/Google News/My Activity.json
+Takeout/YouTube and YouTube Music/history/search-history.json
+Takeout/My Activity/Ads/My Activity.json
+Takeout/My Activity/Chrome/My Activity.json
+Takeout/YouTube and YouTube Music/history/watch-history.json
+Takeout/My Activity/Search/My Activity.json
+Takeout/My Activity/YouTube/My Activity.json
+Takeout/YouTube ve YouTube Music/abonelikler/abonelikler.csv
+Takeout/Etkinliğim/Video Arama/Etkinliğim.json
+Takeout/Etkinliğim/Keşfet/Etkinliğim.json
+Takeout/YouTube ve YouTube Music/geçmiş/arama geçmişi.json
+Takeout/Etkinliğim/Reklamlar/Etkinliğim.json
+Takeout/Etkinliğim/Görsel Arama/Etkinliğim.json
+Takeout/Etkinliğim/Chrome/Etkinliğim.json
+Takeout/YouTube ve YouTube Music/geçmiş/izleme geçmişi.json
+Takeout/Etkinliğim/Arama/Etkinliğim.json
+Takeout/Etkinliğim/YouTube/Etkinliğim.json
+Takeout/My Activity/Google News/MyActivity.json
+Takeout/My Activity/Maps/MyActivity.json
+Takeout/My Activity/Assistant/.DS_Store
+Takeout/My Activity/Assistant/MyActivity.json
+Takeout/My Activity/Google Play Movies & TV/MyActivity.json
+Takeout/My Activity/Ads/MyActivity.json
+Takeout/My Activity/Assistant Memory/MyActivity.json
+Takeout/My Activity/Google Lens/.DS_Store
+Takeout/My Activity/Google Lens/MyActivity.json
+Takeout/My Activity/Google TV/MyActivity.json
+Takeout/My Activity/Discover/MyActivity.json
+Takeout/My Activity/Shopping/MyActivity.json
+Takeout/My Activity/Flights/MyActivity.json
+Takeout/My Activity/Gemini Apps/image-3af93d23f2cda66b.png
+Takeout/My Activity/Gemini Apps/image-0dcd10812d27ac4d.png
+Takeout/My Activity/Gemini Apps/MyActivity.json
+Takeout/My Activity/Video Search/MyActivity.json
+Takeout/My Activity/Hotels/MyActivity.json
+Takeout/My Activity/Guidebooks/MyActivity.json
+Takeout/My Activity/Sound Search/.DS_Store
+Takeout/My Activity/Sound Search/MyActivity.json
+Takeout/My Activity/Google Play Store/.DS_Store
+Takeout/My Activity/Google Play Store/MyActivity.json
+Takeout/My Activity/Books/MyActivity.json
+Takeout/My Activity/Google Play Games/MyActivity.json
+Takeout/My Activity/YouTube/MyActivity.json
+Takeout/My Activity/Podcasts/MyActivity.json
+Takeout/My Activity/Search/.DS_Store
+Takeout/My Activity/Search/MyActivity.json
+Takeout/My Activity/Google Pay/MyActivity.json
+Takeout/My Activity/Android/MyActivity.json
+Takeout/My Activity/Chrome/MyActivity.json
+Takeout/My Activity/Google Store/MyActivity.json
+Takeout/My Activity/Google Translate/MyActivity.json
+Takeout/My Activity/My Ad Center/MyActivity.json
+Takeout/My Activity/Image Search/MyActivity.json
+Takeout/My Activity/Drive/MyActivity.json
+Takeout/My Activity/Google Play Books/MyActivity.json
+Takeout/My Activity/Travel/MyActivity.json
+Takeout/My Activity/Gmail/MyActivity.json
+Takeout/My Activity/Takeout/MyActivity.json
+Takeout/My Activity/Help/MyActivity.json
+Takeout/My Activity/Developers/MyActivity.json
+Takeout/YouTube and YouTube Music/live chats/live chats.csv
+Takeout/YouTube and YouTube Music/comments/comments.csv
+Takeout/YouTube and YouTube Music/playlists/Watch later-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Finds-videos.csv
+Takeout/YouTube and YouTube Music/playlists/To be a cat-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Sleep-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Favorite Songs-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Work-out Videos-videos.csv
+Takeout/YouTube and YouTube Music/playlists/nyXiNsane-videos.csv
+Takeout/YouTube and YouTube Music/playlists/playlists.csv
+Takeout/YouTube and YouTube Music/playlists/Aftercare-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Coding-videos.csv
+Takeout/YouTube and YouTube Music/playlists/HipHop-videos.csv
+Takeout/YouTube and YouTube Music/playlists/EDM-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Keto-videos.csv
+Takeout/YouTube and YouTube Music/playlists/Beauty Videos-videos.csv
+Takeout/YouTube and YouTube Music/music-library-songs/music-library-songs.csv
+Takeout/YouTube and YouTube Music/subscriptions/subscriptions.csv
+Takeout/YouTube and YouTube Music/history/search-history.json
+Takeout/YouTube and YouTube Music/history/watch-history.json
+Takeout/YouTube and YouTube Music/music-uploads/.DS_Store
+Takeout/YouTube and YouTube Music/music-uploads/music-uploads-metadata.csv
+Takeout/YouTube and YouTube Music/channels/channel images.csv
+Takeout/YouTube and YouTube Music/channels/channel page settings.csv
+Takeout/YouTube and YouTube Music/channels/channel.csv
+Takeout/YouTube and YouTube Music/channels/channel feature data.csv
+Takeout/YouTube and YouTube Music/channels/channel URL configs.csv
+Takeout/Mijn activiteit/Zoeken/MyActivity.html

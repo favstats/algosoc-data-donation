@@ -12,8 +12,14 @@ logger = logging.getLogger(__name__)
 
 class Language(Enum):
     """ Languages Enum """
-    EN = 1
-    NL = 2
+    EN = 1  # English
+    NL = 2  # Dutch
+    ES = 3  # Spanish
+    DE = 4  # German
+    AR = 5  # Arabic
+    TR = 6  # Turkish
+    ZH = 7  # Chinese
+    
 
 
 class DDPFiletype(Enum):
@@ -77,7 +83,7 @@ class ValidateInput:
             highest = max(prop_category, key=prop_category.get)  # type: ignore
             self.ddp_category = self.ddp_categories_lookup[highest]
             self.validated_paths = file_list_input  # Store validated paths
-            logger.info("Detected DDP category: %s", self.ddp_category.id)
+            logger.info("Success! Detected DDP category: %s", self.ddp_category.id)
             return True
 
         logger.info("Not enough files matched when performing input validation")

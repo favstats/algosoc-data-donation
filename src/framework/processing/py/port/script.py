@@ -4,6 +4,7 @@ import io
 import random
 from typing import Optional, Literal
 import pandas as pd
+from pathlib import Path
 
 import port.api.props as props
 import port.helpers as helpers
@@ -60,6 +61,23 @@ def process(session_id):
     
         LOGGER.info("Uploaded a file")
         if file_result.__type__ == "PayloadString":
+          
+              # Perform file size check here
+            file_path = Path(file_result.value)  # Get the file path
+            file_size_gb = file_path.stat().st_size / (1024 ** 3)  # Convert bytes to GB
+            if file_size_gb > 1.75:
+                LOGGER.info("File too large; prompt retry_confirmation")
+                # Check if it's the final platform or if it's the last successful validatio
+                yield donate_logs(f"{session_id}-tracking")
+                retry_result = yield render_donation_page("Social Media", render_large_file_message("Social Media"), progress)
+    
+                if retry_result.__type__ == "PayloadTrue":
+                    continue
+                else:
+                    LOGGER.info("Skipped during retry")
+                    yield donate_logs(f"{session_id}-tracking")
+                    break    
+                  
             table_list = None  # Initialize table_list before the loop
             for idx, (platform_name, extraction_fun, validation_fun) in enumerate(platforms):
                 LOGGER.info(f"Attempting to process as {platform_name} data")
@@ -549,6 +567,19 @@ def render_donation_page(platform, body, progress):
     footer = props.PropsUIFooter(progress)
     page = props.PropsUIPageDonation(platform, header, body, footer)
     return CommandUIRender(page)
+  
+  
+
+def render_large_file_message(platform):
+    text = props.Translatable({
+        "en": "Sorry, the file you submitted was too large. Please download this software to reduce the file size of your zip file. \n\n\n https://github.com/favstats/CleanZIP/releases/tag/v1.1.8",
+        "nl": "Sorry, het bestand dat u heeft ingediend was te groot. Download deze software om de bestandsgrootte van uw zip-bestand te verkleinen."
+    })
+    ok = props.Translatable({"en": "Try again", "nl": "Probeer opnieuw"})
+    cancel = props.Translatable({"en": "Continue", "nl": "Verder"})
+    return props.PropsUIPromptConfirm(text, ok, cancel)
+  
+
 
 
 def retry_confirmation(platform):

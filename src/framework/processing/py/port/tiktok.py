@@ -432,10 +432,17 @@ def parse_data(data: List[Dict[str, Any]]) -> pd.DataFrame:
 
 def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentFormTable]:
     logger = logging.getLogger("process_tiktok_data")
-    logger.info(f"Starting to process TikTok data from {tiktok_file}")
+    logger.info("Starting to extract TikTok data from {tiktok_file}.")   
+
     
     extracted_data = extract_tiktok_data(tiktok_file)
-    logger.info(f"Extracted data keys: {extracted_data.keys() if extracted_data else 'None'}")
+    # Assuming `extracted_data` is a dictionary where keys are the file paths or names.
+    filtered_extracted_data = {
+        k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.html$', k.split('/')[-1])
+    }
+    
+    # Logging only the filtered keys
+    logger.info(f"Extracted data keys: {helpers.get_json_keys(filtered_extracted_data) if filtered_extracted_data else 'None'}")   
     
     all_data = []
     parsing_functions = [

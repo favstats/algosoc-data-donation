@@ -8,6 +8,7 @@ from collections import deque
 from dateutil import parser
 from zoneinfo import ZoneInfo
 from lxml import html  # Make sure this import is present
+from pathlib import Path
 
 
 from dateutil.parser import parse
@@ -349,6 +350,10 @@ def epoch_to_iso(epoch_timestamp: str | int) -> str:
     return out
 
 
+def log_file_size(file_path):
+    file_size = Path(file_path).stat().st_size
+    logger.info(f"File is being uploaded. Size: {file_size} bytes.")
+    return file_size
 
 def robust_datetime_parser(timestamp: Any) -> str:
     """
@@ -475,3 +480,39 @@ def html_tables(lxml_html):
         dfs.append(df)
     
     return dfs
+  
+  
+def str_squish(text: str) -> str:
+    """
+    Mimics the behavior of str_squish from R, which trims leading and trailing spaces 
+    and reduces all multiple spaces to a single space.
+    """
+    return re.sub(r'\s+', ' ', text).strip()
+  
+  
+def get_json_keys(data, prefix=''):
+    """
+    Retrieve all unique keys and subkeys from a JSON object, combining them with '__' for each sub-level.
+
+    Parameters:
+    - data (dict): The JSON object (Python dictionary) to traverse.
+    - prefix (str): The prefix to use for nested keys (used in recursive calls).
+
+    Returns:
+    - keys (set): A set of unique key paths.
+    """
+    keys = set()
+    
+    if isinstance(data, dict):
+        for key, value in data.items():
+            # Form the new prefix by appending current key with '__'
+            new_prefix = f"{prefix}__{key}" if prefix else key
+            keys.add(new_prefix)
+            # Recursively get keys for nested dictionaries
+            keys.update(get_json_keys(value, new_prefix))
+    elif isinstance(data, list):
+        for item in data:
+            # For lists, we don't append any index to the prefix, just proceed with the elements
+            keys.update(get_json_keys(item, prefix))
+    
+    return keys

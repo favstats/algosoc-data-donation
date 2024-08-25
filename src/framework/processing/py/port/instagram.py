@@ -5,6 +5,7 @@ from datetime import datetime
 import logging
 import zipfile
 import io
+import re
 from lxml import html  # Make sure this import is present
 from pathlib import Path
 import port.api.props as props
@@ -125,8 +126,8 @@ def validate(file: Path) -> ValidateInput:
             else:
                 validation.set_status_code(0)  # Assume it is a valid DDP 
                 # Log the valid Instagram files found
-                for p in paths:
-                    logger.debug("Found: %s in zip", p)
+                # for p in paths:
+                #     logger.debug("Found: %s in zip", p)
               
         else:
             logger.warning("Could not infer DDP category")
@@ -1258,9 +1259,45 @@ def parse_stories(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             return []
 
 
+def get_json_keys(data, prefix=''):
+    """
+    Retrieve all unique keys and subkeys from a JSON object, combining them with '__' for each sub-level.
+
+    Parameters:
+    - data (dict): The JSON object (Python dictionary) to traverse.
+    - prefix (str): The prefix to use for nested keys (used in recursive calls).
+
+    Returns:
+    - keys (set): A set of unique key paths.
+    """
+    keys = set()
+    
+    if isinstance(data, dict):
+        for key, value in data.items():
+            # Form the new prefix by appending current key with '__'
+            new_prefix = f"{prefix}__{key}" if prefix else key
+            keys.add(new_prefix)
+            # Recursively get keys for nested dictionaries
+            keys.update(get_json_keys(value, new_prefix))
+    elif isinstance(data, list):
+        for item in data:
+            # For lists, we don't append any index to the prefix, just proceed with the elements
+            keys.update(get_json_keys(item, prefix))
+    
+    return keys
+
+
 def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsentFormTable]:
+    logger.info("Starting to extract Instagram data.")   
+
     extracted_data = extract_instagram_data(instagram_zip)
-    logger.info(f"Extracted data keys: {extracted_data.keys() if extracted_data else 'None'}")
+    # Assuming `extracted_data` is a dictionary where keys are the file paths or names.
+    filtered_extracted_data = {
+        k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.html$', k.split('/')[-1])
+    }
+    
+    # Logging only the filtered keys
+    logger.info(f"Extracted data keys: {helpers.get_json_keys(filtered_extracted_data) if filtered_extracted_data else 'None'}")   
     
     all_data = []
     parsing_functions = [

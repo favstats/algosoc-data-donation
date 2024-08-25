@@ -81,9 +81,7 @@ STATUS_CODES = [
     StatusCode(id=2, description="Bad zipfile", message="Bad zip"),
 ]
 
-def log_file_size(file_path):
-    file_size = Path(file_path).stat().st_size
-    logger.info(f"File is being uploaded. Size: {file_size} bytes.")
+
 
 def is_valid_zipfile(file_path: Path) -> bool:
     """
@@ -96,33 +94,33 @@ def is_valid_zipfile(file_path: Path) -> bool:
     except Exception as e:
         logger.error(f"Error reading file signature: {e}", exc_info=True)
         return False
-
+      
+      
 def validate(file: Path) -> ValidateInput:
     global validation
     validation = ValidateInput(STATUS_CODES, DDP_CATEGORIES)
-    log_file_size(file)
-    
+    # file_size = helpers.log_file_size(file)
+
+    # Check file size and set a different status code if it's larger than 1.75GB
+    # file_size_gb = file_size/ (1024 ** 3)  # Convert bytes to GB
+    # if file_size_gb > 1.75:
+    #     logger.error(f"File size is {file_size_gb:.2f}GB, which exceeds the 1.75GB limit.")
+    #     validation.set_status_code(3)  # Set a different status code for large file size
+    #     return validation
+
     try:
         paths = []
         file_name = file.lower()  # Convert file name to lowercase for consistent checks
-        
-         # Validate if the file is a zip file
-        if not is_valid_zipfile(file):
-            logger.error(f"The file {file} is not a valid ZIP file.")
-            validation.set_status_code(2)  # Bad zipfile
-            return validation
-        else: 
-            logger.debug(f"Valid ZIP file.")
-        
-        logger.info(f"Opening zip file: {file}")
-        
+
+        # logger.info(f"Opening zip file: {file}")
+
         with zipfile.ZipFile(file, "r", allowZip64=True) as zf:
-            logger.info(f"Successfully opened zip file: {file}")
+            # logger.info(f"Successfully opened zip file: {file}")
             for f in zf.namelist():
                 try:
                     p = Path(f)
                     # logger.debug(f"Found file in zip: {p.name}")
-                    
+
                     if p.suffix in (".json", ".html"):
                         # logger.debug(f"Valid file found: {p.name} with suffix {p.suffix}")
                         paths.append(p.name.lower())  # Convert to lowercase for consistent checks
@@ -131,10 +129,10 @@ def validate(file: Path) -> ValidateInput:
 
                 except Exception as e:
                     logger.error(f"Error processing file {f} in zip: {e}", exc_info=True)
-        
+
         logger.info(f"Total valid files found in zip: {len(paths)}")
         validation.infer_ddp_category(paths)
-        
+
         if validation.ddp_category is None:
             logger.warning("Could not infer DDP category")
             validation.set_status_code(1)  # Not a valid DDP
@@ -156,11 +154,12 @@ def validate(file: Path) -> ValidateInput:
         logger.error(f"OSError: likely due to file size. Error: {e}", exc_info=True)
         validation.set_status_code(1)  # General error, not valid DDP
     except Exception as e:
-        logger.error(f"Unexpected error during validation of file {file}: {e}", exc_info=True)
+        logger.error(f"Unexpected error during validation of file: {e}", exc_info=True)
         validation.set_status_code(1)  # Not a valid DDP
-    
+
     validation.validated_paths = paths  # Store the validated paths
     return validation
+
 
 
 def parse_data(data: List[Dict[str, Any]]) -> pd.DataFrame:
@@ -1221,8 +1220,13 @@ def parse_your_group_membership_activity(data: Dict[str, Any]) -> List[Dict[str,
             logger.error(f"Error parsing 'your_group_membership_activity.html': {str(e)}")
     
         return activities
+      
+
+
 
 def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentFormTable]:
+    logger.info("Starting to extract Facebook data.")   
+
     extracted_data = extract_facebook_data(facebook_zip)
     # Assuming `extracted_data` is a dictionary where keys are the file paths or names.
     filtered_extracted_data = {
@@ -1230,7 +1234,7 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
     }
     
     # Logging only the filtered keys
-    logger.info(f"Extracted data keys: {filtered_extracted_data.keys() if filtered_extracted_data else 'None'}")   
+    logger.info(f"Extracted data keys: {helpers.get_json_keys(filtered_extracted_data) if filtered_extracted_data else 'None'}")   
     
     all_data = []
     parsing_functions = [
