@@ -161,13 +161,27 @@ def extract_instagram_data(instagram_zip: str) -> Dict[str, Any]:
             DATA_FORMAT = "json" if len(json_files) > len(html_files) else "html"
             
             files_to_process = json_files if DATA_FORMAT == "json" else html_files
-            
             for file in files_to_process:
                 with zf.open(file) as f:
-                    if DATA_FORMAT == "json":
-                        data[Path(file).name] = json.load(io.TextIOWrapper(f, encoding='utf-8'))
-                    elif DATA_FORMAT == "html":
-                        data[Path(file).name] = f.read().decode('utf-8')
+                    raw_data = f.read()
+                    # Use UnicodeDammit to detect the encoding
+                    suggestion = UnicodeDammit(raw_data)
+                    encoding = suggestion.original_encoding
+                    # logger.debug(f"Encountered encoding: {encoding}.")
+
+                    try:
+                        if DATA_FORMAT == "json":
+                            data[Path(file).name] = json.loads(raw_data.decode(encoding))
+                        elif DATA_FORMAT == "html":
+                            data[Path(file).name] = raw_data.decode(encoding)
+                    except (UnicodeDecodeError, json.JSONDecodeError) as e:
+                        logger.error(f"Error processing file {file} with encoding {encoding}: {str(e)}")
+                        continue  # Skip the problematic file and continue with othersr(e)}")
+
+        the_user = helpers.find_items_bfs(data, "author")
+        if not the_user:
+            the_user = helpers.find_items_bfs(data, "actor")
+            
         logger.info(f"Extracted data from {len(data)} files. Data format: {DATA_FORMAT}")
     except Exception as e:
         logger.error(f"Error extracting data: {str(e)}")

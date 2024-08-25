@@ -197,7 +197,7 @@ def extract_facebook_data(facebook_zip: str) -> Dict[str, Any]:
                     # Use UnicodeDammit to detect the encoding
                     suggestion = UnicodeDammit(raw_data)
                     encoding = suggestion.original_encoding
-                    logger.debug(f"Encountered encoding: {encoding}.")
+                    # logger.debug(f"Encountered encoding: {encoding}.")
 
                     try:
                         if DATA_FORMAT == "json":
@@ -207,12 +207,7 @@ def extract_facebook_data(facebook_zip: str) -> Dict[str, Any]:
                     except (UnicodeDecodeError, json.JSONDecodeError) as e:
                         logger.error(f"Error processing file {file} with encoding {encoding}: {str(e)}")
                         continue  # Skip the problematic file and continue with othersr(e)}")
-            # for file in files_to_process:
-            #     with zf.open(file) as f:
-            #         if DATA_FORMAT == "json":
-            #             data[Path(file).name] = json.load(io.TextIOWrapper(f, encoding='utf-8'))
-            #         elif DATA_FORMAT == "html":
-            #             data[Path(file).name] = f.read().decode('utf-8')
+
         the_user = helpers.find_items_bfs(data, "author")
         if not the_user:
           the_user = helpers.find_items_bfs(data, "actor")
@@ -230,7 +225,7 @@ def parse_advertisers_using_activity(data: Dict[str, Any]) -> List[Dict[str, Any
         return [{
             'data_type': 'facebook_advertiser_activity',
             'Action': 'AdvertiserActivity',
-            'title': advertiser.get("advertiser_name", ""),
+            'title': helpers.find_items_bfs(advertiser,"advertiser_name"),
             'URL': '',
             'Date': '',
             'details': json.dumps({
@@ -281,7 +276,11 @@ def parse_advertisers_using_activity(data: Dict[str, Any]) -> List[Dict[str, Any
 
 def parse_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
-        comments = data.get("comments.json", {}).get("comments_v2", [])
+        # comments =  helpers.find_items_bfs(data,"comments.json")
+        comments = helpers.find_items_bfs(data,"comments_v2")
+
+        if not comments:
+          return []
         
         def replace_author(text: str, author: str) -> str:
             if author in text:
@@ -323,7 +322,8 @@ def parse_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             for item in comment_items:
                 try:
                     # Extracting the comment term - locate divs with text content directly
-                    term_element = remove_the_user_from_title(item.xpath('.//div[normalize-space(text())]'))
+                    term_element = item.xpath('.//div[normalize-space(text())]')
+                    # logger.debug(f"{term_element}")
                     action = term_element[0].text_content().strip().replace('"', '') if term_element else ""
                     term = term_element[1].text_content().strip().replace('"', '') if term_element else ""
                     date = term_element[2].text_content().strip().replace('"', '') if term_element else ""
@@ -339,9 +339,11 @@ def parse_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                             'details': ''
                         })
                 except Exception as inner_e:
-                    logger.error(f"Failed to parse an item: {inner_e}")
+                    continue
+                    logger.error(f"Failed to parse an item in comments.html: {inner_e}")
                     
         except Exception as e:
+            # continue
             logger.error(f"Error parsing 'comments.html': {str(e)}")
         # logger.error(f"Failesdadasd {results}")
 
@@ -418,7 +420,13 @@ def parse_likes_and_reactions(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 ## todo: this isnt working for the large html
 def parse_your_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
-        searches = data.get("your_search_history.json", {}).get("searches_v2", [])
+        # searches = data.get("your_search_history.json", {}).get("searches_v2", [])
+        
+        searches = helpers.find_items_bfs(data,"searches_v2")
+
+        if not searches:
+          return []
+        
         return [{
             'data_type': 'facebook_search',
             'Action': helpers.find_items_bfs(item, "title"),
@@ -427,6 +435,7 @@ def parse_your_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             'Date': helpers.robust_datetime_parser(item.get("timestamp", 0)),
             'details': json.dumps({})
         } for item in searches]
+        
     elif DATA_FORMAT == "html":
         html_content = data.get("your_search_history.html", "")
         if not html_content:
@@ -459,7 +468,7 @@ def parse_your_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                             'details': ''
                         })
                 except Exception as inner_e:
-                    logger.error(f"Failed to parse an item: {inner_e}")
+                    logger.error(f"Failed to parse an item in your_search_history.html: {inner_e}")
                     
         except Exception as e:
             logger.error(f"Error parsing 'your_search_history.html': {str(e)}")
@@ -467,29 +476,101 @@ def parse_your_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         return results
     
+def find_structure(json_data):
+    """
+    Recursively search the JSON data for structures where 'dict' is a key with a list
+    containing dictionaries that have keys like 'ent_field_name', 'label', and 'value'.
+    """
+    matches = []
+
+    def recursive_search(data):
+        # Check if data is a dictionary
+        if isinstance(data, dict):
+            # Look for the 'dict' key that contains a list of dictionaries
+            if "dict" in data and isinstance(data["dict"], list):
+                if all(isinstance(item, dict) for item in data["dict"]):
+                    # Check if the dictionaries contain the specific structure
+                    for item in data["dict"]:
+                        if "ent_field_name" in item and "label" in item and "value" in item:
+                            matches.append(data)
+                            break
+            # Recursively search in dictionary values
+            for key, value in data.items():
+                recursive_search(value)
+        
+        # If data is a list, recursively search each element
+        elif isinstance(data, list):
+            for item in data:
+                recursive_search(item)
+
+    # Start the recursive search from the root of the JSON data
+    recursive_search(json_data)
+    return matches
+
     
-## todo: get the ad preferences from the json
-## also facebook_other_interests for large html does not work
+## also doesnt work for large html
 def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    # List of possible translations for "Name"
+    name_keys = ["Name", "Naam", "اسم", "İsim", "ⴰⵣⴳⵣⴰⵏ", "Imię", "Nom", "Nome"]
+    
     if DATA_FORMAT == "json":
-        preferences = data.get("ad_preferences.json", {}).get("label_values", [])
-        return [{
-            'data_type': 'facebook_ad_preference',
-            'Action': 'AdPreference',
-            'title': pref.get("label", ""),
-            'URL': '',
-            'Date': '',
-            'details': json.dumps(pref.get("value", ""))
-        } for pref in preferences]
+        preferences_dat = data.get("ad_preferences.json", {}).get("label_values", [])
+        
+        if not preferences_dat:
+            # logger.error("JSON content for 'ad_preferences.json' not found.")
+            return []       
+          
+        preferences = []
+        
+        for pref in preferences_dat:
+            left_value = pref.get("label", "")
+            right_value = pref.get("value", "")
+            action_type = 'AdPreference'
+            data_type = 'facebook_ad_preference'
+            title = left_value
+            
+            if action_type == 'AdPreference':
+                if title and right_value is not "":
+                  preferences.append({
+                      'data_type': data_type,
+                      'Action': action_type,
+                      'title': title,
+                      'URL': '',
+                      'Date': '',
+                      'details': right_value
+                  })
+                  
+        ad_interests_dat = find_structure(preferences_dat)
+        for pref in ad_interests_dat:
+            action_type = 'Info Used to Target You'
+            data_type = 'facebook_other_interests'
+            title = helpers.find_items_bfs(pref, "value")
+            if title:
+                  preferences.append({
+                      'data_type': data_type,
+                      'Action': action_type,
+                      'title': title,
+                      'URL': '',
+                      'Date': '',
+                      'details': ''
+                  })           
+            
+        return preferences
+        # return [{
+        #     'data_type': 'facebook_ad_preference',
+        #     'Action': 'AdPreference',
+        #     'title': pref.get("label", ""),
+        #     'URL': '',
+        #     'Date': '',
+        #     'details': json.dumps(pref.get("value", ""))
+        # } for pref in preferences]
     elif DATA_FORMAT == "html":
         html_content = data.get("ad_preferences.html", "")
         if not html_content:
             logger.error("HTML content for 'ad_preferences.html' not found.")
             return []
 
-        # List of possible translations for "Name"
-        name_keys = ["Name", "Naam", "اسم", "İsim", "ⴰⵣⴳⵣⴰⵏ", "Imię", "Nom", "Nome"]
-    
+
         try:
             tree = html.fromstring(html_content)
             rows = tree.xpath('//table/tr')
@@ -508,15 +589,26 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                       title = right_value
                       right_value = ""
                   
-                  if title:
-                    preferences.append({
-                        'data_type': data_type,
-                        'Action': action_type,
-                        'title': title,
-                        'URL': '',
-                        'Date': '',
-                        'details': right_value
-                    })
+                  if action_type == 'AdPreference':
+                      if title and right_value is not "":
+                        preferences.append({
+                            'data_type': data_type,
+                            'Action': action_type,
+                            'title': title,
+                            'URL': '',
+                            'Date': '',
+                            'details': right_value
+                        })
+                  else:
+                      if title:
+                        preferences.append({
+                            'data_type': data_type,
+                            'Action': action_type,
+                            'title': title,
+                            'URL': '',
+                            'Date': '',
+                            'details': right_value
+                        })
                 except Exception as e:
                   pass
     
@@ -531,6 +623,11 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 def parse_ads_personalization_consent(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         preferences = data.get("ads_personalization_consent.json", {}).get("label_values", [])
+        
+        if not preferences:
+          return []
+        
+        
         return [{
             'data_type': 'facebook_ads_personalization',
             'Action': 'AdPreference',
@@ -560,6 +657,11 @@ def parse_ads_personalization_consent(data: Dict[str, Any]) -> List[Dict[str, An
 def parse_advertisers_interacted_with(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         interactions = data.get("advertisers_you've_interacted_with.json", {}).get("history_v2", [])
+        
+        if not interactions:
+          return []
+        
+        
         return [{
             'data_type': 'facebook_ad_interaction',
             'Action': 'AdInteraction',
@@ -607,6 +709,11 @@ def parse_ads_interests(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         categories = data.get("ads_interests.json", {})
         categories = categories.get("topics_v2", [])
+        
+        if not categories:
+            return []
+
+        
         return [{
             'data_type': 'facebook_ads_interests',
             'Action': 'Info Used to Target You',
@@ -652,11 +759,15 @@ def parse_ads_interests(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 
-## todo: html uses class names, also review the data type
+## todo: review the data type
 def parse_other_categories_used(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         categories = data.get("other_categories_used_to_reach_you.json", {})
         categories = categories.get("bcts", [])
+        
+        if not categories:
+            return []
+        
         return [{
             'data_type': 'facebook_ad_categories',
             'Action': 'Info Used to Target You',
@@ -673,23 +784,24 @@ def parse_other_categories_used(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         try:
             tree = html.fromstring(html_content)
-            categories = tree.xpath('//div[@role="main"]/div[@class="_a6-g"]')
-
             results = []
 
-            for category in categories:
-                # Extract the title
-                title_element = category.xpath('.//div[contains(@class, "_a6-h")]/text()')
-                title = title_element[0].strip() if title_element else ""
+            # Updated XPath to directly access each category title
+            categories = tree.xpath('//div[@role="main"]//div//div[normalize-space(text())]')
 
-                results.append({
-                    'data_type': 'facebook_ad_categories',
-                    'Action': 'Info Used to Target You',
-                    'title': title,
-                    'URL': '',  # No URL is present in this structure
-                    'Date': '',  # No Date information is provided
-                    'details': ''  # No additional details are provided
-                })
+            for category in categories:
+                # Extract the text content directly from the targeted div
+                title = category.text_content().strip()
+
+                if title:  # Only add non-empty titles
+                    results.append({
+                        'data_type': 'facebook_ad_categories',
+                        'Action': 'Info Used to Target You',
+                        'title': title,
+                        'URL': '',  # No URL is present in this structure
+                        'Date': '',  # No Date information is provided
+                        'details': ''  # No additional details are provided
+                    })
 
             return results
 
@@ -701,6 +813,10 @@ def parse_recently_viewed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         viewed = data.get("recently_viewed.json", {}).get("recently_viewed", [])
         result = []
+        
+        if not viewed:
+            return []
+        
         for category in viewed:
             action = category.get('description', 'Viewed')
             if 'entries' in category:
@@ -781,6 +897,10 @@ def parse_recently_visited(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         visited = data.get("recently_visited.json", {}).get("visited_things_v2", [])
         result = []
+        
+        if not visited:
+            return []
+        
         for category in visited:
             action = category.get('description', 'visited')
             if 'entries' in category:
@@ -859,6 +979,10 @@ def parse_recently_visited(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 def parse_subscription_for_no_ads(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         subscriptions = data.get("subscription_for_no_ads.json", {}).get("label_values", [])
+        
+        if not subscriptions:
+            return []
+        
         return [{
             'data_type': 'facebook_subscription',
             'Action': 'SubscriptionStatus',
@@ -899,11 +1023,32 @@ def parse_subscription_for_no_ads(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             logger.error(f"Error parsing 'subscription_for_no_ads.html': {str(e)}")
             return []      
 
+### todo: no html
+def parse_events(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    if DATA_FORMAT == "json":
+        # follows = data.get("who_you've_followed.jsoeventsn", {}).get("events_joined", [])
+        events = helpers.find_items_bfs(data, "event_responses_v2")
+        if not events:
+            return []
+        
+        return [{
+            'data_type': 'facebook_event',
+            'Action': 'EventParticipation',
+            'title': event.get("name", ""),
+            'URL': '',
+            'Date': helpers.robust_datetime_parser(event.get("start_timestamp", 0)),
+            'details': json.dumps({})
+        } for event in events]
+    if DATA_FORMAT == "json":
+        return []
 
-### todo: this includes class names
 def parse_who_you_followed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         follows = data.get("who_you've_followed.json", {}).get("following_v3", [])
+        
+        if not follows:
+            return []
+        
         return [{
             'data_type': 'facebook_follow',
             'Action': 'Follow',
@@ -912,6 +1057,7 @@ def parse_who_you_followed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             'Date': helpers.robust_datetime_parser(follow.get("timestamp", 0)),
             'details': json.dumps({})
         } for follow in follows]
+        
     elif DATA_FORMAT == "html":
         html_content = data.get("who_you've_followed.html", "")
         if not html_content:
@@ -920,33 +1066,37 @@ def parse_who_you_followed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         try:
             tree = html.fromstring(html_content)
-            followed = tree.xpath('//div[@role="main"]/div[@class="_a6-g"]')
-
             results = []
 
-            for item in followed:
-                # Extract the title (Name of the person/organization followed)
-                title_element = item.xpath('.//div[@class="_2ph_ _a6-h _a6-i"]/text()')
-                title = title_element[0].strip() if title_element else ""
+            # Find all main divs that might contain the followed information
+            followed_entries = tree.xpath('//div[@role="main"]/div')
 
-                # Extract the date of follow
-                date_element = item.xpath('.//div[@class="_a72d"]/text()')
-                date = date_element[0].strip() if date_element else ""
+            for entry in followed_entries:
+                # Extract the title by finding the first div that contains text
+                title_element = entry.xpath('.//div[normalize-space(text())]')
+                title = title_element[0].text_content().strip() if title_element else ""
+
+                # Extract the date by finding the first div that contains a date format text
+                date_element = entry.xpath('.//div[contains(text(), ",") and contains(text(), ":")]')
+                date_text = date_element[0].text_content().strip() if date_element else ""
+                date = helpers.robust_datetime_parser(date_text)
 
                 results.append({
                     'data_type': 'facebook_followed',
                     'Action': 'Followed',
                     'title': title,
                     'URL': '',  # No URL is present in this structure
-                    'Date': helpers.robust_datetime_parser(date),
+                    'Date': date,
                     'details': ''  # No additional details available
                 })
 
             return results
 
         except Exception as e:
-            logger.error(f"Error parsing 'who_you\'ve_followed.html': {str(e)}")
+            logger.error(f"Error parsing 'who_you've_followed.html': {str(e)}")
             return []
+
+
 
 
 def remove_the_user_from_title(title: str) -> str:
@@ -959,8 +1109,11 @@ def remove_the_user_from_title(title: str) -> str:
 def parse_your_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         posts = data.get("your_posts__check_ins__photos_and_videos_1.json", {})
-        if isinstance(posts, dict):
-            posts = [posts]
+        # if isinstance(posts, dict):
+        #     posts = [posts]
+            
+        if not posts:
+          return []
 
 
         return [{
@@ -1016,11 +1169,14 @@ def parse_your_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         # return posts
         return []
 
-## todo: this wouldnt work for html
+
 def parse_facebook_account_suggestions(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         categories = helpers.find_items_bfs(data, "people_we_think_you_should_follow.json")
         categories = helpers.find_items_bfs(categories, "vec")
+
+        if not categories:
+          return []
 
         return [{
             'data_type': 'facebook_account_suggestions',
@@ -1032,19 +1188,23 @@ def parse_facebook_account_suggestions(data: Dict[str, Any]) -> List[Dict[str, A
         } for category in categories]
     elif DATA_FORMAT == "html":
         html_content = data.get("people_we_think_you_should_follow.html", "")
-        tree = html.fromstring(html_content)
-        items = tree.xpath('//div/div/div')
+        items = html.fromstring(html_content)
+        
+        # Extract all <div> elements that contain the names
+        names_elements = items.xpath('.//td/div/div/div/div')
+        
+        # Extract the text content from each <div> element
+        names = [name.text_content().strip() for name in names_elements]
         categories = []
-        for item in items:
-            title = item.xpath('./text()')[0]
-            details = item.xpath('./following-sibling::div//text()')
+        for item in names:
+            title = item
             categories.append({
                 'data_type': 'facebook_account_suggestions',
                 'Action': 'People You Should Follow',
                 'title': title,
                 'URL': '',
                 'Date': '',
-                'details': json.dumps(details)
+                'details': json.dumps({})
             })
         return categories
 
@@ -1053,6 +1213,10 @@ def parse_group_posts_and_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]
     if DATA_FORMAT == "json":
 
         posts = data.get("group_posts_and_comments.json", {}).get("group_posts_v2", [])
+        
+        if not posts:
+          return []
+        
         return [{
             'data_type': 'facebook_group_post',
             'Action': 'Group Post',
@@ -1105,6 +1269,10 @@ def parse_your_comments_in_groups(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
 
         comments = data.get("your_comments_in_groups.json", {}).get("group_comments_v2", [])
+        
+        if not comments:
+          return []
+        
         return [{
             'data_type': 'facebook_group_comment',
             'Action': 'Comment',
@@ -1170,6 +1338,10 @@ def parse_your_group_membership_activity(data: Dict[str, Any]) -> List[Dict[str,
     if DATA_FORMAT == "json":
 
         activities = data.get("your_group_membership_activity.json", {}).get("groups_joined_v2", [])
+        
+        if not activities:
+          return []
+        
         return [{
             'data_type': 'facebook_group_membership',
             'Action': 'Group Membership',
@@ -1246,6 +1418,7 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         parse_recently_viewed,
         parse_recently_visited,
         parse_your_posts,
+        parse_events,
         parse_group_posts_and_comments,
         parse_your_comments_in_groups,
         parse_your_group_membership_activity
@@ -1254,8 +1427,9 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
     for parse_function in parsing_functions:
         try:
             parsed_data = parse_function(extracted_data)
-            logger.info(f"{parse_function.__name__} returned {len(parsed_data)} items")
-            all_data.extend(parsed_data)
+            if parsed_data:
+                logger.info(f"{parse_function.__name__} returned {len(parsed_data)} items")
+                all_data.extend(parsed_data)
         except Exception as e:
             logger.error(f"Error in {parse_function.__name__}: {str(e)}")
         

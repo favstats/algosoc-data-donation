@@ -22,7 +22,7 @@ from port.api.commands import (CommandSystemDonate, CommandUIRender, CommandSyst
 LOG_STREAM = io.StringIO()
 
 logging.basicConfig(
-    #stream=LOG_STREAM,
+    stream=LOG_STREAM,
     level=logging.DEBUG,
     format="%(asctime)s --- %(name)s --- %(levelname)s --- %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S%z",
@@ -65,8 +65,9 @@ def process(session_id):
               # Perform file size check here
             file_path = Path(file_result.value)  # Get the file path
             file_size_gb = file_path.stat().st_size / (1024 ** 3)  # Convert bytes to GB
+            LOGGER.info(f"Uploaded file size: {file_size_gb} GB")
             if file_size_gb > 1.75:
-                LOGGER.info("File too large; prompt retry_confirmation")
+                LOGGER.warning("File too large; prompt retry_confirmation")
                 # Check if it's the final platform or if it's the last successful validatio
                 yield donate_logs(f"{session_id}-tracking")
                 retry_result = yield render_donation_page("Social Media", render_large_file_message("Social Media"), progress)
