@@ -523,7 +523,9 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
 
         else:
             logger.warning("First Combined DataFrame is empty")  
-            
+    else:
+        logger.warning("First Combined DataFrame: No data with dates was successfully extracted and parsed")
+                
     ### this is for all things without dates
     all_data = []
     parsing_functions = [
@@ -565,7 +567,7 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
         else:
             logger.warning("Second Combined DataFrame is empty")
     else:
-        logger.warning("Second Combined DataFrame: No data was successfully extracted and parsed")
+        logger.warning("Second Combined DataFrame: No data without dates was successfully extracted and parsed")
     
     return tables_to_render
 

@@ -1307,8 +1307,9 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
     extracted_data = extract_instagram_data(instagram_zip)
     # Assuming `extracted_data` is a dictionary where keys are the file paths or names.
     filtered_extracted_data = {
-        k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.html$', k.split('/')[-1])
+        k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.(html|json)$', k.split('/')[-1])
     }
+    
     
     # Logging only the filtered keys
     logger.info(f"Extracted data keys: {helpers.get_json_keys(filtered_extracted_data) if filtered_extracted_data else 'None'}")   
@@ -1393,7 +1394,7 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
         
         logger.info(f"Successfully processed {len(combined_df)} total entries from Instagram data")
     else:
-        logger.warning("No data was successfully extracted and parsed")
+        logger.warning("No data with dates was successfully extracted and parsed")
    
    
     ### this is for all things without dates
@@ -1437,7 +1438,7 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
         else:
             logger.warning("Second Combined DataFrame is empty")
     else:
-        logger.warning("Second Combined DataFrame: No data was successfully extracted and parsed")
+        logger.warning("Second Combined DataFrame: No data without dates was successfully extracted and parsed")
     
     return tables_to_render
 

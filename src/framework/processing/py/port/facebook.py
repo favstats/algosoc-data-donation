@@ -1402,7 +1402,7 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
     extracted_data = extract_facebook_data(facebook_zip)
     # Assuming `extracted_data` is a dictionary where keys are the file paths or names.
     filtered_extracted_data = {
-        k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.html$', k.split('/')[-1])
+        k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.(html|json)$', k.split('/')[-1])
     }
     
     # Logging only the filtered keys
@@ -1493,7 +1493,7 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         
         logger.info(f"Successfully processed {len(combined_df)} total entries from Facebook data")
     else:
-        logger.warning("No data was successfully extracted and parsed")
+        logger.warning("No data with dates was successfully extracted and parsed.")
     
     ### this is for all things without dates
     all_data = []
@@ -1544,7 +1544,7 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         else:
             logger.warning("Second Combined DataFrame is empty")
     else:
-        logger.warning("Second Combined DataFrame: No data was successfully extracted and parsed")
+        logger.warning("Second Combined DataFrame: No data without dates was successfully extracted and parsed")
     
     return tables_to_render
 
