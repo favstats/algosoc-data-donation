@@ -143,7 +143,7 @@ def validate(file: Path) -> ValidateInput:
                 logger.warning("Found 'instagram' in zip file so it can't be Facebook!")
             else:
                 validation.set_status_code(0)  # Assume valid DDP
-                logger.info(f"Valid DDP inferred for file: {file_name}")
+                logger.info(f"Valid DDP inferred")
         else:
             logger.warning("Could not infer DDP category")
             validation.set_status_code(1)  # Not a valid DDP
@@ -238,7 +238,7 @@ def parse_advertisers_using_activity(data: Dict[str, Any]) -> List[Dict[str, Any
     elif DATA_FORMAT == "html":
         html_content = data.get("advertisers_using_your_activity_or_information.html", "")
         if not html_content:
-            logger.error("HTML content for 'advertisers_using_your_activity_or_information.html' not found.")
+            logger.info("'advertisers_using_your_activity_or_information.html' not found.")
             return []
 
         try:
@@ -311,7 +311,7 @@ def parse_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     elif DATA_FORMAT == "html":
         html_content = data.get("comments.html", "")
         if not html_content:
-            logger.error("HTML content for 'comments.html' not found.")
+            logger.info("'comments.html' not found.")
             return []
     
         results = []
@@ -377,7 +377,7 @@ def parse_likes_and_reactions(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             if path.endswith(".html") and "likes_and_reactions_" in path:
                 html_content = data.get(path, "")
                 if not html_content:
-                    logger.error(f"HTML content for '{path}' not found.")
+                    # logger.error(f"HTML content for '{path}' not found.")
                     continue
 
                 try:
@@ -440,7 +440,7 @@ def parse_your_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     elif DATA_FORMAT == "html":
         html_content = data.get("your_search_history.html", "")
         if not html_content:
-            logger.error("HTML content for 'your_search_history.html' not found.")
+            logger.info("'your_search_history.html' not found.")
             return []
     
         results = []
@@ -518,7 +518,7 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         preferences_dat = data.get("ad_preferences.json", {}).get("label_values", [])
         
         if not preferences_dat:
-            # logger.error("JSON content for 'ad_preferences.json' not found.")
+            logger.info("''ad_preferences.json' not found.")
             return []       
           
         preferences = []
@@ -568,7 +568,7 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     elif DATA_FORMAT == "html":
         html_content = data.get("ad_preferences.html", "")
         if not html_content:
-            logger.error("HTML content for 'ad_preferences.html' not found.")
+            logger.info("'ad_preferences.html' not found.")
             return []
 
 
@@ -639,21 +639,25 @@ def parse_ads_personalization_consent(data: Dict[str, Any]) -> List[Dict[str, An
         } for pref in preferences]
     elif DATA_FORMAT == "html":
         html_content = data.get("ads_personalization_consent.html", "")
-        tree = html.fromstring(html_content)
-        items = tree.xpath('//div/div/div')
-        preferences = []
-        for item in items:
-            title = item.xpath('./text()')[0]
-            details = item.xpath('./following-sibling::div//text()')
-            preferences.append({
-                'data_type': 'facebook_ads_personalization',
-                'Action': 'AdPreference',
-                'title': title,
-                'URL': '',
-                'Date': '',
-                'details': json.dumps(details)
-            })
-        return preferences
+        if not html_content:
+          return []
+        else:
+          return []
+        # tree = html.fromstring(html_content)
+        # items = tree.xpath('//div/div/div')
+        # preferences = []
+        # for item in items:
+        #     title = item.xpath('./text()')[0]
+        #     details = item.xpath('./following-sibling::div//text()')
+        #     preferences.append({
+        #         'data_type': 'facebook_ads_personalization',
+        #         'Action': 'AdPreference',
+        #         'title': title,
+        #         'URL': '',
+        #         'Date': '',
+        #         'details': json.dumps(details)
+        #     })
+        # return preferences
 
 def parse_advertisers_interacted_with(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
@@ -674,7 +678,7 @@ def parse_advertisers_interacted_with(data: Dict[str, Any]) -> List[Dict[str, An
     elif DATA_FORMAT == "html":
         html_content = data.get("advertisers_you've_interacted_with.html", "")
         if not html_content:
-            logger.error("HTML content for 'advertisers_you've_interacted_with.html' not found.")
+            # logger.info("'advertisers_you've_interacted_with.html' not found.")
             return []
     
         try:
@@ -726,7 +730,7 @@ def parse_ads_interests(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     elif DATA_FORMAT == "html":
         html_content = data.get("ads_interests.html", "")
         if not html_content:
-            logger.error("HTML content for 'ads_interests.html' not found.")
+            logger.info("'ads_interests.html' not found.")
             return []
 
         try:
@@ -780,7 +784,7 @@ def parse_other_categories_used(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     elif DATA_FORMAT == "html":
         html_content = data.get("other_categories_used_to_reach_you.html", "")
         if not html_content:
-            logger.error("HTML content for 'other_categories_used_to_reach_you.html' not found.")
+            logger.info("'other_categories_used_to_reach_you.html' not found.")
             return []
 
         try:
@@ -1062,7 +1066,7 @@ def parse_who_you_followed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     elif DATA_FORMAT == "html":
         html_content = data.get("who_you've_followed.html", "")
         if not html_content:
-            logger.error("HTML content for 'who_you've_followed.html' not found.")
+            logger.info("'who_you've_followed.html' not found.")
             return []
 
         try:
@@ -1193,6 +1197,10 @@ def parse_facebook_account_suggestions(data: Dict[str, Any]) -> List[Dict[str, A
         } for category in categories]
     elif DATA_FORMAT == "html":
         html_content = data.get("people_we_think_you_should_follow.html", "")
+        
+        if not html_content:
+          return []
+        
         items = html.fromstring(html_content)
         
         # Extract all <div> elements that contain the names
@@ -1233,7 +1241,12 @@ def parse_group_posts_and_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]
     elif DATA_FORMAT == "html":
         reactions = []
         try:
-            tree = html.fromstring(data['group_posts_and_comments.html'])
+            posts = helpers.find_items_bfs(data, 'group_posts_and_comments.html')
+            if not posts:
+              logger.info("'group_posts_and_comments.html' not found.")
+              return []
+            
+            tree = html.fromstring(posts)
             reaction_items = tree.xpath('//div[@role="main"]/div')
     
             for item in reaction_items:
@@ -1293,7 +1306,13 @@ def parse_your_comments_in_groups(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     elif DATA_FORMAT == "html":
         comments = []
         try:
-            tree = html.fromstring(data['your_comments_in_groups.html'])
+            posts = helpers.find_items_bfs(data, 'your_comments_in_groups.html')
+            if not posts:
+              logger.info("'your_comments_in_groups.html' not found.")
+              return []
+            
+            tree = html.fromstring(posts)
+        
             comment_items = tree.xpath('//div[@role="main"]/div')
     
             for item in comment_items:
@@ -1361,7 +1380,14 @@ def parse_your_group_membership_activity(data: Dict[str, Any]) -> List[Dict[str,
 
         activities = []
         try:
-            tree = html.fromstring(data['your_group_membership_activity.html'])
+          
+            posts = helpers.find_items_bfs(data, 'your_group_membership_activity.html')
+            if not posts:
+              logger.info("'your_group_membership_activity.html' not found.")
+              return []
+            
+            tree = html.fromstring(posts)
+          
             activity_items = tree.xpath('//div[@role="main"]/div')
     
             for item in activity_items:
@@ -1483,13 +1509,17 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
         combined_df['Count'] = 1
         
-        try: 
-          # Apply the replace_email function to each of the specified columns
-          combined_df['title'] = combined_df['title'].apply(helpers.replace_email)
-          combined_df['details'] = combined_df['details'].apply(helpers.replace_email)
-          combined_df['Action'] = combined_df['Action'].apply(helpers.replace_email)
-        except Exception as e:
-           logger.warning(f"Could not replace e-mail: {e}")
+        # List of columns to apply the replace_email function
+        columns_to_process = ['title', 'details', 'Action']
+        
+        # Loop over each column in the list
+        for column in columns_to_process:
+            try:
+                # Ensure the column values are strings and apply the replace_email function
+                combined_df[column] = combined_df[column].apply(lambda x: helpers.replace_email(str(x)))
+            except Exception as e:
+                logger.warning(f"Could not replace e-mail in column '{column}': {e}")
+
         
         table_title = props.Translatable({"en": "Facebook Activity Data", "nl": "Facebook Gegevens"})
         visses = [vis.create_chart(

@@ -88,6 +88,7 @@ def parse_data(data: List[Dict[str, Any]]) -> pd.DataFrame:
     return df
 
 def validate(file: Path) -> ValidateInput:
+    global validation
     validation = ValidateInput(STATUS_CODES, DDP_CATEGORIES)
     
     try:
@@ -127,6 +128,7 @@ def validate(file: Path) -> ValidateInput:
             #     
             else:
                 validation.set_status_code(0)  # Assume it is a valid DDP 
+                logger.info(f"Valid DDP inferred")
                 # Log the valid Instagram files found
                 # for p in paths:
                 #     logger.debug("Found: %s in zip", p)
@@ -205,7 +207,7 @@ def parse_ads_clicked(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
             parsed_item = {
                 'title': title,
-                'url': '',  # No URL data in the JSON structure provided
+                'URL': '',  # No URL data in the JSON structure provided
                 'Date': date,
                 'detail': ''  # No additional details
             }
@@ -1238,9 +1240,11 @@ def parse_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     
 def parse_reels(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
-      posts = data.get("reels.json", []) or helpers.find_items_bfs(item, "ig_reels_media")
-      if isinstance(posts, dict):
-          posts = [posts]
+      # posts = data.get("reels.json", []) or
+      posts = helpers.find_items_bfs(data, "ig_reels_media")
+      if not posts:
+        logger.warning("No content found for 'reels.json'.")
+        return []
       return [{
           'data_type': 'instagram_reel',
           'Action': 'Post',
@@ -1273,9 +1277,10 @@ def parse_reels(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           
 def parse_stories(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
-      posts = data.get("stories.json", []) or helpers.find_items_bfs(item, "ig_stories")
-      if isinstance(posts, dict):
-          posts = [posts]
+      # posts = data.get("stories.json", []) or
+      posts = helpers.find_items_bfs(data, "ig_stories")
+      # if isinstance(posts, dict):
+      #     posts = [posts]
       return [{
           'data_type': 'instagram_story',
           'Action': 'Post',
@@ -1359,8 +1364,8 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
         parse_following,
         parse_searches, 
         parse_account_searches,
-        parse_posted_reels_insights,
-        parse_posted_posts_insights,
+        # parse_posted_reels_insights,
+        # parse_posted_posts_insights,
         parse_posts,
         parse_reels,
         parse_stories,
@@ -1412,13 +1417,17 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
           logger.error(f"Error parsing or sorting date: {str(e)}")
         combined_df['Count'] = 1
         
-        try: 
-          # Apply the replace_email function to each of the specified columns
-          combined_df['title'] = combined_df['title'].apply(helpers.replace_email)
-          combined_df['details'] = combined_df['details'].apply(helpers.replace_email)
-          combined_df['Action'] = combined_df['Action'].apply(helpers.replace_email)
-        except Exception as e:
-           logger.warning(f"Could not replace e-mail: {e}")
+        # List of columns to apply the replace_email function
+        columns_to_process = ['title', 'details', 'Action']
+        
+        # Loop over each column in the list
+        for column in columns_to_process:
+            try:
+                # Ensure the column values are strings and apply the replace_email function
+                combined_df[column] = combined_df[column].apply(lambda x: helpers.replace_email(str(x)))
+            except Exception as e:
+                logger.warning(f"Could not replace e-mail in column '{column}': {e}")
+
         
         table_title = props.Translatable({"en": "Instagram Activity Data", "nl": "Instagram Gegevens"})
         visses = [vis.create_chart(

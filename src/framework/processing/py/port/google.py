@@ -42,6 +42,9 @@ def parse_json_content(data, data_type: str) -> List[Dict[str, Any]]:
             if product == "":
                 product = helpers.find_items_bfs(item, 'products')
             
+            if len(product) == 1:
+                product = product[0]
+            
             details = helpers.find_items_bfs(item, 'details')
             if not details:
                 details_json = ""  # or use None if you want it explicitly as a null in the dataframe
@@ -289,6 +292,7 @@ def validate(file: Path) -> ValidateInput:
             validation.set_status_code(1)  # Not a valid DDP
         elif validation.ddp_category.ddp_filetype in (DDPFiletype.JSON, DDPFiletype.HTML):
             validation.set_status_code(0)  # Valid DDP
+            logger.info(f"Valid DDP inferred")
             # Log the valid Google files found
             # for p in paths:
             #     logger.debug("Found: %s in zip", p)
@@ -797,7 +801,22 @@ def should_exclude_url(url: str) -> bool:
             "spankwire.com", "homepornking.com", "pornrabbit.com", "megapornx.com",
             "jizzbunker.com", "eporner.com", "cam4.com", "sexier.com", "adultempire.com",
             "joysporn.com", "slutroulette.com", "bigxvideos.com", "hotmovs.com", "milfporn.xxx",
-            "kinky.nl"
+            
+            # Dutch Porn Websites
+            "kinky.nl", "geilevrouwen.nl", "sexfilms.nl", "nlporno.com", 
+            "echtneuken.nl", "viva.nl", "sexjobs.nl", "vagina.nl", "binkdate.nl", "chatgirl.nl",
+        
+            # Gay Porn Websites
+            "men.com", "gaytube.com", "justusboys.com", "gaymaletube.com", "dudetube.com",
+            "nextdoorstudios.com", "cockyboys.com", "helixstudios.net", "hothouse.com", "corbinfisher.com",
+        
+            # Lesbian Porn Websites
+            "girlsway.com", "naughtylady.com", "bellesa.co", "sweetsinner.com", "transangelsnetwork.com",
+            "girlfriendsfilms.com", "thelesbianexperience.com", "wifelovers.com", "wearehairy.com", "lucasentertainment.com",
+        
+            # Trans Porn Websites
+            "shemale.xxx", "groobygirls.com", "ts-dating.com", "tgirls.com", "trannytube.tv",
+            "transgenderpornstar.com", "trans500.com", "pure-ts.com", "transangels.com", "tgirlporn.tv"
         ]
     
       
@@ -858,13 +877,17 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
             combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
             combined_df['Count'] = 1
             
-            try: 
-              # Apply the helpers.replace_email function to each of the specified columns
-              combined_df['title'] = combined_df['title'].apply(helpers.replace_email)
-              combined_df['details'] = combined_df['details'].apply(helpers.replace_email)
-              combined_df['Action'] = combined_df['Action'].apply(helpers.replace_email)
-            except Exception as e:
-               logger.warning(f"Could not replace e-mail: {e}")
+            # List of columns to apply the replace_email function
+            columns_to_process = ['title', 'details', 'Action']
+            
+            # Loop over each column in the list
+            for column in columns_to_process:
+                try:
+                    # Ensure the column values are strings and apply the replace_email function
+                    combined_df[column] = combined_df[column].apply(lambda x: helpers.replace_email(str(x)))
+                except Exception as e:
+                    logger.warning(f"Could not replace e-mail in column '{column}': {e}")
+
             
             table_title = props.Translatable({"en": "Google Activity Data", "nl": "Google Gegevens"})
             visses = [vis.create_chart(

@@ -21,7 +21,7 @@ LOG_STREAM = io.StringIO()
 
 logging.basicConfig(
     ## todo: enable when submitting
-    # stream=LOG_STREAM,
+    stream=LOG_STREAM,
     level=logging.DEBUG,
     format="%(asctime)s --- %(name)s --- %(levelname)s --- %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S%z",
@@ -234,8 +234,8 @@ def retry_confirmation(platform):
 def prompt_file(extensions, platform):
     description = props.Translatable(
         {
-            "nl": f"Volg de download instructies en kies het bestand dat u opgeslagen heeft op uw apparaat.",
-            "en": f"Please follow the download instructions and choose the file that you stored on your device."
+            "nl": "Volg de download instructies en kies het bestand dat u opgeslagen heeft op uw apparaat. Dit kan even duren, afhankelijk van de grootte van uw inzending. Gelieve geduldig te zijn.",
+            "en": "Please follow the download instructions and choose the file that you stored on your device. This might take a while depending on the size of your submission, please be patient."
         }
     )
     return props.PropsUIPromptFileInput(description, extensions)

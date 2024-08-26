@@ -92,9 +92,10 @@ def validate(file: Path) -> ValidateInput:
             validation.set_status_code(1)  # Not a valid DDP
         elif validation.ddp_category.ddp_filetype in (DDPFiletype.JSON, DDPFiletype.TXT):
             validation.set_status_code(0)  # Valid DDP
+            logger.info(f"Valid DDP inferred")
             # Log the valid TikTok files found
-            for p in paths:
-                logger.debug("Found: %s in zip", p)
+            # for p in paths:
+            #     logger.debug("Found: %s in zip", p)
         else:
             logger.warning("Could not infer DDP category")
             validation.set_status_code(1)  # Not a valid DDP
@@ -247,7 +248,7 @@ def parse_login_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         {
             'data_type': 'tiktok_login',
             'Action': 'Login',
-            'title': f"Login from {login.get(device_model_key, 'Unknown')} ({login.get(device_system_key, 'Unknown')})",
+            'title': "Login from Device",
             'URL': '',
             'Date': login.get('Date', ''),
             'details': json.dumps({})
@@ -521,13 +522,17 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
             combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
             combined_df['Count'] = 1  # Add a Count column to the original data
 
-            try: 
-              # Apply the helpers.replace_email function to each of the specified columns
-              combined_df['title'] = combined_df['title'].apply(helpers.replace_email)
-              combined_df['details'] = combined_df['details'].apply(helpers.replace_email)
-              combined_df['Action'] = combined_df['Action'].apply(helpers.replace_email)
-            except Exception as e:
-               logger.warning(f"Could not replace e-mail: {e}")
+            # List of columns to apply the replace_email function
+            columns_to_process = ['title', 'details', 'Action']
+            
+            # Loop over each column in the list
+            for column in columns_to_process:
+                try:
+                    # Ensure the column values are strings and apply the replace_email function
+                    combined_df[column] = combined_df[column].apply(lambda x: helpers.replace_email(str(x)))
+                except Exception as e:
+                    logger.warning(f"Could not replace e-mail in column '{column}': {e}")
+
 
             combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
             
