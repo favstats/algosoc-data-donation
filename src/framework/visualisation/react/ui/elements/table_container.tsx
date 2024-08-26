@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect, useRef } from 'react'
+import React, { useCallback, useMemo, useState, useEffect, useRef } from 'react'
 import { TableWithContext, PropsUITableRow } from '../../../../types/elements'
 import { VisualizationType } from '../../../../types/visualizations'
 import { Figure } from '../elements/figure'
@@ -24,34 +24,35 @@ export const TableContainer = ({
 }: TableContainerProps): JSX.Element => {
   const tableVisualizations = table.visualizations != null ? table.visualizations : []
   const [searchFilterIds, setSearchFilterIds] = useState<Set<string>>()
+  const [dataTypeFilter, setDataTypeFilter] = useState<string | null>(null)
   const [search, setSearch] = useState<string>('')
   const autoOpen = useRef<boolean>(true)
   const text = useMemo(() => getTranslations(locale), [locale])
-  const [show, setShow] = useState<boolean>(false)
+  const [show, setShow] = useState<boolean>(true)
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      const ids = searchRows(table.originalBody.rows, search)
+      const ids = searchRows(table.originalBody.rows, search, dataTypeFilter)
       setSearchFilterIds(ids)
-      if (search !== '' && autoOpen.current) {
+      if ((search !== '' || dataTypeFilter !== null) && autoOpen.current) {
         autoOpen.current = false
         setTimeout(() => setShow(true), 10)
       }
     }, 300)
     return () => clearTimeout(timer)
-  }, [search])
+  }, [search, dataTypeFilter, table.originalBody.rows])
 
   const searchedTable = useMemo(() => {
+
     if (searchFilterIds === undefined) return table
     const filteredRows = table.body.rows.filter((row) => searchFilterIds.has(row.id))
     return { ...table, body: { ...table.body, rows: filteredRows } }
-  }, [table, searchFilterIds])
+  }, [table, searchFilterIds, dataTypeFilter])
 
   const handleDelete = useCallback(
     (rowIds?: string[]) => {
       if (rowIds == null) {
         if (searchedTable !== null) {
-          // if no rowIds specified, delete all rows that meet search condition
           rowIds = searchedTable.body.rows.map((row) => row.id)
         } else {
           return
@@ -60,6 +61,7 @@ export const TableContainer = ({
       if (rowIds.length > 0) {
         if (rowIds.length === searchedTable?.body?.rows?.length) {
           setSearch('')
+          setDataTypeFilter(null)
           setSearchFilterIds(undefined)
         }
         const deletedRows = [...table.deletedRows, rowIds]
@@ -67,16 +69,20 @@ export const TableContainer = ({
         updateTable(id, newTable)
       }
     },
-    [id, table, searchedTable]
+    [id, table, searchedTable, updateTable]
   )
 
   const handleUndo = useCallback(() => {
     const deletedRows = table.deletedRows.slice(0, -1)
     const newTable = deleteTableRows(table, deletedRows)
     updateTable(id, newTable)
-  }, [id, table])
+  }, [id, table, updateTable])
 
   const unfilteredRows = table.body.rows.length
+
+  const handleDataTypeFilter = useCallback((dataType: string) => {
+    setDataTypeFilter(dataType === '' ? null : dataType)
+  }, [])
 
   return (
     <div
@@ -106,6 +112,7 @@ export const TableContainer = ({
             searchedTable={searchedTable}
             handleUndo={handleUndo}
             locale={locale}
+            dataTypeFilter={dataTypeFilter}
           />
 
           <button
@@ -131,6 +138,8 @@ export const TableContainer = ({
               handleDelete={handleDelete}
               handleUndo={handleUndo}
               locale={locale}
+              dataTypeFilter={dataTypeFilter}
+              onDataTypeFilter={handleDataTypeFilter}
             />
           </div>
         </div>
@@ -158,6 +167,41 @@ export const TableContainer = ({
   )
 }
 
+function searchRows(rows: PropsUITableRow[], search: string, dataTypeFilter: string | null): Set<string> | undefined {
+  if (search.trim() === '' && dataTypeFilter === null) return undefined
+
+  const query = [search.trim()]
+  const regexes: RegExp[] = []
+  for (const q of query) regexes.push(new RegExp(q.replace(/[-/\\^$*+?.()|[\]{}]/, '\\$&'), 'i'))
+
+  const ids = new Set<string>()
+  for (const row of rows) {
+    let matchesSearch = search.trim() === ''
+    let matchesDataType = dataTypeFilter === null
+
+    for (const regex of regexes) {
+      for (const cell of row.cells) {
+        if (regex.test(cell)) {
+          matchesSearch = true
+          break
+        }
+      }
+      if (matchesSearch) break
+    }
+
+    const dataTypeIndex = row.cells.findIndex((cell, index) => index === 0) // Assuming data_type is the first column
+    if (dataTypeIndex !== -1 && (dataTypeFilter === null || row.cells[dataTypeIndex] === dataTypeFilter)) {
+      matchesDataType = true
+    }
+
+    if (matchesSearch && matchesDataType) {
+      ids.add(row.id)
+    }
+  }
+
+  return ids
+}
+
 function deleteTableRows(table: TableWithContext, deletedRows: string[][]): TableWithContext {
   const deleteIds = new Set<string>()
   for (const deletedSet of deletedRows) {
@@ -169,35 +213,6 @@ function deleteTableRows(table: TableWithContext, deletedRows: string[][]): Tabl
   const rows = table.originalBody.rows.filter((row) => !deleteIds.has(row.id))
   const deletedRowCount = table.originalBody.rows.length - rows.length
   return { ...table, body: { ...table.body, rows }, deletedRowCount, deletedRows }
-}
-
-function searchRows(rows: PropsUITableRow[], search: string): Set<string> | undefined {
-  if (search.trim() === '') return undefined
-
-  // Not sure whether it's better to look for one of the words or exact string.
-  // Now going for exact string. Note that if you change this, you should also change
-  // the highlighting behavior in table.tsx (<Highlighter searchWords.../>)
-  // const query = search.trim().split(/\s+/)
-  const query = [search.trim()]
-
-  const regexes: RegExp[] = []
-  for (const q of query) regexes.push(new RegExp(q.replace(/[-/\\^$*+?.()|[\]{}]/, '\\$&'), 'i'))
-
-  const ids = new Set<string>()
-  for (const row of rows) {
-    for (const regex of regexes) {
-      let anyCellMatches = false
-      for (const cell of row.cells) {
-        if (regex.test(cell)) {
-          anyCellMatches = true
-          break
-        }
-      }
-      if (anyCellMatches) ids.add(row.id)
-    }
-  }
-
-  return ids
 }
 
 const zoomInIcon = (

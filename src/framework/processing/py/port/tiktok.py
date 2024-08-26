@@ -4,13 +4,15 @@ from typing import Dict, Any, List
 from datetime import datetime
 import logging
 import zipfile
+import os
 import io
+import re
+from bs4 import UnicodeDammit
+from pathlib import Path
 import port.api.props as props
 import port.helpers as helpers
 import port.vis as vis
-import os
 
-from pathlib import Path
 
 from port.validate import (
     DDPCategory,
@@ -106,6 +108,7 @@ def validate(file: Path) -> ValidateInput:
     validation.validated_paths = paths  # Store the validated paths
     return validation
 
+
 def extract_tiktok_data(tiktok_zip: str) -> Dict[str, Any]:
     global DATA_FORMAT
     data = {}
@@ -114,26 +117,42 @@ def extract_tiktok_data(tiktok_zip: str) -> Dict[str, Any]:
             file_list = zip_ref.namelist()
             
             json_files = [f for f in file_list if f.endswith('.json')]
+            txt_files = [f for f in file_list if f.endswith('.txt')]
+            
             if json_files:
                 DATA_FORMAT = "json"
-                json_file = json_files[0]
-                with zip_ref.open(json_file) as file:
-                    data = json.load(io.TextIOWrapper(file, encoding='utf-8'))
+                files_to_process = json_files
             else:
                 DATA_FORMAT = "txt"
-                for file in file_list:
-                    if file.endswith('.txt'):
-                        category = os.path.basename(os.path.dirname(file))
-                        file_name = os.path.basename(file).split('.')[0]
-                        with zip_ref.open(file) as txt_file:
-                            content = txt_file.read().decode('utf-8', errors='ignore')
+                files_to_process = txt_files
+            
+            for file in files_to_process:
+                with zip_ref.open(file) as f:
+                    raw_data = f.read()
+                    # Use UnicodeDammit to detect the encoding
+                    suggestion = UnicodeDammit(raw_data)
+                    encoding = suggestion.original_encoding
+                    # logger.debug(f"Encountered encoding: {encoding}.")
+
+                    try:
+                        if DATA_FORMAT == "json":
+                            data[os.path.basename(file)] = json.loads(raw_data.decode(encoding))
+                        elif DATA_FORMAT == "txt":
+                            content = raw_data.decode(encoding, errors='ignore')
+                            category = os.path.basename(os.path.dirname(file))
+                            file_name = os.path.basename(file).split('.')[0]
                             parsed_data = parse_txt_file(content, file_name)
                             if category not in data:
                                 data[category] = {}
                             data[category][file_name] = parsed_data
+                    except (UnicodeDecodeError, json.JSONDecodeError) as e:
+                        logger.error(f"Error processing file {file} with encoding {encoding}: {str(e)}")
+                        continue  # Skip the problematic file and continue with others
+
     except Exception as e:
         logger.error(f"Error reading TikTok zip file: {str(e)}")
         logger.exception("Exception details:")
+    
     return data
 
 def parse_txt_file(content: str, file_name: str) -> List[Dict[str, Any]]:
@@ -221,7 +240,7 @@ def parse_login_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         network_type_key = "Network Type"
     
     logins = helpers.find_items_bfs(data, login_key)
-    logger.info(f"Login data from {logins}")
+    # logger.info(f"Login data from {logins}")
     if not logins:
       return []
     return [
@@ -396,7 +415,7 @@ def parse_ad_ca(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             'URL': '',
             'Date': interest.get("TimeStamp", interest.get("Date", '')),
             'details': json.dumps({})
-        } for interest in ad_interests if isinstance(interest, dict) and interest.get("Source") != "admin8888"
+        } for interest in ad_interests if isinstance(interest, dict) and interest.get("Event") == "Customer file upload"
     ]
 
 
@@ -447,12 +466,17 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
     all_data = []
     parsing_functions = [
         # parse_hashtags, 
-        parse_login_history, parse_video_history, 
-        parse_share_history, parse_like_history, 
+        parse_login_history, 
+        parse_video_history, 
+        parse_share_history, 
+        parse_like_history, 
         parse_fav_hashtag,
-        parse_fav_history, parse_ad_ca,
-        parse_search_history,   parse_ad_info,
-        parse_comments, parse_following_list
+        parse_fav_history,
+        parse_ad_ca,
+        parse_search_history,   
+        parse_ad_info,
+        parse_comments, 
+        parse_following_list
     ]
     
     for parse_function in parsing_functions:
@@ -497,6 +521,14 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
             combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
             combined_df['Count'] = 1  # Add a Count column to the original data
 
+            try: 
+              # Apply the helpers.replace_email function to each of the specified columns
+              combined_df['title'] = combined_df['title'].apply(helpers.replace_email)
+              combined_df['details'] = combined_df['details'].apply(helpers.replace_email)
+              combined_df['Action'] = combined_df['Action'].apply(helpers.replace_email)
+            except Exception as e:
+               logger.warning(f"Could not replace e-mail: {e}")
+
             combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
             
 
@@ -505,9 +537,9 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
             visses = [vis.create_chart(
               "line", 
               "TikTok Video Browsing Over Time", 
-              "TikTok Activity Over Time", 
+              "TikTok-activiteit", 
               "Date", 
-              y_label="Number of Observations", 
+              y_label="Aantal observaties", 
               date_format="auto"#, 
               # group_by="Action", 
               # df=combined_df.groupby('Action')['Count'].sum().reset_index()
@@ -560,7 +592,7 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
 
 
             # Pass the ungrouped data for the table and grouped data for the chart
-            table = props.PropsUIPromptConsentFormTable("tiktok_all_data2", table_title, combined_df)
+            table = props.PropsUIPromptConsentFormTable("tiktok_hashtag_ads", table_title, combined_df)
             tables_to_render.append(table)
             
             logger.info(f"Successfully processed Second {len(combined_df)} total entries from TikTok data")

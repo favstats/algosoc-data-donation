@@ -6,6 +6,7 @@ import logging
 import zipfile
 import io
 import re
+import os
 from bs4 import UnicodeDammit
 from lxml import html  # Make sure this import is present
 from pathlib import Path
@@ -128,7 +129,7 @@ def validate(file: Path) -> ValidateInput:
                     #     logger.debug(f"Skipping file: {p.name} with unsupported suffix {p.suffix}")
 
                 except Exception as e:
-                    logger.error(f"Error processing file {f} in zip: {e}", exc_info=True)
+                    logger.error(f"There was an error processing file {f} in zip: {e}", exc_info=True)
 
         logger.info(f"Total valid files found in zip: {len(paths)}")
         validation.infer_ddp_category(paths)
@@ -1107,23 +1108,27 @@ def remove_the_user_from_title(title: str) -> str:
 
 ## this sometimes includes where you checked in
 def parse_your_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    posts = []
+
     if DATA_FORMAT == "json":
-        posts = data.get("your_posts__check_ins__photos_and_videos_1.json", {})
-        # if isinstance(posts, dict):
-        #     posts = [posts]
-            
-        if not posts:
-          return []
+        # Loop through all paths that match the exact pattern 'your_posts__check_ins__photos_and_videos_*.json'
+        for path in validation.validated_paths:
+            if path.endswith(".json") and os.path.basename(path).startswith("your_posts__check_ins__photos_and_videos_"):
+                current_posts = data.get(path, {})
 
+                if not current_posts:
+                    continue
 
-        return [{
-            'data_type': 'facebook_post',
-            'Action': 'Post',
-            'title': remove_the_user_from_title(helpers.find_items_bfs(item, "title")) if helpers.find_items_bfs(item, "title") else "Posted",
-            'URL': helpers.find_items_bfs(item, "url"),
-            'Date': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "timestamp")),
-            'details': json.dumps({"post_content": helpers.find_items_bfs(item, "post")})
-        } for item in posts]
+                posts.extend([{
+                    'data_type': 'facebook_post',
+                    'Action': 'Post',
+                    'title': remove_the_user_from_title(helpers.find_items_bfs(item, "title")) if helpers.find_items_bfs(item, "title") else "Posted",
+                    'URL': helpers.find_items_bfs(item, "url"),
+                    'Date': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "timestamp")),
+                    'details': json.dumps({"post_content": helpers.find_items_bfs(item, "post")})
+                } for item in current_posts])
+
+        return posts
     
     elif DATA_FORMAT == "html":
         # posts = []
@@ -1478,13 +1483,21 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
         combined_df['Count'] = 1
         
+        try: 
+          # Apply the replace_email function to each of the specified columns
+          combined_df['title'] = combined_df['title'].apply(helpers.replace_email)
+          combined_df['details'] = combined_df['details'].apply(helpers.replace_email)
+          combined_df['Action'] = combined_df['Action'].apply(helpers.replace_email)
+        except Exception as e:
+           logger.warning(f"Could not replace e-mail: {e}")
+        
         table_title = props.Translatable({"en": "Facebook Activity Data", "nl": "Facebook Gegevens"})
         visses = [vis.create_chart(
             "line", 
             "Facebook Activity Over Time", 
-            "Facebook Activity Over Time", 
+            "Facebook-activiteit", 
             "Date", 
-            y_label="Number of Observations", 
+            y_label="Aantal observaties", 
             date_format="auto"
         )]
         
@@ -1537,7 +1550,7 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
 
 
             # Pass the ungrouped data for the table and grouped data for the chart
-            table = props.PropsUIPromptConsentFormTable("Facebook_all_data2", table_title, combined_df)
+            table = props.PropsUIPromptConsentFormTable("facebook_ad_info", table_title, combined_df)
             tables_to_render.append(table)
             
             logger.info(f"Successfully processed Second {len(combined_df)} total entries from Facebook data")

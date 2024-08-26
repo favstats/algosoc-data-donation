@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import TypedDict, Optional, Literal
 
 import pandas as pd
@@ -77,6 +77,38 @@ class PropsUIPromptConfirm:
         dict["text"] = self.text.toDict()
         dict["ok"] = self.ok.toDict()
         dict["cancel"] = self.cancel.toDict()
+        return dict
+
+
+@dataclass
+class PropsUIPromptConfirmWithLink:
+    """Prompt with a message that includes a hyperlink
+
+    Attributes:
+        text: message to display (without the link)
+        link_text: text to display for the link
+        link_url: URL for the hyperlink
+        ok: message to display if the user wants to try again
+        cancel: message to display if the user wants to continue regardless
+        optional_text: optional additional text to display below the link
+    """
+    text: Translatable
+    link_text: Translatable
+    link_url: str
+    ok: Translatable
+    cancel: Translatable
+    optional_text: Optional[Translatable] = field(default=None)
+
+    def toDict(self):
+        dict = {}
+        dict["__type__"] = "PropsUIPromptConfirmWithLink"
+        dict["text"] = self.text.toDict()
+        dict["link_text"] = self.link_text.toDict()
+        dict["link_url"] = self.link_url
+        dict["ok"] = self.ok.toDict()
+        dict["cancel"] = self.cancel.toDict()
+        if self.optional_text:
+            dict["optional_text"] = self.optional_text.toDict()
         return dict
 
 @dataclass
@@ -401,7 +433,7 @@ class PropsUIPageDonation:
     """
     platform: str
     header: PropsUIHeader
-    body: PropsUIPromptRadioInput | PropsUIPromptConsentForm | PropsUIPromptFileInput | PropsUIPromptConfirm | PropsUIPromptQuestionnaire
+    body: PropsUIPromptRadioInput | PropsUIPromptConsentForm | PropsUIPromptFileInput | PropsUIPromptConfirm | PropsUIPromptQuestionnaire | PropsUIPromptConfirmWithLink
     footer: Optional[PropsUIFooter]
 
     def translate_footer(self):
@@ -418,7 +450,6 @@ class PropsUIPageDonation:
         dict["footer"] = self.translate_footer()
         return dict
     
-
 
 class PropsUIPageEnd:
     """An ending page to show the user they are done"""

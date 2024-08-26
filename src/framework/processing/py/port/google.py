@@ -5,6 +5,8 @@ from datetime import datetime
 import logging
 import zipfile
 import io
+import os
+from bs4 import UnicodeDammit
 from pathlib import Path
 from lxml import html  # Make sure this import is present
 import csv
@@ -26,10 +28,9 @@ logger = logging.getLogger(__name__)
 
 DATA_FORMAT = None  # Will be set to 'json' or 'html'
 
-def parse_json_content(file, data_type: str) -> List[Dict[str, Any]]:
+def parse_json_content(data, data_type: str) -> List[Dict[str, Any]]:
     """Improved JSON parser function with better error handling"""
     try:
-        data = json.load(io.TextIOWrapper(file, encoding='utf-8'))
         parsed_data = []
 
         # Convert data to desired format
@@ -167,7 +168,7 @@ DDP_CATEGORIES = [
         language=Language.DE,
         known_files=[
             "kommentare.csv",
-            "abonnements.csv",
+            "Abos.csv",
             "Meine Aktivität.json",
             "MeineAktivität.json",
             "MeineAktivitäten.json",
@@ -181,7 +182,7 @@ DDP_CATEGORIES = [
         language=Language.DE,
         known_files=[
             "kommentare.csv",
-            "abonnements.csv",
+            "Abos.csv",
             "MeineAktivität.html",
             "MeineAktivitäten.html",
             "Meine Aktivitäten.html",
@@ -394,7 +395,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/YouTube en YouTube Music/abonnementen/",
             "Takeout/YouTube and YouTube Music/subscriptions/",
             "Takeout/YouTube y YouTube Music/suscripciones/",
-            "Takeout/YouTube und YouTube Music/Abonnements/",
+            "Takeout/YouTube und YouTube Music/Abos/",
             "Takeout/يوتيوب و يوتيوب ميوزيك/الاشتراكات/",
             "Takeout/YouTube ve YouTube Music/abonelikler/",
             "Takeout/YouTube 和 YouTube Music/订阅内容/"
@@ -417,31 +418,62 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
     DATA_FORMAT = max(file_counts, key=file_counts.get)
     logger.info(f"Determined majority file format: {DATA_FORMAT}")
 
+
     extracted_data = {}
+    
     try:
         with zipfile.ZipFile(google_zip, "r") as zf:
             for info in zf.infolist():
                 file_path = info.filename.lower()  # Convert the file path to lowercase
-
+    
                 for data_type, paths in base_paths.items():
                     for base_path in paths:
                         if file_path.startswith(base_path.lower()):  # Convert base path to lowercase
                             if info.filename.startswith('__MACOSX/') or info.filename.startswith('._'):
                                 continue  # Skip macOS metadata files
-                            
+    
                             try:
                                 with zf.open(info.filename) as file:
+                                    raw_data = file.read()
+                                    
+                                    # Attempt to decode using UTF-8 first
+                                    try:
+                                        decoded_data = raw_data.decode('utf-8')
+                                        encoding = 'utf-8'
+                                    except UnicodeDecodeError:
+                                        # If UTF-8 decoding fails, use UnicodeDammit to guess the encoding
+                                        suggestion = UnicodeDammit(raw_data)
+                                        decoded_data = suggestion.unicode_markup
+                                        encoding = suggestion.original_encoding
+    
+                                    # Handle JSON files
                                     if info.filename.endswith('.json'):
-                                        data = parse_json_content(file, data_type)
+                                        try:
+                                            json_data = json.loads(decoded_data)
+                                            data = parse_json_content(json_data, data_type)
+                                        except (UnicodeDecodeError, json.JSONDecodeError) as e:
+                                            logger.error(f"Error processing JSON file {info.filename} with encoding {encoding}: {e}")
+                                            continue
+    
+                                    # Handle HTML files
                                     elif info.filename.endswith('.html'):
-                                        html_content = file.read().decode('utf-8')
-                                        data = parse_html_content(html_content, data_type)
+                                        try:
+                                            data = parse_html_content(decoded_data, data_type)
+                                        except UnicodeDecodeError as e:
+                                            logger.error(f"Error processing HTML file {info.filename} with encoding {encoding}: {e}")
+                                            continue
+    
+                                    # Handle CSV files
                                     elif info.filename.endswith('.csv'):
-                                        csv_content = file.read()
-                                        data = parse_csv_content(csv_content, data_type)
+                                        try:
+                                            data = parse_csv_content(decoded_data, data_type)
+                                        except UnicodeDecodeError as e:
+                                            logger.error(f"Error processing CSV file {info.filename} with encoding {encoding}: {e}")
+                                            continue
+    
                                     else:
                                         continue
-                                    
+    
                                     if data:
                                         if data_type not in extracted_data:
                                             extracted_data[data_type] = []
@@ -454,13 +486,12 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
                     else:
                         continue
                     break  # Break the data_type loop if a matching file is found
-            else:
-                logger.info(f"No data found for {data_type}")
-
+            # else:
+                # logger.info(f"No data found for {data_type}")
     except zipfile.BadZipFile:
-        logger.error("Bad zip file")
+        logger.error("The provided file is not a valid zip file.")
     except Exception as e:
-        logger.error(f"Unexpected error: {e}")
+        logger.error(f"An unexpected error occurred: {e}")
 
     return extracted_data
   
@@ -470,8 +501,8 @@ def parse_csv_content(csv_content: bytes, data_type: str) -> List[Dict[str, Any]
     Parse the content of a CSV file and return a list of dictionaries for each row.
     Tries to parse by header names first; if headers are not found, uses column positions as fallback.
     """
-    csv_content_str = csv_content.decode('utf-8-sig')
-    reader = csv.reader(csv_content_str.splitlines())
+    # csv_content_str = csv_content.decode('utf-8-sig')
+    reader = csv.reader(csv_content.splitlines())
     records = []
     # Try to read the header row to determine the structure
     headers = next(reader, None)
@@ -540,7 +571,7 @@ def parse_csv_content(csv_content: bytes, data_type: str) -> List[Dict[str, Any]
                 # except IndexError as e:
                 #     logger.error(f"IndexError when processing row: {e}")
                 except Exception as e:
-                    logger.error(f"Unexpected error when processing row: {e}")
+                    logger.error(f"Unexpected error in {data_type} when processing row: {e}")
 
         # Logic for YouTube subscriptions
         elif data_type == 'youtube_subscription':
@@ -576,7 +607,7 @@ def parse_csv_content(csv_content: bytes, data_type: str) -> List[Dict[str, Any]
                 # except IndexError as e:
                 #     logger.error(f"IndexError when processing row: {e}")
                 except Exception as e:
-                    logger.error(f"Unexpected error when processing row: {e}")
+                    logger.error(f"Unexpected error in {data_type} when processing row: {e}")
 
     else:
         logger.error("No headers found in CSV file")
@@ -782,112 +813,99 @@ def should_exclude_url(url: str) -> bool:
         return False
 
 def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormTable]:
-    logger.info("Starting to extract Google data from {google_zip}.")   
-
-    extracted_data = extract_zip_content(google_zip)
-    # Assuming `extracted_data` is a dictionary where keys are the file paths or names.
-    filtered_extracted_data = {
-        k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.html$', k.split('/')[-1])
-    }
+    logger.info("Starting to extract Google data.")   
+    try:
+        extracted_data = extract_zip_content(google_zip)
+        # Assuming `extracted_data` is a dictionary where keys are the file paths or names.
+        filtered_extracted_data = {
+            k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.html$', k.split('/')[-1])
+        }
+        
+        # Logging only the filtered keys
+        logger.info(f"Extracted data keys: {helpers.get_json_keys(filtered_extracted_data) if filtered_extracted_data else 'None'}")   
+        
+        all_data = []
+        subscription_data = []
+        
     
-    # Logging only the filtered keys
-    logger.info(f"Extracted data keys: {helpers.get_json_keys(filtered_extracted_data) if filtered_extracted_data else 'None'}")   
     
-    all_data = []
-    subscription_data = []
+        # Separate data based on the presence of dates
+        for data_type, data in extracted_data.items():
+            if data:
+                df = pd.DataFrame(data)
+                # Filter out unwanted URLs
+                df = df[~df['URL'].apply(should_exclude_url)]
     
-
-
-    # Separate data based on the presence of dates
-    for data_type, data in extracted_data.items():
-        if data:
-            df = pd.DataFrame(data)
-            # Filter out unwanted URLs
-            df = df[~df['URL'].apply(should_exclude_url)]
-
-            if data_type == 'youtube_subscription':
-                subscription_data.append(df)
-            else:
-                df = make_timestamps_consistent(df)
-                all_data.append(df)
-
-    tables_to_render = []
-
-    # Process data that has dates
-    if all_data:
-        combined_df = pd.concat(all_data, ignore_index=True)
-        
-        required_columns = ['data_type', 'Action', 'title', 'URL', 'Date', 'details']
-        for col in required_columns:
-            if col not in combined_df.columns:
-                combined_df[col] = pd.NA
-        
-        combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
-        
-        combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
-        combined_df['Count'] = 1
-        
-        table_title = props.Translatable({"en": "Google Activity Data", "nl": "Google Gegevens"})
-        visses = [vis.create_chart(
-            "line", 
-            "Google Activity Over Time", 
-            "Google Activity Over Time", 
-            "Date", 
-            y_label="Number of Observations", 
-            date_format="auto"
-        )]
-        
-        table = props.PropsUIPromptConsentFormTable("google_all_data", table_title, combined_df, visualizations=visses)
-        tables_to_render.append(table)
-        
-        logger.info(f"Successfully processed {len(combined_df)} total entries from Google data")
-    else:
-        logger.warning("No data with dates was successfully extracted and parsed")
-
-    ### Process data without dates (YouTube subscriptions)
-    if subscription_data:
-        combined_subscription_df = pd.concat(subscription_data, ignore_index=True)
-        
-        if not combined_subscription_df.empty:
-            # Remove unnecessary columns if they exist
-            if 'Date' in combined_subscription_df.columns:
-                combined_subscription_df = combined_subscription_df.drop(columns=['Date'])
-            if 'details' in combined_subscription_df.columns:
-                combined_subscription_df = combined_subscription_df.drop(columns=['details'])
+                if data_type == 'youtube_subscription':
+                    subscription_data.append(df)
+                else:
+                    df = make_timestamps_consistent(df)
+                    all_data.append(df)
+    
+        tables_to_render = []
+    
+        # Process data that has dates
+        if all_data:
+            combined_df = pd.concat(all_data, ignore_index=True)
             
-            table_title = props.Translatable({"en": "YouTube Subscriptions", "nl": "YouTube Abonnementen"})
+            required_columns = ['data_type', 'Action', 'title', 'URL', 'Date', 'details']
+            for col in required_columns:
+                if col not in combined_df.columns:
+                    combined_df[col] = pd.NA
             
-            # Create table for YouTube subscription data
-            table = props.PropsUIPromptConsentFormTable("youtube_subscriptions", table_title, combined_subscription_df)
+            combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
+            
+            combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
+            combined_df['Count'] = 1
+            
+            try: 
+              # Apply the helpers.replace_email function to each of the specified columns
+              combined_df['title'] = combined_df['title'].apply(helpers.replace_email)
+              combined_df['details'] = combined_df['details'].apply(helpers.replace_email)
+              combined_df['Action'] = combined_df['Action'].apply(helpers.replace_email)
+            except Exception as e:
+               logger.warning(f"Could not replace e-mail: {e}")
+            
+            table_title = props.Translatable({"en": "Google Activity Data", "nl": "Google Gegevens"})
+            visses = [vis.create_chart(
+                "line", 
+                "Google Activity Over Time", 
+                "Google Activity-activiteit", 
+                "Date", 
+                y_label="Aantal observaties", 
+                date_format="auto"
+            )]
+            
+            table = props.PropsUIPromptConsentFormTable("google_all_data", table_title, combined_df, visualizations=visses)
             tables_to_render.append(table)
             
-            logger.info(f"Successfully processed {len(combined_subscription_df)} total entries for YouTube subscriptions")
+            logger.info(f"Successfully processed {len(combined_df)} total entries from Google data")
         else:
-            logger.warning("Subscription DataFrame is empty")
-    else:
-        logger.warning("No YouTube subscription data was successfully extracted and parsed")
+            logger.warning("No data with dates was successfully extracted and parsed")
     
-    return tables_to_render
-
-
-
-# Helper functions for specific data types
-def ads_to_df(google_zip: str) -> pd.DataFrame:
-    df = process_google_data(google_zip)
-    return df[df['data_type'] == 'ads'].drop(columns=['data_type'])
-
-def searches_to_df(google_zip: str) -> pd.DataFrame:
-    df = process_google_data(google_zip)
-    return df[df['data_type'] == 'searches'].drop(columns=['data_type'])
-
-def browser_history_to_df(google_zip: str) -> pd.DataFrame:
-    df = process_google_data(google_zip)
-    return df[df['data_type'] == 'browser_history'].drop(columns=['data_type'])
-
-def youtube_comments_to_df(google_zip: str) -> pd.DataFrame:
-    df = process_google_data(google_zip)
-    return df[df['data_type'] == 'youtube_comment'].drop(columns=['data_type'])
-
-def youtube_history_to_df(google_zip: str) -> pd.DataFrame:
-    df = process_google_data(google_zip)
-    return df[df['data_type'] == 'youtube'].drop(columns=['data_type'])
+        ### Process data without dates (YouTube subscriptions)
+        if subscription_data:
+            combined_subscription_df = pd.concat(subscription_data, ignore_index=True)
+            
+            if not combined_subscription_df.empty:
+                # Remove unnecessary columns if they exist
+                if 'Date' in combined_subscription_df.columns:
+                    combined_subscription_df = combined_subscription_df.drop(columns=['Date'])
+                if 'details' in combined_subscription_df.columns:
+                    combined_subscription_df = combined_subscription_df.drop(columns=['details'])
+                
+                table_title = props.Translatable({"en": "YouTube Subscriptions", "nl": "YouTube Abonnementen"})
+                
+                # Create table for YouTube subscription data
+                table = props.PropsUIPromptConsentFormTable("youtube_subscriptions", table_title, combined_subscription_df)
+                tables_to_render.append(table)
+                
+                logger.info(f"Successfully processed {len(combined_subscription_df)} total entries for YouTube subscriptions")
+            else:
+                logger.warning("Subscription DataFrame is empty")
+        else:
+            logger.warning("No YouTube subscription data was successfully extracted and parsed")
+    
+        return tables_to_render
+    except Exception as e:
+       logger.warning(f"Could not parse Google data: {e}")

@@ -9,9 +9,10 @@ interface Props {
   searchedTable: TableWithContext
   handleUndo: () => void
   locale: string
+  dataTypeFilter: string | null
 }
 
-export const TableItems = ({ table, searchedTable, handleUndo, locale }: Props): JSX.Element => {
+export const TableItems = ({ table, searchedTable, handleUndo, locale, dataTypeFilter }: Props): JSX.Element => {
   const text = useMemo(() => getTranslations(locale), [locale])
 
   const deleted = table.deletedRowCount
@@ -31,11 +32,11 @@ export const TableItems = ({ table, searchedTable, handleUndo, locale }: Props):
   }
 
   return (
-    <div className="flex  min-w-[200px] gap-1">
+    <div className="flex min-w-[200px] gap-1">
       <div className="flex items-center">{tableIcon}</div>
       <div
         key={`${totalLabel}_${deleted}`}
-        className="flex flex-wrap items-center px-2  gap-x-2 animate-fadeIn text-title7 md:text-title6 font-label"
+        className="flex flex-wrap items-center px-2 gap-x-2 animate-fadeIn text-title7 md:text-title6 font-label"
       >
         <div className={n > 0 ? '' : 'hidden'}>
           {table.head.cells.length} {text.columns},
@@ -49,10 +50,16 @@ export const TableItems = ({ table, searchedTable, handleUndo, locale }: Props):
           {deletedLabel}
           <img
             src={UndoSvg}
-            className="w-5 h-5 -translate-y-[2px] md:-translate-y-0 -translate-x-[3px] ml-2"
+            className="w-5 h-5 -translate-y-[2px] md:-translate-y-0 -translate-x-[3px] ml-2 cursor-pointer"
             onClick={handleUndo}
           />
         </div>
+
+        {dataTypeFilter && (
+          <div className="flex text-primary">
+            {text.filteredBy}: {dataTypeFilter}
+          </div>
+        )}
       </div>
     </div>
   )
@@ -83,5 +90,6 @@ const translations = {
   columns: new TextBundle().add('en', 'columns').add('nl', 'kolommen'),
   rows: new TextBundle().add('en', 'rows').add('nl', 'rijen'),
   noData: new TextBundle().add('en', 'no data').add('nl', 'geen data'),
-  deleted: new TextBundle().add('en', 'deleted').add('nl', 'verwijderd')
+  deleted: new TextBundle().add('en', 'deleted').add('nl', 'verwijderd'),
+  filteredBy: new TextBundle().add('en', 'Filtered by').add('nl', 'Gefilterd op')
 }

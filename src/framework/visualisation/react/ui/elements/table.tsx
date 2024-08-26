@@ -1,4 +1,4 @@
-import {
+import React, {
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -27,6 +27,8 @@ export interface Props {
   handleDelete?: (rowIds: string[]) => void
   handleUndo?: () => void
   pageSize?: number
+  dataTypeFilter: string | null
+  onDataTypeFilter: (dataType: string) => void
 }
 
 interface Tooltip {
@@ -44,7 +46,9 @@ export const Table = ({
   unfilteredRows,
   handleDelete,
   handleUndo,
-  pageSize = 7
+  pageSize = 7,
+  dataTypeFilter,
+  onDataTypeFilter
 }: Props): JSX.Element => {
   const [page, setPage] = useState(0)
   const columnNames = table.head.cells
@@ -70,16 +74,14 @@ export const Table = ({
   }, [table, nPages])
 
   useEffect(() => {
-    // rm tooltip on scroll
     function rmTooltip(): void {
       setTooltip((tooltip: Tooltip) => (tooltip.show ? { ...tooltip, show: false } : tooltip))
     }
     window.addEventListener('scroll', rmTooltip)
     return () => window.removeEventListener('scroll', rmTooltip)
-  })
+  }, [])
 
   useLayoutEffect(() => {
-    // set exact height of grid row for height transition
     if (ref.current == null || innerRef.current == null) return
     if (!show || unfilteredRows === 0) {
       ref.current.style.gridTemplateRows = '0rem'
@@ -91,7 +93,6 @@ export const Table = ({
       ref.current.style.gridTemplateRows = `${innerRef.current.scrollHeight}px`
     }
     responsiveHeight()
-    // just as a precaution, update height every second in case it changes
     const interval = setInterval(responsiveHeight, 1000)
     return () => clearInterval(interval)
   }, [ref, innerRef, show, nPages, unfilteredRows])
@@ -105,7 +106,40 @@ export const Table = ({
     return items
   }, [table, page, pageSize])
 
+  const dataTypeIndex = table.head.cells.findIndex(cell => cell === 'data_type')
+  
+  const uniqueDataTypes = useMemo(() => {
+    const types = new Set<string>()
+    table.body.rows.forEach(row => types.add(row.cells[dataTypeIndex]))
+    return Array.from(types).sort()
+  }, [table.body.rows, dataTypeIndex])
+  
+
+  
   function renderHeaderCell(value: string, i: number): JSX.Element {
+    if (value === 'data_type') {
+      return (
+        <th key={`header ${i}`}>
+          <div className={`text-left ${cellClass}`}>
+            <div>
+              {value}
+              <select
+                className="ml-2 text-primary cursor-pointer"
+                value={dataTypeFilter || ''}
+                onChange={(e) => {
+                  onDataTypeFilter(e.target.value)
+                }}
+              >
+                <option value="">All</option>
+                {uniqueDataTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </th>
+      )
+    }
     return (
       <th key={`header ${i}`}>
         <div className={`text-left ${cellClass}`}>
@@ -115,11 +149,44 @@ export const Table = ({
     )
   }
 
+  function renderCell(cell: string, j: number, item: PropsUITableRow): JSX.Element {
+    if (j === dataTypeIndex) {
+      return (
+        <td key={j}>
+          <div
+            className={`${cellClass} cursor-pointer ${
+              dataTypeFilter === cell ? 'bg-primary text-white' : ''
+            }`}
+            onClick={() => onDataTypeFilter(cell)}
+          >
+            <Highlighter
+              searchWords={[search]}
+              autoEscape
+              textToHighlight={cell}
+              highlightClassName="bg-tertiary rounded-sm"
+            />
+          </div>
+        </td>
+      )
+    }
+
+    return (
+      <td key={j}>
+        <Cell
+          cell={cell}
+          search={search}
+          cellClass={cellClass}
+          setTooltip={setTooltip}
+        />
+      </td>
+    )
+  }
+
   function renderRow(item: PropsUITableRow | null, i: number): JSX.Element | null {
     if (item == null && i >= unfilteredRows) return null
     if (item == null) {
       return (
-        <tr key={`{empty ${i}`} className="border-b-2 border-grey4">
+        <tr key={`empty ${i}`} className="border-b-2 border-grey4">
           <td>
             <div className={cellClass} />
           </td>
@@ -137,30 +204,29 @@ export const Table = ({
           />
         </td>
 
-        {item.cells.map((cell, j) => (
-          <td key={j}>
-            <Cell cell={cell} search={search} cellClass={cellClass} setTooltip={setTooltip} />
-          </td>
-        ))}
+        {item.cells.map((cell, j) => renderCell(cell, j, item))}
       </tr>
     )
   }
 
   function toggleSelected(id: string): void {
-    if (selected.has(id)) {
-      selected.delete(id)
-    } else {
-      selected.add(id)
-    }
-    setSelected(new Set(selected))
+    setSelected(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(id)) {
+        newSet.delete(id)
+      } else {
+        newSet.add(id)
+      }
+      return newSet
+    })
   }
 
   function toggleSelectAll(): void {
-    if (selected.size === table.body.rows.length) {
-      setSelected(new Set())
-    } else {
-      setSelected(new Set(table.body.rows.map((row) => row.id)))
-    }
+    setSelected(prev => 
+      prev.size === table.body.rows.length
+        ? new Set()
+        : new Set(table.body.rows.map((row) => row.id))
+    )
   }
 
   return (
@@ -172,7 +238,7 @@ export const Table = ({
         <div className="my-2 bg-grey6 rounded-md border-grey4 border-[0.2rem]">
           <div className="p-3 pt-1 pb-2 max-w-full overflow-x-scroll">
             <table className="table-fixed min-w-full ">
-              <thead className="">
+              <thead>
                 <tr className="border-b-2 border-grey4 border-solid">
                   <td className="w-8">
                     <CheckBox
@@ -216,7 +282,7 @@ export const Table = ({
           className={`${
             tooltip.show ? '' : 'invisible'
           } break-all fixed bg-[#222a] -translate-x-2 -translate-y-2 p-2  rounded text-white backdrop-blur-[2px] z-20 max-w-[20rem] pointer-events-none overflow-auto font-table-row`}
-          style={{ left: tooltip.x, top: tooltip.y } as any}
+          style={{ left: tooltip.x, top: tooltip.y }}
         >
           {tooltip.content}
         </div>
@@ -242,7 +308,6 @@ function Cell({
 
   const searchWords = useMemo(() => {
     return [search]
-    // return search.split(' ') // alternative: highlight individual words
   }, [search])
 
   useEffect(() => {

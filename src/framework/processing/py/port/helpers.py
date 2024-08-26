@@ -516,3 +516,14 @@ def get_json_keys(data, prefix=''):
             keys.update(get_json_keys(item, prefix))
     
     return keys
+  
+  
+  
+def replace_email(text: str) -> str:
+  # Regular expression pattern for matching email addresses
+  email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
+  
+  # Use re.sub to replace all email addresses with 'this_is_an_email'
+  replaced_text = re.sub(email_pattern, 'this_is_an_email', text)
+  
+  return replaced_text

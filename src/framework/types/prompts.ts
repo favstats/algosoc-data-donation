@@ -2,16 +2,19 @@ import { isInstanceOf } from '../helpers'
 import {
   PropsUIRadioItem,
   PropsUIQuestionMultipleChoice,
+  Translatable,
   Text
 } from './elements'
 import { VisualizationType } from './visualizations'
+
 
 export type PropsUIPrompt =
   PropsUIPromptFileInput |
   PropsUIPromptRadioInput |
   PropsUIPromptConsentForm |
   PropsUIPromptQuestionnaire |
-  PropsUIPromptConfirm
+  PropsUIPromptConfirm |
+  PropsUIPromptConfirmWithLink
 
 export function isPropsUIPrompt (arg: any): arg is PropsUIPrompt {
   return (
@@ -91,6 +94,24 @@ export interface PropsUIPromptQuestionnaire {
   questions: PropsUIQuestionMultipleChoice[]
   description: Text
 }
+
+export interface PropsUIPromptConfirmWithLink {
+  __type__: 'PropsUIPromptConfirmWithLink'
+  text: Translatable
+  ok: Translatable
+  cancel: Translatable
+  link_text: Translatable
+  link_url: string
+  optional_text?: Translatable
+}
+
+export function isPropsUIPromptConfirmWithLink(arg: any): arg is PropsUIPromptConfirmWithLink {
+  return arg.__type__ === 'PropsUIPromptConfirmWithLink'
+}
+
+
 export function isPropsUIPromptQuestionnaire (arg: any): arg is PropsUIPromptQuestionnaire {
   return isInstanceOf<PropsUIPromptQuestionnaire>(arg, 'PropsUIPromptQuestionnaire', ['questions', 'description'])
 }
+
+

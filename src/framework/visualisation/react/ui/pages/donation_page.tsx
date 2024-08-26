@@ -4,7 +4,16 @@ import TextBundle from '../../../../text_bundle'
 import { Translator } from '../../../../translator'
 import { Translatable } from '../../../../types/elements'
 import { PropsUIPageDonation } from '../../../../types/pages'
-import { isPropsUIPromptConfirm, isPropsUIPromptConsentForm, isPropsUIPromptFileInput, isPropsUIPromptRadioInput, isPropsUIPromptQuestionnaire } from '../../../../types/prompts'
+import { 
+  isPropsUIPromptConfirm, 
+  isPropsUIPromptConsentForm, 
+  isPropsUIPromptFileInput, 
+  isPropsUIPromptRadioInput, 
+  isPropsUIPromptQuestionnaire, 
+  isPropsUIPromptConfirmWithLink,
+  PropsUIPromptConfirm,
+  PropsUIPromptConfirmWithLink
+} from '../../../../types/prompts'
 import { ReactFactoryContext } from '../../factory'
 import { ForwardButton } from '../elements/button'
 import { Title1 } from '../elements/text'
@@ -20,6 +29,8 @@ import { Page } from './templates/page'
 import { Progress } from '../elements/progress'
 // import { Instructions } from '../elements/instructions'
 
+
+
 type Props = Weak<PropsUIPageDonation> & ReactFactoryContext
 
 export const DonationPage = (props: Props): JSX.Element => {
@@ -30,10 +41,11 @@ export const DonationPage = (props: Props): JSX.Element => {
   function renderBody (props: Props): JSX.Element {
     const context = { locale: locale, resolve: props.resolve }
     const body = props.body
+  
     if (isPropsUIPromptFileInput(body)) {
       return <FileInput {...body} {...context} />
     }
-    if (isPropsUIPromptConfirm(body)) {
+    if (isPropsUIPromptConfirm(body) || isPropsUIPromptConfirmWithLink(body)) {
       return <Confirm {...body} {...context} />
     }
     if (isPropsUIPromptConsentForm(body)) {
