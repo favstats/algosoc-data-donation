@@ -1369,7 +1369,9 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
         parse_posts,
         parse_reels,
         parse_stories,
-        parse_ads_clicked
+        parse_ads_clicked,
+        parse_subscription_for_no_ads, 
+        parse_advertisers_using_activity
         
     ]
     
@@ -1387,7 +1389,7 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
         combined_df = parse_data(all_data)
         try: 
           combined_df['Date'] = pd.to_datetime(combined_df['Date'], errors='coerce')
-          combined_df = combined_df.dropna(subset=['Date'])  # Drop rows where 'Date' is NaN
+          # combined_df = combined_df.dropna(subset=['Date'])  # Drop rows where 'Date' is NaN
           
           # Convert all datetime objects to timezone-naive
           combined_df['Date'] = combined_df['Date'].dt.tz_convert(None)
@@ -1415,7 +1417,7 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
           combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
           logger.error(f"Error parsing or sorting date: {str(e)}")
-        combined_df['Count'] = 1
+        # combined_df['Count'] = 1
         
         # List of columns to apply the replace_email function
         columns_to_process = ['title', 'details', 'Action']
@@ -1444,52 +1446,8 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
         
         logger.info(f"Successfully processed {len(combined_df)} total entries from Instagram data")
     else:
-        logger.warning("No data with dates was successfully extracted and parsed")
-   
-   
-    ### this is for all things without dates
-    all_data = []
-    parsing_functions = [
-        parse_subscription_for_no_ads, parse_advertisers_using_activity
-    ]
-    
-    for parse_function in parsing_functions:
-        try:
-            parsed_data = parse_function(extracted_data)
-            logger.info(f"{parse_function.__name__} returned {len(parsed_data)} items")
-            all_data.extend(parsed_data)
-        except Exception as e:
-            logger.error(f"Error in {parse_function.__name__}: {str(e)}")
-    
-    
-    if all_data:
-        combined_df = parse_data(all_data)
-        logger.info(f"Combined data frame shape: {combined_df.shape}")
-        
-        if not combined_df.empty:
-            # Remove the 'Date' column if it exists
-            if 'Date' in combined_df.columns:
-                combined_df = combined_df.drop(columns=['Date'])
-            # combined_df['Date'] = pd.to_datetime(combined_df['Date'], errors='coerce')
-            # combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
-            # combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
-       
-            # if 'details' in combined_df.columns:
-            #     combined_df = combined_df.drop(columns=['details'])
-            # Create a single table with all data
-            table_title = props.Translatable({"en": "Instagram Ad Info", "nl": "Instagram Gegevens"})
-
-
-            # Pass the ungrouped data for the table and grouped data for the chart
-            table = props.PropsUIPromptConsentFormTable("instagram_ad_info", table_title, combined_df)
-            tables_to_render.append(table)
-            
-            logger.info(f"Successfully processed Second {len(combined_df)} total entries from Instagram data")
-        else:
-            logger.warning("Second Combined DataFrame is empty")
-    else:
-        logger.warning("Second Combined DataFrame: No data without dates was successfully extracted and parsed")
-    
+        logger.warning("No data was successfully extracted and parsed")
+ 
     return tables_to_render
 
 # Helper functions for specific data types

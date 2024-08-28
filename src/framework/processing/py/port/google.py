@@ -837,7 +837,7 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
         extracted_data = extract_zip_content(google_zip)
         # Assuming `extracted_data` is a dictionary where keys are the file paths or names.
         filtered_extracted_data = {
-            k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.html$', k.split('/')[-1])
+        k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.(html|json)$', k.split('/')[-1])
         }
         
         # Logging only the filtered keys
@@ -875,7 +875,7 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
             combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
             
             combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
-            combined_df['Count'] = 1
+            # combined_df['Count'] = 1
             
             # List of columns to apply the replace_email function
             columns_to_process = ['title', 'details', 'Action']
@@ -904,30 +904,7 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
             
             logger.info(f"Successfully processed {len(combined_df)} total entries from Google data")
         else:
-            logger.warning("No data with dates was successfully extracted and parsed")
-    
-        ### Process data without dates (YouTube subscriptions)
-        if subscription_data:
-            combined_subscription_df = pd.concat(subscription_data, ignore_index=True)
-            
-            if not combined_subscription_df.empty:
-                # Remove unnecessary columns if they exist
-                if 'Date' in combined_subscription_df.columns:
-                    combined_subscription_df = combined_subscription_df.drop(columns=['Date'])
-                if 'details' in combined_subscription_df.columns:
-                    combined_subscription_df = combined_subscription_df.drop(columns=['details'])
-                
-                table_title = props.Translatable({"en": "YouTube Subscriptions", "nl": "YouTube Abonnementen"})
-                
-                # Create table for YouTube subscription data
-                table = props.PropsUIPromptConsentFormTable("youtube_subscriptions", table_title, combined_subscription_df)
-                tables_to_render.append(table)
-                
-                logger.info(f"Successfully processed {len(combined_subscription_df)} total entries for YouTube subscriptions")
-            else:
-                logger.warning("Subscription DataFrame is empty")
-        else:
-            logger.warning("No YouTube subscription data was successfully extracted and parsed")
+            logger.warning("No data was successfully extracted and parsed")
     
         return tables_to_render
     except Exception as e:

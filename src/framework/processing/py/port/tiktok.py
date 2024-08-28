@@ -458,7 +458,7 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
     extracted_data = extract_tiktok_data(tiktok_file)
     # Assuming `extracted_data` is a dictionary where keys are the file paths or names.
     filtered_extracted_data = {
-        k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.html$', k.split('/')[-1])
+        k: v for k, v in extracted_data.items() if not re.match(r'^\d+\.(html|json)$', k.split('/')[-1])
     }
     
     # Logging only the filtered keys
@@ -466,8 +466,7 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
     
     all_data = []
     parsing_functions = [
-        # parse_hashtags, 
-        parse_login_history, 
+        # parse_login_history, 
         parse_video_history, 
         parse_share_history, 
         parse_like_history, 
@@ -477,7 +476,8 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
         parse_search_history,   
         parse_ad_info,
         parse_comments, 
-        parse_following_list
+        parse_following_list,
+        parse_hashtags
     ]
     
     for parse_function in parsing_functions:
@@ -497,31 +497,30 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
         if not combined_df.empty:
             combined_df['Date'] = pd.to_datetime(combined_df['Date'], errors='coerce')
             
-             # Check for entries with dates before 2016
-            pre_2016_count = (combined_df['Date'] < pd.Timestamp('2016-01-01')).sum()
-            if pre_2016_count > 0:
-                logger.info(f"Found {pre_2016_count} entries with dates before 2016.")
-           
-                # Filter out dates before 2016
+            # Count entries with dates before 2000
+            pre_2000_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
+            if pre_2000_count > 0:
+                logger.info(f"Found {pre_2000_count} entries with dates before 2000.")
+        
                 try:
-                    # Filter out dates before 2016
-                    combined_df = combined_df[combined_df['Date'] >= pd.Timestamp('2016-01-01')]
-
-                    # Confirm deletion
-                    if pre_2016_count > 0:
-                        post_filter_count = (combined_df['Date'] < pd.Timestamp('2016-01-01')).sum()
-                        if post_filter_count == 0:
-                            logger.info(f"Successfully deleted {pre_2016_count} entries with dates before 2016.")
-                        else:
-                            logger.info(f"Failed to delete some entries with dates before 2016. Remaining: {post_filter_count}.")
-
-                        
+                    # Convert dates before 2000 to NaT (pandas' equivalent of NaN for datetime)
+                    combined_df.loc[combined_df['Date'] < pd.Timestamp('2000-01-01'), 'Date'] = pd.NaT
+                    
+                    # Confirm conversion
+                    post_conversion_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
+                    if post_conversion_count == 0:
+                        logger.info(f"Successfully converted {pre_2000_count} entries with dates before 2000 to NaN.")
+                    else:
+                        logger.info(f"Failed to convert some entries with dates before 2000 to NaN. Remaining: {post_conversion_count}.")
+        
                 except Exception as e:
-                    logger.info(f"Error filtering dates before 2016: {e}")
-            
+                    logger.info(f"Error converting dates before 2000 to NaN: {e}")
+                
             combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
-            combined_df['Count'] = 1  # Add a Count column to the original data
-
+            
+            # if combined_df['Action'] == "HashtagUse:
+                # combined_df['Count'] = 0  # Add a Count column to the original data
+            # combined_df.loc[combined_df['Action'] == 'HashtagUse', 'Count'] = 0
             # List of columns to apply the replace_email function
             columns_to_process = ['title', 'details', 'Action']
             
@@ -536,6 +535,7 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
 
             combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
             
+            # combined_df['Count'] = 1  # Add a Count column to the original data
 
             # Create a single table with all data
             table_title = props.Translatable({"en": "TikTok Activity Data", "nl": "TikTok Gegevens"})
@@ -559,53 +559,10 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
             logger.info(f"Successfully processed First {len(combined_df)} total entries from TikTok data")
 
         else:
-            logger.warning("First Combined DataFrame is empty")  
+            logger.warning("Combined DataFrame is empty")  
     else:
-        logger.warning("First Combined DataFrame: No data with dates was successfully extracted and parsed")
-                
-    ### this is for all things without dates
-    all_data = []
-    parsing_functions = [
-        parse_hashtags#, parse_ad_info
-    ]
-    
-    for parse_function in parsing_functions:
-        try:
-            parsed_data = parse_function(extracted_data)
-            logger.info(f"{parse_function.__name__} returned {len(parsed_data)} items")
-            all_data.extend(parsed_data)
-        except Exception as e:
-            logger.error(f"Error in {parse_function.__name__}: {str(e)}")
-    
-    
-    if all_data:
-        combined_df = parse_data(all_data)
-        logger.info(f"Combined data frame shape: {combined_df.shape}")
-        
-        if not combined_df.empty:
-            # Remove the 'Date' column if it exists
-            if 'Date' in combined_df.columns:
-                combined_df = combined_df.drop(columns=['Date'])
-            # combined_df['Date'] = pd.to_datetime(combined_df['Date'], errors='coerce')
-            # combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
-            # combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
-       
-            if 'details' in combined_df.columns:
-                combined_df = combined_df.drop(columns=['details'])
-            # Create a single table with all data
-            table_title = props.Translatable({"en": "TikTok Hashtag Use and Ad Info", "nl": "TikTok Gegevens"})
-
-
-            # Pass the ungrouped data for the table and grouped data for the chart
-            table = props.PropsUIPromptConsentFormTable("tiktok_hashtag_ads", table_title, combined_df)
-            tables_to_render.append(table)
-            
-            logger.info(f"Successfully processed Second {len(combined_df)} total entries from TikTok data")
-        else:
-            logger.warning("Second Combined DataFrame is empty")
-    else:
-        logger.warning("Second Combined DataFrame: No data without dates was successfully extracted and parsed")
-    
+        logger.warning("Combined DataFrame: No data was successfully extracted and parsed")
+ 
     return tables_to_render
 
 # Helper functions for specific data types

@@ -1452,7 +1452,14 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         parse_events,
         parse_group_posts_and_comments,
         parse_your_comments_in_groups,
-        parse_your_group_membership_activity
+        parse_your_group_membership_activity,
+        parse_subscription_for_no_ads, 
+        parse_ad_preferences,
+        parse_ads_personalization_consent,
+        parse_ads_interests,
+        parse_other_categories_used,
+        parse_facebook_account_suggestions,
+        parse_advertisers_using_activity
     ]
     
     for parse_function in parsing_functions:
@@ -1484,30 +1491,32 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         except Exception as e:
           logger.info(f"Error converting dates: {e}")
         
-        # Check for entries with dates before 2016
+
+        
+        # Count entries with dates before 2000
         pre_2000_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
         if pre_2000_count > 0:
             logger.info(f"Found {pre_2000_count} entries with dates before 2000.")
         
-            # Filter out dates before 2000
             try:
-                # Filter out dates before 2000
-                combined_df = combined_df[combined_df['Date'] >= pd.Timestamp('2000-01-01')] 
-                # Confirm deletion
-                if pre_2000_count > 0:
-                    post_filter_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
-                    if post_filter_count == 0:
-                        logger.info(f"Successfully deleted {pre_2000_count} entries with dates before 2000.")
-                    else:
-                          logger.info(f"Failed to delete some entries with dates before 2000. Remaining: {post_filter_count}.")
-                    
+                # Convert dates before 2000 to NaT (pandas' equivalent of NaN for datetime)
+                combined_df.loc[combined_df['Date'] < pd.Timestamp('2000-01-01'), 'Date'] = pd.NaT
+                
+                # Confirm conversion
+                post_conversion_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
+                if post_conversion_count == 0:
+                    logger.info(f"Successfully converted {pre_2000_count} entries with dates before 2000 to NaN.")
+                else:
+                    logger.info(f"Failed to convert some entries with dates before 2000 to NaN. Remaining: {post_conversion_count}.")
+        
             except Exception as e:
-                logger.info(f"Error filtering dates before 2000: {e}")
+                logger.info(f"Error converting dates before 2000 to NaN: {e}")
+
     
         
         combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
         combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
-        combined_df['Count'] = 1
+        # combined_df['Count'] = 1
         
         # List of columns to apply the replace_email function
         columns_to_process = ['title', 'details', 'Action']
@@ -1536,58 +1545,7 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         
         logger.info(f"Successfully processed {len(combined_df)} total entries from Facebook data")
     else:
-        logger.warning("No data with dates was successfully extracted and parsed.")
-    
-    ### this is for all things without dates
-    all_data = []
-    parsing_functions = [
-        parse_subscription_for_no_ads, 
-        parse_ad_preferences,
-        parse_ads_personalization_consent,
-        parse_ads_interests,
-        parse_other_categories_used,
-        parse_facebook_account_suggestions,
-        parse_advertisers_using_activity
-    ]
-    
-    for parse_function in parsing_functions:
-        try:
-            parsed_data = parse_function(extracted_data)
-            logger.info(f"{parse_function.__name__} returned {len(parsed_data)} items")
-            all_data.extend(parsed_data)
-        except Exception as e:
-            logger.error(f"Error in {parse_function.__name__}: {str(e)}")
-    
-    
-    if all_data:
-        combined_df = parse_data(all_data)
-        logger.info(f"Combined data frame shape: {combined_df.shape}")
-        
-        if not combined_df.empty:
-            # Remove the 'Date' column if it exists
-            if 'Date' in combined_df.columns:
-                combined_df = combined_df.drop(columns=['Date'])
-            if 'URL' in combined_df.columns:
-                combined_df = combined_df.drop(columns=['URL'])
-            # combined_df['Date'] = pd.to_datetime(combined_df['Date'], errors='coerce')
-            # combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
-            # combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
-       
-            # if 'details' in combined_df.columns:
-            #     combined_df = combined_df.drop(columns=['details'])
-            # Create a single table with all data
-            table_title = props.Translatable({"en": "Facebook Ad Info & Suggestions", "nl": "Facebook Gegevens"})
-
-
-            # Pass the ungrouped data for the table and grouped data for the chart
-            table = props.PropsUIPromptConsentFormTable("facebook_ad_info", table_title, combined_df)
-            tables_to_render.append(table)
-            
-            logger.info(f"Successfully processed Second {len(combined_df)} total entries from Facebook data")
-        else:
-            logger.warning("Second Combined DataFrame is empty")
-    else:
-        logger.warning("Second Combined DataFrame: No data without dates was successfully extracted and parsed")
+        logger.warning("No data was successfully extracted and parsed.")
     
     return tables_to_render
 

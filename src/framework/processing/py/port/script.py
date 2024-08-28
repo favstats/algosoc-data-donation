@@ -21,7 +21,7 @@ LOG_STREAM = io.StringIO()
 
 logging.basicConfig(
     ## todo: enable when submitting
-    stream=LOG_STREAM,
+    # stream=LOG_STREAM,
     level=logging.DEBUG,
     format="%(asctime)s --- %(name)s --- %(levelname)s --- %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S%z",
