@@ -197,8 +197,9 @@ def dict_denester(
 
 
 # Function using breadth-first search
-def find_items_bfs(d: dict, key_to_match: str) -> str:
+def find_items_bfs(d: dict, key_to_match: str, replacement_value: str = '') -> str:
     try:
+        
         queue = deque([d])
         
         while queue:
@@ -206,15 +207,17 @@ def find_items_bfs(d: dict, key_to_match: str) -> str:
             
             if isinstance(current, dict):
                 if key_to_match in current:
-                    return current[key_to_match]
+                    value = current[key_to_match]
+                    # Return replacement_value if value is None or empty string
+                    return value if value else replacement_value  
                 queue.extend(current.values())
             elif isinstance(current, list):
                 queue.extend(current)
         
-        return ''
+        return replacement_value
     except Exception as e:
         logger.error("bork bork: %s", e)
-        return ''
+        return replacement_value
       
 
 

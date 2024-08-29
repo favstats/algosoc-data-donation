@@ -226,9 +226,16 @@ const cancelButtonLabel = new TextBundle().add('en', 'No').add('nl', 'Nee')
 const description = new TextBundle()
   .add(
     'en',
-    'Determine whether you would like to donate the data below. Carefully check the data and adjust when required. With your donation you contribute to the previously described research. Thank you in advance.'
+    'Below is a table showing the cleaned data from your data package.\n' +
+    'Before you share it with us, you can inspect what is in the tables, and decide what you do not want to share with us.\n' +
+    'You can delete entries by clicking the checkbox next to them and clicking "remove". Navigate using the menu under "Type" and the search tool.\n' +
+    'Once you have inspected it, click donate.'
   )
   .add(
     'nl',
-    'Bepaal of u de onderstaande gegevens wilt doneren. Bekijk de gegevens zorgvuldig en pas zo nodig aan. Met uw donatie draagt u bij aan het eerder beschreven onderzoek. Alvast hartelijk dank.'
-  )
+    'Hieronder ziet u een tabel met de opgeschoonde gegevens uit uw datapakket.\n' +
+    'Voordat u deze met ons deelt, kunt u bekijken wat er in de tabellen staat en beslissen wat u niet met ons wilt delen.\n' +
+    'U kunt vermeldingen verwijderen door op het selectievakje ernaast te klikken en op "verwijderen" te klikken. Navigeer met behulp van het menu onder "Type" en de zoekfunctie.\n' +
+    'Zodra u alles hebt gecontroleerd, klikt u op doneren.'
+  );
+

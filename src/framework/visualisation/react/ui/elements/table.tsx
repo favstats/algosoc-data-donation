@@ -106,7 +106,7 @@ export const Table = ({
     return items
   }, [table, page, pageSize])
 
-  const dataTypeIndex = table.head.cells.findIndex(cell => cell === 'data_type')
+  const dataTypeIndex = table.head.cells.findIndex(cell => cell === 'Type')
   
   const uniqueDataTypes = useMemo(() => {
     const types = new Set<string>()
@@ -117,7 +117,7 @@ export const Table = ({
 
   
   function renderHeaderCell(value: string, i: number): JSX.Element {
-    if (value === 'data_type') {
+    if (value === 'Type') {
       return (
         <th key={`header ${i}`}>
           <div className={`text-left ${cellClass}`}>
@@ -130,7 +130,7 @@ export const Table = ({
                   onDataTypeFilter(e.target.value)
                 }}
               >
-                <option value="">All</option>
+                <option value="">Filter: Geen</option>
                 {uniqueDataTypes.map(type => (
                   <option key={type} value={type}>{type}</option>
                 ))}

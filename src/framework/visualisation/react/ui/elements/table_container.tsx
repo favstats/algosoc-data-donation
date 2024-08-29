@@ -189,7 +189,7 @@ function searchRows(rows: PropsUITableRow[], search: string, dataTypeFilter: str
       if (matchesSearch) break
     }
 
-    const dataTypeIndex = row.cells.findIndex((cell, index) => index === 0) // Assuming data_type is the first column
+    const dataTypeIndex = row.cells.findIndex((cell, index) => index === 0) // Assuming Type is the first column
     if (dataTypeIndex !== -1 && (dataTypeFilter === null || row.cells[dataTypeIndex] === dataTypeFilter)) {
       matchesDataType = true
     }
