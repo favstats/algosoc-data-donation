@@ -166,7 +166,7 @@ def validate(file: Path) -> ValidateInput:
 def parse_data(data: List[Dict[str, Any]]) -> pd.DataFrame:
     df = pd.DataFrame(data)
     
-    required_columns = ['data_type', 'Action', 'title', 'URL', 'Date', 'details']
+    required_columns = ['Type', 'Actie', 'URL', 'Datum', 'Details']
     for col in required_columns:
         if col not in df.columns:
             df[col] = pd.NA
@@ -224,16 +224,16 @@ def parse_advertisers_using_activity(data: Dict[str, Any]) -> List[Dict[str, Any
         if not advertisers:
           return []
         return [{
-            'data_type': 'facebook_advertiser_activity',
-            'Action': 'AdvertiserActivity',
-            'title': helpers.find_items_bfs(advertiser,"advertiser_name"),
-            'URL': '',
-            'Date': '',
-            'details': json.dumps({
+            'Type': 'Advertentie Data',
+            'Actie': "'Gebruikte jouw gegevens': " + advertiser.get("advertiser_name", ""),
+            'URL': 'Geen URL',
+            'Datum': 'Geen Datum',
+            'Details': json.dumps({
                 'has_data_file_custom_audience': advertiser.get("has_data_file_custom_audience", False),
                 'has_remarketing_custom_audience': advertiser.get("has_remarketing_custom_audience", False),
                 'has_in_person_store_visit': advertiser.get("has_in_person_store_visit", False)
-            })
+            }),   # No additional Details
+                        'Bron': 'Facebook: Advertiser Activity'
         } for advertiser in advertisers]
     elif DATA_FORMAT == "html":
         html_content = data.get("advertisers_using_your_activity_or_information.html", "")
@@ -256,16 +256,16 @@ def parse_advertisers_using_activity(data: Dict[str, Any]) -> List[Dict[str, Any
                 has_in_person_store_visit = columns[3].strip() == 'x' if len(columns) > 3 else False
 
                 results.append({
-                    'data_type': 'facebook_advertiser_activity',
-                    'Action': 'AdvertiserActivity',
-                    'title': title,
-                    'URL': '',
-                    'Date': '',
-                    'details': json.dumps({
+                    'Type': 'Advertentie Data',
+                    'Actie': "'Gebruikte jouw gegevens': " + title,
+                    'URL': 'Geen URL',
+                    'Datum': 'Geen Datum',
+                    'Details': json.dumps({
                         'has_data_file_custom_audience': has_data_file_custom_audience,
                         'has_remarketing_custom_audience': has_remarketing_custom_audience,
                         'has_in_person_store_visit': has_in_person_store_visit
-                    })
+                    }),   # No additional Details
+                        'Bron': 'Facebook: Advertiser Activity'
                 })
 
             return results
@@ -299,12 +299,12 @@ def parse_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             details = replace_author(details, the_author)
             
             result.append({
-                'data_type': 'facebook_comment',
-                'Action': 'Comment',
-                'title': title,
-                'URL': helpers.find_items_bfs(comment, "external_context"),
-                'Date': helpers.robust_datetime_parser(helpers.find_items_bfs(comment, "timestamp")),
-                'details': details
+                'Type': 'Reacties',
+                'Actie': title,
+                'URL': helpers.find_items_bfs(comment, "external_context",  "Geen URL"),
+                'Datum': helpers.robust_datetime_parser(helpers.find_items_bfs(comment, "timestamp")),
+                'Details': details,   # No additional Details
+                        'Bron': 'Facebook: Post Comments'
             })
         
         return result
@@ -325,19 +325,19 @@ def parse_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     # Extracting the comment term - locate divs with text content directly
                     term_element = item.xpath('.//div[normalize-space(text())]')
                     # logger.debug(f"{term_element}")
-                    action = term_element[0].text_content().strip().replace('"', '') if term_element else ""
+                    Actie = term_element[0].text_content().strip().replace('"', '') if term_element else ""
                     term = term_element[1].text_content().strip().replace('"', '') if term_element else ""
                     date = term_element[2].text_content().strip().replace('"', '') if term_element else ""
    
                     date_iso = helpers.robust_datetime_parser(date)
                     if term and date_iso:
                         results.append({
-                            'data_type': 'facebook_comment',
-                            'Action': action,
-                            'title': term,
-                            'URL': '',
-                            'Date': date_iso,
-                            'details': ''
+                            'Type': 'Reacties',
+                            'Actie': Actie,
+                            'URL': 'Geen URL',
+                            'Datum': date_iso,
+                            'Details': term,   # No additional Details
+                        'Bron': 'Facebook: Post Comments'
                         })
                 except Exception as inner_e:
                     continue
@@ -362,12 +362,12 @@ def parse_likes_and_reactions(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                 current_reactions = helpers.find_items_bfs(data, path)
 
                 reactions.extend([{
-                    'data_type': 'facebook_reaction',
-                    'Action': 'Reaction',
-                    'title': remove_the_user_from_title(item.get("title", "")),
-                    'URL': '',
-                    'Date': helpers.robust_datetime_parser(item.get("timestamp", 0)),
-                    'details': json.dumps({"reaction": item["data"][0].get("reaction", {}).get("reaction", "")})
+                    'Type': 'Gelikete Posts',
+                    'Actie': remove_the_user_from_title(item.get("title", "Geen Tekst")),
+                    'URL': 'Geen URL',
+                    'Datum': helpers.robust_datetime_parser(item.get("timestamp", "")),
+                    'Details': json.dumps({"reaction": item["data"][0].get("reaction", {}).get("reaction", "")}),   # No additional Details
+                    'Bron': 'Facebook: Likes'
                 } for item in current_reactions])
     
     if DATA_FORMAT == "html":
@@ -401,12 +401,12 @@ def parse_likes_and_reactions(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                             # Append the parsed data with the reaction type included in details
                             if title and date_iso:
                                 reactions.append({
-                                    'data_type': 'facebook_reaction',
-                                    'Action': 'Reaction',
-                                    'title': remove_the_user_from_title(title),
-                                    'URL': '',  # URL parsing not required in this structure
-                                    'Date': date_iso,
-                                    'details': json.dumps({"reaction": reaction_type})
+                                    'Type': 'Gelikete Posts',
+                                    'Actie': remove_the_user_from_title(title),
+                                    'URL': 'Geen URL',  # URL parsing not required in this structure
+                                    'Datum': date_iso,
+                                    'Details': json.dumps({"reaction": reaction_type}),   # No additional Details
+                                    'Bron': 'Facebook: Likes'
                                 })
                         except Exception as inner_e:
                             logger.error(f"Failed to parse an item in {path}: {inner_e}")
@@ -429,12 +429,12 @@ def parse_your_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           return []
         
         return [{
-            'data_type': 'facebook_search',
-            'Action': helpers.find_items_bfs(item, "title"),
-            'title': item["data"][0].get("text", ""),
-            'URL': '',
-            'Date': helpers.robust_datetime_parser(item.get("timestamp", 0)),
-            'details': json.dumps({})
+            'Type': 'Zoekopdrachten',
+            'Actie': "'" + helpers.find_items_bfs(item, "title") + "': " +  item["data"][0].get("text", ""),
+            'URL': 'Geen URL',
+            'Datum': helpers.robust_datetime_parser(item.get("timestamp", "")),
+            'Details': 'Geen Details',
+            'Bron': 'Facebook: Searches'
         } for item in searches]
         
     elif DATA_FORMAT == "html":
@@ -453,7 +453,7 @@ def parse_your_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                 try:
                     # Extracting the search term - locate divs with text content directly
                     term_element = remove_the_user_from_title(item.xpath('.//div[normalize-space(text())]'))
-                    action = term_element[0].text_content().strip().replace('"', '') if term_element else ""
+                    Actie = term_element[0].text_content().strip().replace('"', '') if term_element else ""
                     term = term_element[1].text_content().strip().replace('"', '') if term_element else ""
                     date = term_element[2].text_content().strip().replace('"', '') if term_element else ""
    
@@ -461,12 +461,12 @@ def parse_your_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     # logger.error(f"Failesdadasd {date_iso}")
                     if term and date_iso:
                         results.append({
-                            'data_type': 'facebook_search',
-                            'Action': action,
-                            'title': term,
-                            'URL': '',
-                            'Date': date_iso,
-                            'details': ''
+                            'Type': 'Zoekopdrachten',
+                            'Actie': "'" + Actie + "': " +  term,
+                            'URL': 'Geen URL',
+                            'Datum': date_iso,
+                            'Details': 'Geen Details',
+                            'Bron': 'Facebook: Searches'
                         })
                 except Exception as inner_e:
                     logger.error(f"Failed to parse an item in your_search_history.html: {inner_e}")
@@ -526,44 +526,44 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         for pref in preferences_dat:
             left_value = pref.get("label", "")
             right_value = pref.get("value", "")
-            action_type = 'AdPreference'
-            data_type = 'facebook_ad_preference'
+            Actie_type = 'AdPreference'
+            Type = 'Advertentie Data'
             title = left_value
             
-            if action_type == 'AdPreference':
+            if Actie_type == 'AdPreference':
                 if title and right_value is not "":
                   preferences.append({
-                      'data_type': data_type,
-                      'Action': action_type,
-                      'title': title,
-                      'URL': '',
-                      'Date': '',
-                      'details': right_value
+                      'Type': Type,
+                      'Actie': "'" + title + "'" + ": " + right_value,
+                      'URL': 'Geen URL',
+                      'Datum': 'Geen Datum',
+                      'Details': 'Geen Details',
+                      'Bron': 'Facebook: Ad Preferences'
                   })
                   
         ad_interests_dat = find_structure(preferences_dat)
         for pref in ad_interests_dat:
-            action_type = 'Info Used to Target You'
-            data_type = 'facebook_other_interests'
+            Actie_type = 'Info Used to Target You'
+            Type = 'Advertentie Data'
             title = helpers.find_items_bfs(pref, "value")
             if title:
                   preferences.append({
-                      'data_type': data_type,
-                      'Action': action_type,
-                      'title': title,
-                      'URL': '',
-                      'Date': '',
-                      'details': ''
+                      'Type': Type,
+                      'Actie': "'Info voor targeting': " + title,
+                      'URL': 'Geen URL',
+                      'Datum': 'Geen Datum',
+                      'Details': 'Geen Details',
+                      'Bron': 'Facebook: Ad Preferences'
                   })           
             
         return preferences
         # return [{
-        #     'data_type': 'facebook_ad_preference',
-        #     'Action': 'AdPreference',
+        #     'Type': 'Advertentie Data',
+        #     'Actie': 'AdPreference',
         #     'title': pref.get("label", ""),
-        #     'URL': '',
-        #     'Date': '',
-        #     'details': json.dumps(pref.get("value", ""))
+        #     'URL': 'Geen URL',
+        #     'Datum': 'Geen Datum',
+        #     'Details': json.dumps(pref.get("value", ""))
         # } for pref in preferences]
     elif DATA_FORMAT == "html":
         html_content = data.get("ad_preferences.html", "")
@@ -581,34 +581,34 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                 try: 
                   left_value = row.xpath('./td[1]//text()')[0].strip() if row.xpath('./td[1]//text()') else ""
                   right_value = row.xpath('./td[2]//text()')[0].strip() if row.xpath('./td[2]//text()') else ""
-                  action_type = 'AdPreference'
-                  data_type = 'facebook_ad_preference'
+                  Actie_type = 'AdPreference'
+                  Type = 'Advertentie Data'
                   title = left_value
                   if left_value in name_keys:
-                      action_type = 'Info Used to Target You'
-                      data_type = 'facebook_other_interests'
+                      Actie_type = 'Info Used to Target You'
+                      Type = 'Advertentie Data'
                       title = right_value
                       right_value = ""
                   
-                  if action_type == 'AdPreference':
+                  if Actie_type == 'AdPreference':
                       if title and right_value is not "":
                         preferences.append({
-                            'data_type': data_type,
-                            'Action': action_type,
-                            'title': title,
-                            'URL': '',
-                            'Date': '',
-                            'details': right_value
+                            'Type': Type,
+                            'Actie': "'" + title + "'" + ": " + right_value,
+                            'URL': 'Geen URL',
+                            'Datum': 'Geen Datum',
+                            'Details': 'Geen Details',
+                            'Bron': 'Facebook: Ad Preferences'
                         })
                   else:
                       if title:
                         preferences.append({
-                            'data_type': data_type,
-                            'Action': action_type,
-                            'title': title,
-                            'URL': '',
-                            'Date': '',
-                            'details': right_value
+                            'Type': Type,
+                            'Actie': "'Info voor targeting': " + title,
+                            'URL': 'Geen URL',
+                            'Datum': 'Geen Datum',
+                            'Details': 'Geen Details',
+                            'Bron': 'Facebook: Ad Preferences'
                         })
                 except Exception as e:
                   pass
@@ -628,15 +628,15 @@ def parse_ads_personalization_consent(data: Dict[str, Any]) -> List[Dict[str, An
         if not preferences:
           return []
         
-        
         return [{
-            'data_type': 'facebook_ads_personalization',
-            'Action': 'AdPreference',
-            'title': pref.get("label", ""),
-            'URL': '',
-            'Date': '',
-            'details': json.dumps(pref.get("value", ""))
-        } for pref in preferences]
+            'Type': 'Advertentie Data',
+            'Actie': 'Advertentiepersonalisatie: ' + pref.get("value", ""),
+            'URL': 'Geen URL',
+            'Datum': 'Geen Datum',
+            'Details': 'Geen Details',
+            'Bron': "Facebook: Ad Personalization Settings"
+        } for pref in preferences if pref.get('ent_field_name', "") == 'ConsentStatus']
+
     elif DATA_FORMAT == "html":
         html_content = data.get("ads_personalization_consent.html", "")
         if not html_content:
@@ -650,12 +650,12 @@ def parse_ads_personalization_consent(data: Dict[str, Any]) -> List[Dict[str, An
         #     title = item.xpath('./text()')[0]
         #     details = item.xpath('./following-sibling::div//text()')
         #     preferences.append({
-        #         'data_type': 'facebook_ads_personalization',
-        #         'Action': 'AdPreference',
+        #         'Type': 'facebook_ads_personalization',
+        #         'Actie': 'AdPreference',
         #         'title': title,
-        #         'URL': '',
-        #         'Date': '',
-        #         'details': json.dumps(details)
+        #         'URL': 'Geen URL',
+        #         'Datum': 'Geen Datum',
+        #         'Details': json.dumps(details)
         #     })
         # return preferences
 
@@ -668,12 +668,12 @@ def parse_advertisers_interacted_with(data: Dict[str, Any]) -> List[Dict[str, An
         
         
         return [{
-            'data_type': 'facebook_ad_interaction',
-            'Action': 'AdInteraction',
-            'title': item.get("title", "No Text") if not item.get("title", "").startswith("http") else "No Text",
-            'URL': item.get("title", "") if item.get("title", "").startswith("http") else '',
-            'Date': helpers.robust_datetime_parser(item.get("timestamp", 0)),
-            'details': json.dumps({"action": item.get("action", "")})
+            'Type': 'Advertentie-interactie',
+            'Actie': "'Gereageerd op': " + item.get("title", "No Text") if not item.get("title", "").startswith("http") else "'Gereageerd op': No Text",
+            'URL': item.get("title", "") if item.get("title", "").startswith("http") else 'Geen URL',
+            'Datum': helpers.robust_datetime_parser(item.get("timestamp", '')),
+            'Details': 'Geen Details',
+            'Bron': 'Facebook: Ad Interactions'
         } for item in interactions]
     elif DATA_FORMAT == "html":
         html_content = data.get("advertisers_you've_interacted_with.html", "")
@@ -695,12 +695,12 @@ def parse_advertisers_interacted_with(data: Dict[str, Any]) -> List[Dict[str, An
                 date = date_element[0].strip() if date_element else ""
     
                 interactions.append({
-                    'data_type': 'facebook_ad_interaction',
-                    'Action': 'AdClick',
-                    'title': title if not title.startswith("http") else "No Text",
-                    'URL': title if title.startswith("http") else '',
-                    'Date': helpers.robust_datetime_parser(date),
-                    'details': '' 
+                    'Type': 'Advertentie-interactie',
+                    'Actie': "'Gereageerd op': " + title if not title.startswith("http") else "'Gereageerd op': No Text",
+                    'URL': title if title.startswith("http") else 'Geen URL',
+                    'Datum': helpers.robust_datetime_parser(date),
+                    'Details': 'Geen Details',
+                    'Bron': 'Facebook: Ad Interactions'
                 })
     
             return interactions
@@ -720,12 +720,12 @@ def parse_ads_interests(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         
         return [{
-            'data_type': 'facebook_ads_interests',
-            'Action': 'Info Used to Target You',
-            'title': category,
-            'URL': '',
-            'Date': '',
-            'details': json.dumps({})
+            'Type': 'Advertentie Data',
+            'Actie': "'Info voor targeting': " + category,
+            'URL': 'Geen URL',
+            'Datum': 'Geen Datum',
+            'Details': 'Geen Details',
+            'Bron': 'Facebook: Ads Interests'
         } for category in categories]
     elif DATA_FORMAT == "html":
         html_content = data.get("ads_interests.html", "")
@@ -746,12 +746,12 @@ def parse_ads_interests(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                 # Only add entries with non-empty titles
                 if title:
                     results.append({
-                        'data_type': 'facebook_ads_interests',
-                        'Action': 'Info Used to Target You',
-                        'title': title,
-                        'URL': '',  # No URL is present in this structure
-                        'Date': '',  # No Date information is provided
-                        'details': ''  # No additional details available
+                        'Type': 'Advertentie Data',
+                        'Actie': "'Info voor targeting': " + title,
+                        'URL': 'Geen URL',  # No URL is present in this structure
+                        'Datum': 'Geen Datum',  # No Date information is provided
+                        'Details': 'Geen Details',
+                        'Bron': 'Facebook: Ads Interests'  # No additional details available
                     })
 
             return results
@@ -774,12 +774,12 @@ def parse_other_categories_used(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             return []
         
         return [{
-            'data_type': 'facebook_ad_categories',
-            'Action': 'Info Used to Target You',
-            'title': category,
-            'URL': '',
-            'Date': '',
-            'details': json.dumps({})
+            'Type': 'Advertentie Data',
+            'Actie': "'Info voor targeting': " + category,
+            'URL': 'Geen URL',
+            'Datum': 'Geen Datum',
+            'Details': 'Geen Details',  # No additional details are provided,
+            'Bron': 'Facebook: Ad Categories'
         } for category in categories]
     elif DATA_FORMAT == "html":
         html_content = data.get("other_categories_used_to_reach_you.html", "")
@@ -800,12 +800,12 @@ def parse_other_categories_used(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
                 if title:  # Only add non-empty titles
                     results.append({
-                        'data_type': 'facebook_ad_categories',
-                        'Action': 'Info Used to Target You',
-                        'title': title,
-                        'URL': '',  # No URL is present in this structure
-                        'Date': '',  # No Date information is provided
-                        'details': ''  # No additional details are provided
+                        'Type': 'Advertentie Data',
+                        'Actie': "'Info voor targeting': " + title,
+                        'URL': 'Geen URL',  # No URL is present in this structure
+                        'Datum': 'Geen Datum',  # No Date information is provided
+                        'Details': 'Geen Details',  # No additional details are provided,
+                        'Bron': 'Facebook: Ad Categories'
                     })
 
             return results
@@ -823,16 +823,29 @@ def parse_recently_viewed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             return []
         
         for category in viewed:
-            action = category.get('description', 'Viewed')
+            Actie = category.get('description', 'Viewed')
             if 'entries' in category:
                 for entry in category['entries']:
+                    # if "Berichten" in Actie:
+                    #   Actie = "Posts die zijn bekeken"
+                    # elif: "Advertenties" in Actie
+                    #   Actie = "Advertenties die zijn bekeken"
+                    # elif: "Video's" in Actie
+                    #   Actie = "Video's die zijn bekeken"
+                    # elif: "Posts" in Actie
+                    #   Actie = "Posts you have seen"
+                    # elif: "Ads" in Actie
+                    #   Actie = "Ads you have seen"
+                    # elif: "Videos" in Actie
+                    #   Actie = "Videos you have seen"
                     result.append({
-                        'data_type': 'facebook_recently_viewed',
-                        'Action': action,
-                        'title': entry['data'].get('name', ''),
-                        'URL': entry['data'].get('uri', ''),
-                        'Date': helpers.robust_datetime_parser(entry.get('timestamp', 0)),
-                        'details': json.dumps({})
+                        #'Type': 'facebook_recently_viewed',
+                        'Type': "Posts die zijn bekeken",
+                        'Actie': entry['data'].get('name', ''),
+                        'URL': entry['data'].get('uri', 'Geen URL'),
+                        'Datum': helpers.robust_datetime_parser(entry.get('timestamp', "")),
+                        'Details': 'Geen Details',
+                        'Bron': 'Facebook: Recently Viewed'
                     })
         return result
     elif DATA_FORMAT == "html":
@@ -848,16 +861,16 @@ def parse_recently_viewed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           # Prepare a list to collect the parsed data
           parsed_data = []
           
-          # Extract sections by looking for divs containing text indicating actions
+          # Extract sections by looking for divs containing text indicating Acties
           sections = tree.xpath('//div[div[contains(text(), "Berichten") or contains(text(), "Video") or contains(text(), "Advertentie") or contains(text(), "Posts that have been") or contains(text(), "Videos you have") or contains(text(), "Ads")]]')
           
           for section in sections:
               try:
-                  # Extract the action text, which is in a div with specific text
-                  action = section.xpath('.//div[contains(text(), "Berichten") or contains(text(), "Video") or contains(text(), "Advertentie") or contains(text(), "Posts that have been") or contains(text(), "Videos you have") or contains(text(), "Ads")]/text()')
-                  action = action[0].strip() if action else "Unknown Action"
+                  # Extract the Actie text, which is in a div with specific text
+                  Actie = section.xpath('.//div[contains(text(), "Berichten") or contains(text(), "Video") or contains(text(), "Advertentie") or contains(text(), "Posts that have been") or contains(text(), "Videos you have") or contains(text(), "Ads")]/text()')
+                  Actie = Actie[0].strip() if Actie else "Unknown Actie"
       
-                  # Extract the individual entries under this action by looking for divs that have an <a> tag
+                  # Extract the individual entries under this Actie by looking for divs that have an <a> tag
                   entries = section.xpath('.//div[div/a]')  # This assumes each entry has an <a> tag
                   
                   for entry in entries:
@@ -879,12 +892,14 @@ def parse_recently_viewed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                         
                         # Append the data to the parsed_data list
                         parsed_data.append({
-                            'data_type': 'facebook_recently_viewed',
-                            'Action': action,
-                            'title': title,
-                            'URL': '',
-                            'Date': date,
-                            'details': json.dumps({})
+                            'Type': "Posts die zijn bekeken",
+                            # 'Type': 'facebook_recently_viewed',
+                            # 'Actie': Actie,
+                            'Actie': title,
+                            'URL': 'Geen URL',
+                            'Datum': date,
+                            'Details': 'Geen Details',
+                        'Bron': 'Facebook: Recently Viewed'
                         })
                       except Exception as e:
                         return []
@@ -907,17 +922,26 @@ def parse_recently_visited(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             return []
         
         for category in visited:
-            action = category.get('description', 'visited')
+            Actie = category.get('description', 'visited')
             if 'entries' in category:
                 for entry in category['entries']:
-                    result.append({
-                        'data_type': 'facebook_recently_visited',
-                        'Action': action,
-                        'title': entry['data'].get('name', ''),
-                        'URL': entry['data'].get('uri', ''),
-                        'Date': helpers.robust_datetime_parser(entry.get('timestamp', 0)),
-                        'details': json.dumps({})
-                    })
+                    if "Mensen" in Actie or "profiles" in Actie:
+                      Actie = "'Profiel bezocht':"
+                    elif "Evenement" in Actie  or "Event" in Actie:
+                      Actie = "'Evenement bezocht':"
+                    elif "Groepen" in Actie or "Group" in Actie:
+                      Actie = "'Groep bezocht':"
+                    elif "Page" in Actie or "Pagina" in Actie:
+                      Actie = "'Pagina bezocht':"
+                    if "Marketplace" not in Actie:
+                      result.append({
+                          'Type': 'Onlangs bezocht',
+                          'Actie': Actie  + " " + entry['data'].get('name', ''),
+                          'URL': entry['data'].get('uri', 'Geen URL'),
+                          'Datum': helpers.robust_datetime_parser(entry.get('timestamp', "")),
+                          'Details': 'Geen Details',
+                          'Bron': 'Facebook: Recently Viewed'
+                      })
         return result
     elif DATA_FORMAT == "html":
         html_content = data.get("recently_visited.html", "")
@@ -932,16 +956,16 @@ def parse_recently_visited(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           # Prepare a list to collect the parsed data
           parsed_data = []
           
-          # Extract sections by looking for divs containing text indicating actions
+          # Extract sections by looking for divs containing text indicating Acties
           sections = tree.xpath('//div[div[contains(text(), "Profielbezoeken") or contains(text(), "Paginabezoeken") or contains(text(), "Bezochte evenementen") or contains(text(), "Bezochte groepen") or contains(text(), "Profile visits") or contains(text(), "Page visits") or contains(text(), "Events visited") or contains(text(), "Groups visited")]]')
           
           for section in sections:
               try:
-                  # Extract the action text, which is in a div with specific text
-                  action = section.xpath('.//div[contains(text(), "Mensen") or contains(text(), "Pagina") or contains(text(), "Groepen") or contains(text(), "People") or contains(text(), "Pages") or contains(text(), "Groups")]/text()')
-                  action = action[0].strip() if action else "Unknown Action"
+                  # Extract the Actie text, which is in a div with specific text
+                  Actie = section.xpath('.//div[contains(text(), "Mensen") or contains(text(), "Pagina") or contains(text(), "Groepen") or contains(text(), "People") or contains(text(), "Pages") or contains(text(), "Groups")]/text()')
+                  Actie = Actie[0].strip() if Actie else "Unknown Actie"
       
-                  # Extract the individual entries under this action by looking for divs that have an <a> tag
+                  # Extract the individual entries under this Actie by looking for divs that have an <a> tag
                   entries = section.xpath('.//div[div/a]')  # This assumes each entry has an <a> tag
                   
                   for entry in entries:
@@ -960,16 +984,25 @@ def parse_recently_visited(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         
                         # Attempt to parse the date using robust_datetime_parser
                         date = helpers.robust_datetime_parser(date_text)
-                        
-                        # Append the data to the parsed_data list
-                        parsed_data.append({
-                            'data_type': 'facebook_recently_visited',
-                            'Action': action,
-                            'title': title,
-                            'URL': '',
-                            'Date': date,
-                            'details': json.dumps({})
-                        })
+                        if "Mensen" in Actie or "profiles" in Actie:
+                          Actie = "'Profiel bezocht':"
+                        elif "Evenement" in Actie  or "Event" in Actie:
+                          Actie = "'Evenement bezocht':"
+                        elif "Groepen" in Actie or "Group" in Actie:
+                          Actie = "'Groep bezocht':"
+                        elif "Page" in Actie or "Pagina" in Actie:
+                          Actie = "'Pagina bezocht':"
+                        if "Marketplace" not in Actie:
+                          # Append the data to the parsed_data list
+                          parsed_data.append({
+                              'Type': 'Onlangs bezocht',
+                              'Actie': Actie  + " " + entry['data'].get('name', ''),
+                              # 'title': title,
+                              'URL': 'Geen URL',
+                              'Datum': date,
+                              'Details': 'Geen Details',
+                              'Bron': 'Facebook: Recently Visited'
+                          })
                       except Exception as e:
                         return []
               
@@ -989,12 +1022,12 @@ def parse_subscription_for_no_ads(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             return []
         
         return [{
-            'data_type': 'facebook_subscription',
-            'Action': 'SubscriptionStatus',
-            'title': sub.get("label", ""),
-            'URL': '',
-            'Date': '',
-            'details': json.dumps(sub.get("value", ""))
+            'Type': 'Advertentie Data',
+            'Actie': "Uw status van advertentie-opt-out abonnement" + ": " + sub.get("value", ""),
+            'URL': 'Geen URL',
+            'Datum': 'Geen Datum',
+            'Details': 'Geen Details',
+            'Bron': 'Facebook: Subscription Status'
         } for sub in subscriptions]
     elif DATA_FORMAT == "html":
         html_content = helpers.find_items_bfs(data, "subscription_for_no_ads.html")
@@ -1014,12 +1047,12 @@ def parse_subscription_for_no_ads(data: Dict[str, Any]) -> List[Dict[str, Any]]:
               value = row.xpath('.//td[2]/text()')[0].strip() if row.xpath('.//td[2]/text()') else ""
               
               subscriptions.append({
-                  'data_type': 'facebook_subscription',
-                  'Action': 'SubscriptionStatus',
-                  'title': label + ": " + value,
-                  'URL': '',
-                  'Date': '',
-                  'details': json.dumps({})
+                  'Type': 'Advertentie Data',
+                  'Actie': "Uw status van advertentie-opt-out abonnement" + ": " + value,
+                  'URL': 'Geen URL',
+                  'Datum': 'Geen Datum',
+                  'Details': 'Geen Details',
+            'Bron': 'Facebook: Subscription Status'
               })
         
           return subscriptions
@@ -1035,14 +1068,14 @@ def parse_events(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         events = helpers.find_items_bfs(data, "event_responses_v2")
         if not events:
             return []
-        
+        print(evens)
         return [{
-            'data_type': 'facebook_event',
-            'Action': 'EventParticipation',
-            'title': event.get("name", ""),
-            'URL': '',
-            'Date': helpers.robust_datetime_parser(event.get("start_timestamp", 0)),
-            'details': json.dumps({})
+            'Type': 'Events',
+            'title': "'Event': " + event.get("name", ""),
+            'URL': 'Geen URL',
+            'Datum': helpers.robust_datetime_parser(event.get("start_timestamp", "")),
+            'Details': 'Geen Details',
+            'Bron': 'Facebook: Events'
         } for event in events]
     if DATA_FORMAT == "json":
         return []
@@ -1055,12 +1088,12 @@ def parse_who_you_followed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             return []
         
         return [{
-            'data_type': 'facebook_follow',
-            'Action': 'Follow',
-            'title': follow.get("name", ""),
-            'URL': '',
-            'Date': helpers.robust_datetime_parser(follow.get("timestamp", 0)),
-            'details': json.dumps({})
+            'Type': 'Gevolgde Accounts',
+            'Actie': "'Gevolgd': " +  follow.get("name", ""),
+            'URL': 'Geen URL',
+            'Datum': helpers.robust_datetime_parser(follow.get("timestamp", "")),
+            'Details': 'Geen Details',
+            'Bron': 'Facebook: Following'
         } for follow in follows]
         
     elif DATA_FORMAT == "html":
@@ -1087,12 +1120,12 @@ def parse_who_you_followed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                 date = helpers.robust_datetime_parser(date_text)
 
                 results.append({
-                    'data_type': 'facebook_followed',
-                    'Action': 'Followed',
-                    'title': title,
-                    'URL': '',  # No URL is present in this structure
-                    'Date': date,
-                    'details': ''  # No additional details available
+                    'Type': 'Gevolgde Accounts',
+                    'Actie': "'Gevolgd': " + title,
+                    'URL': 'Geen URL',  # No URL is present in this structure
+                    'Datum': date,
+                    'Details': 'Geen Details' ,
+            'Bron': 'Facebook: Following' # No additional details available
                 })
 
             return results
@@ -1124,12 +1157,12 @@ def parse_your_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     continue
 
                 posts.extend([{
-                    'data_type': 'facebook_post',
-                    'Action': 'Post',
-                    'title': remove_the_user_from_title(helpers.find_items_bfs(item, "title")) if helpers.find_items_bfs(item, "title") else "Posted",
-                    'URL': helpers.find_items_bfs(item, "url"),
-                    'Date': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "timestamp")),
-                    'details': json.dumps({"post_content": helpers.find_items_bfs(item, "post")})
+                    'Type': 'Posts',
+                    'Actie': "'Post': " + remove_the_user_from_title(helpers.find_items_bfs(item, "post")) if helpers.find_items_bfs(item, "post") else "Posted",
+                    'URL': helpers.find_items_bfs(item, "url", "Geen URL"),
+                    'Datum': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "timestamp")),
+                    'Details': 'Geen Details',
+                    'Bron': 'Facebook: Posts'
                 } for item in current_posts])
 
         return posts
@@ -1162,12 +1195,12 @@ def parse_your_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         #             # Append the parsed data
         #             if title and date_iso:
         #                 posts.append({
-        #                     'data_type': 'facebook_post',
-        #                     'Action': 'Post',
+        #                     'Type': 'facebook_post',
+        #                     'Actie': 'Post',
         #                     'title': title,
-        #                     'URL': '',
-        #                     'Date': date_iso,
-        #                     'details': json.dumps({"post_content": post_content})
+        #                     'URL': 'Geen URL',
+        #                     'Datum': date_iso,
+        #                     'Details': json.dumps({"post_content": post_content})
         #                 })
         #         except Exception as inner_e:
         #             logger.error(f"Failed to parse an item in your_posts__check_ins__photos_and_videos_1.html: {inner_e}")
@@ -1188,12 +1221,12 @@ def parse_facebook_account_suggestions(data: Dict[str, Any]) -> List[Dict[str, A
           return []
 
         return [{
-            'data_type': 'facebook_account_suggestions',
-            'Action': 'People You Should Follow',
-            'title': category.get("value", ""),
-            'URL': '',
-            'Date': '',
-            'details': json.dumps({})
+            'Type': 'Volgsuggesties',
+            'Actie': "'Account voorgesteld': " + category.get("value", ""),
+            'URL': 'Geen URL',
+            'Datum': 'Geen Datum',
+            'Details': 'Geen Details',   # No additional Details
+            'Bron': 'Facebook: Follow Suggestions'
         } for category in categories]
     elif DATA_FORMAT == "html":
         html_content = data.get("people_we_think_you_should_follow.html", "")
@@ -1212,12 +1245,12 @@ def parse_facebook_account_suggestions(data: Dict[str, Any]) -> List[Dict[str, A
         for item in names:
             title = item
             categories.append({
-                'data_type': 'facebook_account_suggestions',
-                'Action': 'People You Should Follow',
-                'title': title,
-                'URL': '',
-                'Date': '',
-                'details': json.dumps({})
+                'Type': 'Volgsuggesties',
+                'Actie': "'Account voorgesteld': " + title,
+                'URL': 'Geen URL',
+                'Datum': 'Geen Datum',
+                'Details': 'Geen Details',   # No additional Details
+                'Bron': 'Facebook: Follow Suggestions'
             })
         return categories
 
@@ -1231,12 +1264,12 @@ def parse_group_posts_and_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]
           return []
         
         return [{
-            'data_type': 'facebook_group_post',
-            'Action': 'Group Post',
-            'title': remove_the_user_from_title(helpers.find_items_bfs(item, "title")),
-            'URL': '',
-            'Date': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "timestamp")),
-            'details': json.dumps({"post_content": helpers.find_items_bfs(item, "post")})
+            'Type': 'Groepspost',
+            'Actie': remove_the_user_from_title(helpers.find_items_bfs(item, "title")),
+            'URL': 'Geen URL',
+            'Datum': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "timestamp")),
+            'Details': json.dumps({"post_content": helpers.find_items_bfs(item, "post")}),
+            'Bron': 'Facebook: Group Posts'
         } for item in posts]
     elif DATA_FORMAT == "html":
         reactions = []
@@ -1266,12 +1299,12 @@ def parse_group_posts_and_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]
                     # Append the parsed data with post content in details
                     if title and date_iso:
                         reactions.append({
-                            'data_type': 'facebook_group_post',            
-                            'Action': 'Group Post',
-                            'title': remove_the_user_from_title(title),
-                            'URL': '',  # URL not required
-                            'Date': date_iso,
-                            'details': json.dumps({"post_content": post_content})
+                            'Type': 'Groepspost',            
+                            'Actie': remove_the_user_from_title(title),
+                            'URL': 'Geen URL',  # URL not required
+                            'Datum': date_iso,
+                            'Details': json.dumps({"post_content": post_content}),
+            'Bron': 'Facebook: Group Posts'
                         })
                 except Exception as inner_e:
                     logger.error(f"Failed to parse an item in group_posts_and_comments.html: {inner_e}")
@@ -1292,15 +1325,15 @@ def parse_your_comments_in_groups(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           return []
         
         return [{
-            'data_type': 'facebook_group_comment',
-            'Action': 'Comment',
-            'title': remove_the_user_from_title(item.get("title", "Comment in Group")),
-            'URL': '',
-            'Date': helpers.robust_datetime_parser(item.get("timestamp", 0)),
-            'details': json.dumps({
+            'Type': 'Groepsreactie',
+            'Actie': remove_the_user_from_title(item.get("title", "Comment in Group")),
+            'URL': 'Geen URL',
+            'Datum': helpers.robust_datetime_parser(item.get("timestamp", "")),
+            'Details': json.dumps({
                 "comment": item.get("data", [{}])[0].get("comment", {}).get("comment", ""),
                 "group": item.get("data", [{}])[0].get("comment", {}).get("group", "")
-            })
+            }),
+            'Bron': 'Facebook: Group Comments'
         } for item in comments]
         
     elif DATA_FORMAT == "html":
@@ -1339,15 +1372,15 @@ def parse_your_comments_in_groups(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     # Append the parsed data
                     if title and date_iso:
                         comments.append({
-                            'data_type': 'facebook_group_comment',
-                            'Action': 'Comment',
-                            'title': title,
-                            'URL': '',  # URL not required
-                            'Date': date_iso,
-                            'details': json.dumps({
+                            'Type': 'Groepsreactie',
+                            'Actie': title,
+                            'URL': 'Geen URL',  # URL not required
+                            'Datum': date_iso,
+                            'Details': json.dumps({
                                 "comment": comment_text,
                                 "group": group_name
-                            })
+                            }),
+                            'Bron': 'Facebook: Group Comments'
                         })
                 except Exception as inner_e:
                     logger.error(f"Failed to parse an item in your_comments_in_groups.html: {inner_e}")
@@ -1367,14 +1400,14 @@ def parse_your_group_membership_activity(data: Dict[str, Any]) -> List[Dict[str,
           return []
         
         return [{
-            'data_type': 'facebook_group_membership',
-            'Action': 'Group Membership',
-            'title': item.get("title", "Group Membership Activity"),
-            'URL': '',
-            'Date': helpers.robust_datetime_parser(item.get("timestamp", 0)),
-            'details': json.dumps({
+            'Type': 'Groepslidmaatschap',
+            'Actie': item.get("title", "Group Membership Activity"),
+            'URL': 'Geen URL',
+            'Datum': helpers.robust_datetime_parser(item.get("timestamp", "")),
+            'Details': json.dumps({
                 "group": item.get("data", [{}])[0].get("name", "")
-            })
+            }),
+            'Bron': 'Facebook: Group Membership'
         } for item in activities]
     elif DATA_FORMAT == "html":
 
@@ -1407,14 +1440,14 @@ def parse_your_group_membership_activity(data: Dict[str, Any]) -> List[Dict[str,
                     # Append the parsed data
                     if title and date_iso:
                         activities.append({
-                            'data_type': 'facebook_group_membership',
-                            'Action': 'Group Membership',
-                            'title': title,
-                            'URL': '',  # URL not required
-                            'Date': date_iso,
-                            'details': json.dumps({
+                            'Type': 'Groepslidmaatschap',
+                            'Actie': title,
+                            'URL': 'Geen URL',  # URL not required
+                            'Datum': date_iso,
+                            'Details': json.dumps({
                                 "group": group_name
-                            })
+                            }),
+            'Bron': 'Facebook: Group Membership'
                         })
                 except Exception as inner_e:
                     logger.error(f"Failed to parse an item in your_group_membership_activity.html: {inner_e}")
@@ -1476,34 +1509,34 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
     if all_data:
         combined_df = pd.DataFrame(all_data)
         
-        combined_df['Date'] = pd.to_datetime(combined_df['Date'], errors='coerce')
+        combined_df['Datum'] = pd.to_datetime(combined_df['Datum'], errors='coerce')
         # logger.warning(f"{print(combined_df)}")
 
         try:
           # Localize naive timestamps before converting
-          combined_df['Date'] = combined_df['Date'].apply(lambda x: x.tz_localize('UTC') if x.tzinfo is None else x)
+          combined_df['Datum'] = combined_df['Datum'].apply(lambda x: x.tz_localize('UTC') if x.tzinfo is None else x)
         except Exception as e:
           logger.info(f"Error localizing dates: {e}")
                 
         try:
           # Convert all datetime objects to timezone-naive
-          combined_df['Date'] = combined_df['Date'].dt.tz_convert(None)
+          combined_df['Datum'] = combined_df['Datum'].dt.tz_convert(None)
         except Exception as e:
           logger.info(f"Error converting dates: {e}")
         
 
         
         # Count entries with dates before 2000
-        pre_2000_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
+        pre_2000_count = (combined_df['Datum'] < pd.Timestamp('2000-01-01')).sum()
         if pre_2000_count > 0:
             logger.info(f"Found {pre_2000_count} entries with dates before 2000.")
         
             try:
                 # Convert dates before 2000 to NaT (pandas' equivalent of NaN for datetime)
-                combined_df.loc[combined_df['Date'] < pd.Timestamp('2000-01-01'), 'Date'] = pd.NaT
+                combined_df.loc[combined_df['Datum'] < pd.Timestamp('2000-01-01'), 'Datum'] = pd.NaT
                 
                 # Confirm conversion
-                post_conversion_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
+                post_conversion_count = (combined_df['Datum'] < pd.Timestamp('2000-01-01')).sum()
                 if post_conversion_count == 0:
                     logger.info(f"Successfully converted {pre_2000_count} entries with dates before 2000 to NaN.")
                 else:
@@ -1514,12 +1547,12 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
 
     
         
-        combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
-        combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
+        combined_df = combined_df.sort_values(by='Datum', ascending=False, na_position='last').reset_index(drop=True)
+        combined_df['Datum'] = combined_df['Datum'].dt.strftime('%Y-%m-%d %H:%M:%S').fillna('Geen Datum')
         # combined_df['Count'] = 1
         
         # List of columns to apply the replace_email function
-        columns_to_process = ['title', 'details', 'Action']
+        columns_to_process = ['Details', 'Actie']
         
         # Loop over each column in the list
         for column in columns_to_process:
@@ -1529,13 +1562,25 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
             except Exception as e:
                 logger.warning(f"Could not replace e-mail in column '{column}': {e}")
 
+        # List of columns to apply the replace_email function
+        columns_to_process = ['Details', 'Actie']
+        
+        # Loop over each column in the list
+        for column in columns_to_process:
+            try:
+                # Ensure the column values are strings and apply the replace_email function
+                combined_df[column] = combined_df[column].apply(lambda x: remove_the_user_from_title(str(x)))
+            except Exception as e:
+                logger.warning(f"Could not replace e-mail in column '{column}': {e}")
+
+        
         
         table_title = props.Translatable({"en": "Facebook Activity Data", "nl": "Facebook Gegevens"})
         visses = [vis.create_chart(
             "line", 
             "Facebook Activity Over Time", 
             "Facebook-activiteit", 
-            "Date", 
+            "Datum", 
             y_label="Aantal observaties", 
             date_format="auto"
         )]
@@ -1553,24 +1598,24 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
 def group_interactions_to_df(facebook_zip: str) -> pd.DataFrame:
     tables = process_facebook_data(facebook_zip)
     df = tables[0].data if tables else pd.DataFrame()
-    return df[df['data_type'] == 'facebook_group_interaction'].drop(columns=['data_type'])
+    return df[df['Type'] == 'facebook_group_interaction'].drop(columns=['Type'])
 
 def comments_to_df(facebook_zip: str) -> pd.DataFrame:
     tables = process_facebook_data(facebook_zip)
     df = tables[0].data if tables else pd.DataFrame()
-    return df[df['data_type'] == 'facebook_comment'].drop(columns=['data_type'])
+    return df[df['Type'] == 'facebook_comment'].drop(columns=['Type'])
 
 def likes_and_reactions_to_df(facebook_zip: str) -> pd.DataFrame:
     tables = process_facebook_data(facebook_zip)
     df = tables[0].data if tables else pd.DataFrame()
-    return df[df['data_type'] == 'facebook_reaction'].drop(columns=['data_type'])
+    return df[df['Type'] == 'facebook_reaction'].drop(columns=['Type'])
 
 def your_posts_to_df(facebook_zip: str) -> pd.DataFrame:
     tables = process_facebook_data(facebook_zip)
     df = tables[0].data if tables else pd.DataFrame()
-    return df[df['data_type'] == 'facebook_post'].drop(columns=['data_type'])
+    return df[df['Type'] == 'facebook_post'].drop(columns=['Type'])
 
 def your_search_history_to_df(facebook_zip: str) -> pd.DataFrame:
     tables = process_facebook_data(facebook_zip)
     df = tables[0].data if tables else pd.DataFrame()
-    return df[df['data_type'] == 'facebook_search'].drop(columns=['data_type'])
+    return df[df['Type'] == 'facebook_search'].drop(columns=['Type'])

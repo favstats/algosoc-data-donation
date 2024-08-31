@@ -195,12 +195,12 @@ def parse_following_list(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_following',
-            'Action': 'Following',
-            'title': f"Following {user.get(title_key, 'Unknown')}",
-            'URL': '',
-            'Date': user.get('Date', ''),
-            'details': json.dumps({})
+            'Type': 'Gevolgde Accounts',
+            'Actie': "'Gevolgd': " + user.get(title_key, 'Unknown'),
+            'URL': 'Geen URL',
+            'Datum': user.get('Date', 'Geen Datum'),
+            'Details': "Geen Details",
+            'Bron': "TikTok: Followed Accounts"
         } for user in following_list if isinstance(user, dict)
     ]
 
@@ -219,12 +219,12 @@ def parse_hashtags(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_hashtag',
-            'Action': 'HashtagUse',
-            'title': ht.get(name_key, 'Unknown'),
+            'Type': 'Hashtags',
+            'Actie': "'Hashtag gebruik': " + ht.get(name_key, 'Unknown'),
             'URL': ht.get(link_key, ''),
-            'Date': '',
-            'details': json.dumps({})
+            'Datum': 'Geen Datum',
+            'Details': "Geen Details",
+            'Bron': "TikTok: Hashtag Use"
         } for ht in hashtags if isinstance(ht, dict)
     ]
 
@@ -246,12 +246,12 @@ def parse_login_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_login',
-            'Action': 'Login',
+            'Type': 'tiktok_login',
+            'Actie': 'Login',
             'title': "Login from Device",
-            'URL': '',
-            'Date': login.get('Date', ''),
-            'details': json.dumps({})
+            'URL': 'Geen URL',
+            'Datum': login.get('Date', 'Geen Datum'),
+            'Details': "Geen Details"
         } for login in logins if isinstance(login, dict)
     ]
 
@@ -266,12 +266,12 @@ def parse_video_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_video_view',
-            'Action': 'VideoView',
-            'title': 'Watched video',
+            'Type': 'Kijkgeschiedenis',
+            'Actie': 'Bekeken',
             'URL': video.get('Link', ''),
-            'Date': video.get('Date', ''),
-            'details': json.dumps({})
+            'Datum': video.get('Date', 'Geen Datum'),
+            'Details': "Geen Details",
+            'Bron': "TikTok: Video Watch History"
         } for video in videos if isinstance(video, dict)
     ]
 
@@ -288,12 +288,12 @@ def parse_share_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_share',
-            'Action': 'Share',
-            'title': share.get(content_key, 'Unknown'),
+            'Type': 'Shares',
+            'Actie': "'Shared': " + share.get(content_key, 'Unknown'),
             'URL': share.get('Link', ''),
-            'Date': share.get('Date', ''),
-            'details': json.dumps({'Method': share.get('Method', '')})
+            'Datum': share.get('Date', 'Geen Datum'),
+            'Details': json.dumps({'Method': share.get('Method', '')}),
+            'Bron': "TikTok: Video Watch History"
         } for share in shares if isinstance(share, dict)
     ]
 
@@ -308,12 +308,12 @@ def parse_like_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_like',
-            'Action': 'Like',
-            'title': 'Liked video',
+            'Type': 'Likes',
+            'Actie': 'Video Geliket',
             'URL': like.get('Link', ''),
-            'Date': like.get('Date', ''),
-            'details': json.dumps({})
+            'Datum': like.get('Date', 'Geen Datum'),
+            'Details': "Geen Details",
+            'Bron': "TikTok: Likes"
         } for like in likes if isinstance(like, dict)
     ]
     
@@ -328,12 +328,12 @@ def parse_fav_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_favorite',
-            'Action': 'Favorite',
-            'title': 'Favorited video',
+            'Type': 'Favoriete Videos',
+            'Actie': 'Gefavoriet',
             'URL': like.get('Link', ''),
-            'Date': like.get('Date', ''),
-            'details': json.dumps({})
+            'Datum': like.get('Date', 'Geen Datum'),
+            'Details': "Geen Details",
+            'Bron': "TikTok: Favorited Videos"
         } for like in likes if isinstance(like, dict)
     ]
     
@@ -348,12 +348,12 @@ def parse_fav_hashtag(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_favorite_hashtag',
-            'Action': 'Favorite',
-            'title': 'Favorited Hashtag',
+            'Type': 'Favoriete Hashtags',
+            'Actie': 'Gefavoriet',
             'URL': like.get('Link', like.get('HashTag Link', like.get('HashTag Link:', ''))),
-            'Date': like.get('Date', ''),
-            'details': json.dumps({})
+            'Datum': like.get('Date', 'Geen Datum'),
+            'Details': "Geen Details",
+            'Bron':  "Hashtags Favorited"
         } for like in likes if isinstance(like, dict)
     ]
 
@@ -370,12 +370,12 @@ def parse_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_search',
-            'Action': 'Search',
-            'title': search.get(term_key, 'Unknown search'),
-            'URL': '',
-            'Date': search.get('Date', ''),
-            'details': json.dumps({})
+            'Type': 'Zoekopdrachten',
+            'Actie': "'Gezocht naar:' " + search.get(term_key, 'Unknown search'),
+            'URL': 'Geen URL',
+            'Datum': search.get('Date', 'Geen Datum'),
+            'Details': "Geen Details",
+            'Bron': "TikTok: Searches"
         } for search in searches if isinstance(search, dict)
     ]
 
@@ -390,12 +390,12 @@ def parse_ad_info(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_ad_interest',
-            'Action': 'AdInterest',
-            'title': interest,
-            'URL': '',
-            'Date': '',
-            'details': json.dumps({})
+            'Type': 'Advertentie Info',
+            'Actie': "'Info voor targeting': " + interest,
+            'URL': 'Geen URL',
+            'Datum': 'Geen Datum',
+            'Details': "Geen Details",
+            'Bron': "TikTok: Ad Interests"
         } for interest in ad_interests if isinstance(interest, str)
     ]
     
@@ -410,12 +410,12 @@ def parse_ad_ca(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_custom_audiences',
-            'Action': interest.get("Event", 'Unknown action'),
-            'title': interest.get("Source", 'Unknown uploader'),
-            'URL': '',
-            'Date': interest.get("TimeStamp", interest.get("Date", '')),
-            'details': json.dumps({})
+            'Type': 'Advertentie Data',
+            'Actie': "'Gebruikte jouw gegevens': " + interest.get("Source", 'Unknown uploader'),
+            'URL': 'Geen URL',
+            'Datum': interest.get("TimeStamp", interest.get("Date", '')),
+            'Details': interest.get("Event", 'Unknown action'),
+            'Bron': "TikTok: Custom Audiences"
         } for interest in ad_interests if isinstance(interest, dict) and interest.get("Event") == "Customer file upload"
     ]
 
@@ -431,22 +431,22 @@ def parse_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'data_type': 'tiktok_comment',
-            'Action': 'Comment',
-            'title': comment.get('Comment', ''),
+            'Type': 'Reacties',
+            'Actie': "'Gereageerd': " + comment.get('Comment', ''),
             'URL': comment.get('Url', ''),
-            'Date': comment.get('Date', ''),
-            'details': json.dumps({'Photo': comment.get('Photo', '')})
+            'Datum': comment.get('Date', 'Geen Datum'),
+            'Details': json.dumps({'Photo': comment.get('Photo', '')}),
+            'Bron': "TikTok: Ad Interests"
         } for comment in comments if isinstance(comment, dict)
     ]
 
 def parse_data(data: List[Dict[str, Any]]) -> pd.DataFrame:
     df = pd.DataFrame(data)
     
-    required_columns = ['data_type', 'Action', 'title', 'URL', 'Date', 'details']
+    required_columns = ['Type', 'Actie', 'URL', 'Datum', 'Details']
     for col in required_columns:
         if col not in df.columns:
-            df[col] = pd.NA
+            df[col] = "Geen " + col
     
     return df
 
@@ -495,19 +495,19 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
         logger.info(f"Combined data frame shape: {combined_df.shape}")
         
         if not combined_df.empty:
-            combined_df['Date'] = pd.to_datetime(combined_df['Date'], errors='coerce')
+            combined_df['Datum'] = pd.to_datetime(combined_df['Datum'], errors='coerce')
             
             # Count entries with dates before 2000
-            pre_2000_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
+            pre_2000_count = (combined_df['Datum'] < pd.Timestamp('2000-01-01')).sum()
             if pre_2000_count > 0:
                 logger.info(f"Found {pre_2000_count} entries with dates before 2000.")
         
                 try:
                     # Convert dates before 2000 to NaT (pandas' equivalent of NaN for datetime)
-                    combined_df.loc[combined_df['Date'] < pd.Timestamp('2000-01-01'), 'Date'] = pd.NaT
+                    combined_df.loc[combined_df['Datum'] < pd.Timestamp('2000-01-01'), 'Datum'] = pd.NaT
                     
                     # Confirm conversion
-                    post_conversion_count = (combined_df['Date'] < pd.Timestamp('2000-01-01')).sum()
+                    post_conversion_count = (combined_df['Datum'] < pd.Timestamp('2000-01-01')).sum()
                     if post_conversion_count == 0:
                         logger.info(f"Successfully converted {pre_2000_count} entries with dates before 2000 to NaN.")
                     else:
@@ -516,13 +516,13 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
                 except Exception as e:
                     logger.info(f"Error converting dates before 2000 to NaN: {e}")
                 
-            combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
+            combined_df = combined_df.sort_values(by='Datum', ascending=False, na_position='last').reset_index(drop=True)
             
-            # if combined_df['Action'] == "HashtagUse:
+            # if combined_df['Actie'] == "HashtagUse:
                 # combined_df['Count'] = 0  # Add a Count column to the original data
-            # combined_df.loc[combined_df['Action'] == 'HashtagUse', 'Count'] = 0
+            # combined_df.loc[combined_df['Actie'] == 'HashtagUse', 'Count'] = 0
             # List of columns to apply the replace_email function
-            columns_to_process = ['title', 'details', 'Action']
+            columns_to_process = ['title', 'details', 'Actie']
             
             # Loop over each column in the list
             for column in columns_to_process:
@@ -533,7 +533,7 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
                     logger.warning(f"Could not replace e-mail in column '{column}': {e}")
 
 
-            combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
+            combined_df['Datum'] = combined_df['Datum'].dt.strftime('%Y-%m-%d %H:%M:%S')
             
             # combined_df['Count'] = 1  # Add a Count column to the original data
 
@@ -543,15 +543,15 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
               "line", 
               "TikTok Video Browsing Over Time", 
               "TikTok-activiteit", 
-              "Date", 
+              "Datum", 
               y_label="Aantal observaties", 
               date_format="auto"#, 
               # group_by="Action", 
-              # df=combined_df.groupby('Action')['Count'].sum().reset_index()
+              # df=combined_df.groupby('Actie')['Count'].sum().reset_index()
             )]
 
             logger.info(f"Visualizations created: {len(visses)}")
-            
+
             # Pass the ungrouped data for the table and grouped data for the chart
             table = props.PropsUIPromptConsentFormTable("tiktok_all_data", table_title, combined_df, visualizations=visses)
             tables_to_render.append(table)
@@ -570,68 +570,68 @@ def video_browsing_history_to_df(tiktok_zip: str, validation: ValidateInput) -> 
     tables = process_tiktok_data(tiktok_zip)
     if tables:
         df = tables[0].df
-        return df[df['data_type'] == 'tiktok_video_view'].drop(columns=['data_type'])
+        return df[df['Type'] == 'tiktok_video_view'].drop(columns=['Type'])
     return pd.DataFrame()
 
 def favorite_videos_to_df(tiktok_zip: str, validation: ValidateInput) -> pd.DataFrame:
     tables = process_tiktok_data(tiktok_zip)
     if tables:
         df = tables[0].df
-        return df[df['data_type'] == 'tiktok_like'].drop(columns=['data_type'])
+        return df[df['Type'] == 'tiktok_like'].drop(columns=['Type'])
     return pd.DataFrame()
 
 def following_to_df(tiktok_zip: str, validation: ValidateInput) -> pd.DataFrame:
     tables = process_tiktok_data(tiktok_zip)
     if tables:
         df = tables[0].df
-        return df[df['data_type'] == 'tiktok_following'].drop(columns=['data_type'])
+        return df[df['Type'] == 'tiktok_following'].drop(columns=['Type'])
     return pd.DataFrame()
 
 def like_to_df(tiktok_zip: str, validation: ValidateInput) -> pd.DataFrame:
     tables = process_tiktok_data(tiktok_zip)
     if tables:
         df = tables[0].df
-        return df[df['data_type'] == 'tiktok_like'].drop(columns=['data_type'])
+        return df[df['Type'] == 'tiktok_like'].drop(columns=['Type'])
     return pd.DataFrame()
 
 def search_history_to_df(tiktok_zip: str, validation: ValidateInput) -> pd.DataFrame:
     tables = process_tiktok_data(tiktok_zip)
     if tables:
         df = tables[0].df
-        return df[df['data_type'] == 'tiktok_search'].drop(columns=['data_type'])
+        return df[df['Type'] == 'tiktok_search'].drop(columns=['Type'])
     return pd.DataFrame()
 
 def share_history_to_df(tiktok_zip: str, validation: ValidateInput) -> pd.DataFrame:
     tables = process_tiktok_data(tiktok_zip)
     if tables:
         df = tables[0].df
-        return df[df['data_type'] == 'tiktok_share'].drop(columns=['data_type'])
+        return df[df['Type'] == 'tiktok_share'].drop(columns=['Type'])
     return pd.DataFrame()
 
 def comment_to_df(tiktok_zip: str, validation: ValidateInput) -> pd.DataFrame:
     tables = process_tiktok_data(tiktok_zip)
     if tables:
         df = tables[0].df
-        return df[df['data_type'] == 'tiktok_comment'].drop(columns=['data_type'])
+        return df[df['Type'] == 'tiktok_comment'].drop(columns=['Type'])
     return pd.DataFrame()
 
 def hashtags_to_df(tiktok_zip: str, validation: ValidateInput) -> pd.DataFrame:
     tables = process_tiktok_data(tiktok_zip)
     if tables:
         df = tables[0].df
-        return df[df['data_type'] == 'tiktok_hashtag'].drop(columns=['data_type'])
+        return df[df['Type'] == 'tiktok_hashtag'].drop(columns=['Type'])
     return pd.DataFrame()
 
 def login_history_to_df(tiktok_zip: str, validation: ValidateInput) -> pd.DataFrame:
     tables = process_tiktok_data(tiktok_zip)
     if tables:
         df = tables[0].df
-        return df[df['data_type'] == 'tiktok_login'].drop(columns=['data_type'])
+        return df[df['Type'] == 'tiktok_login'].drop(columns=['Type'])
     return pd.DataFrame()
 
 def ad_interests_to_df(tiktok_zip: str, validation: ValidateInput) -> pd.DataFrame:
     tables = process_tiktok_data(tiktok_zip)
     if tables:
         df = tables[0].df
-        return df[df['data_type'] == 'tiktok_ad_interest'].drop(columns=['data_type'])
+        return df[df['Type'] == 'tiktok_ad_interest'].drop(columns=['Type'])
     return pd.DataFrame()

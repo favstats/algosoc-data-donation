@@ -166,8 +166,18 @@ def extract_instagram_data(instagram_zip: str) -> Dict[str, Any]:
             
             files_to_process = json_files if DATA_FORMAT == "json" else html_files
             for file in files_to_process:
+              
+                # file_info = zf.getinfo(file)
+                # # Log the file size
+                # file_size_gb = file_info.file_size / (1024 ** 3)  # Convert bytes to GB
+                # logger.info(f"{Path(file).name}: {file_size_gb} GB")
+                
                 with zf.open(file) as f:
                     raw_data = f.read()
+                    
+                    
+                    
+                    
                     # Use UnicodeDammit to detect the encoding
                     suggestion = UnicodeDammit(raw_data)
                     encoding = suggestion.original_encoding
@@ -1444,7 +1454,7 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
             y_label="Aantal observaties", 
             date_format="auto"
         )]
-        
+
         table = props.PropsUIPromptConsentFormTable("instagram_all_data", table_title, combined_df, visualizations=visses)
         tables_to_render.append(table)
         

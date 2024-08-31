@@ -40,7 +40,7 @@ export default function useVisualizationData(
 
           // Filter out entries where '__x' is null, undefined, or 'NaN-QNaN'
           const cleanedData = (e.data.visualizationData as ChartVisualizationData).data.filter(
-            (item: Record<string, any>) => item.__x !== null && item.__x !== undefined && item.__x !== 'NaN-QNaN' && item.__x !== 'NaN-Invalid Date' && item.__x !== 'Invalid Date' && item.__x !== 'NaN'
+            (item: Record<string, any>) => item.__x !== null && item.__x !== undefined && item.__x !== 'NaN-QNaN' && item.__x !== 'NaN-Invalid Date' && item.__x !== 'Invalid Date' && item.__x !== 'NaN' && item.__x !== 'NaN-Invalid Date-NaN' && item.__x !== 'Invalid Date-NaN-NaN' && item.__x !== 'Invalid Date-NaN'
           );
 
 

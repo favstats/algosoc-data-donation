@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 DATA_FORMAT = None  # Will be set to 'json' or 'html'
 
-def parse_json_content(data, data_type: str) -> List[Dict[str, Any]]:
+def parse_json_content(data, Type: str) -> List[Dict[str, Any]]:
     """Improved JSON parser function with better error handling"""
     try:
         parsed_data = []
@@ -47,7 +47,7 @@ def parse_json_content(data, data_type: str) -> List[Dict[str, Any]]:
             
             details = helpers.find_items_bfs(item, 'details')
             if not details:
-                details_json = ""  # or use None if you want it explicitly as a null in the dataframe
+                details_json = "Geen Details"  # or use None if you want it explicitly as a null in the dataframe
             else:
                 try:
                     # Convert details to a JSON string, assuming details is a dictionary or a similar structure
@@ -58,12 +58,12 @@ def parse_json_content(data, data_type: str) -> List[Dict[str, Any]]:
                     
                     
             parsed_item = {
-                'data_type': data_type,
-                'Action': product,  # Renamed from 'header'
-                'title': item.get('title', ''),
+                'Type': Type,
+                'Actie': item.get('title', ''),  # Renamed from 'header'
                 'URL': remove_google_url_prefix(item.get('titleUrl', '')),  # Renamed from 'titleUrl'
-                'Date': parsed_time,  # Renamed from 'time'
-                'details': details_json
+                'Datum': parsed_time,  # Renamed from 'time'
+                'Details': details_json,
+                'Bron': "Google Gegevens"
             }
             parsed_data.append(parsed_item)
 
@@ -314,7 +314,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
 
 
     base_paths = {
-        "ads": [
+        "Advertentie Data": [
             "Takeout/Mijn activiteit/Advertenties/",
             "Takeout/My Activity/Ads/",
             "Takeout/Mi actividad/Anuncios/",
@@ -323,7 +323,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/Etkinliğim/Reklamlar/",
             "Takeout/我的活动/广告/"
         ],
-        "searches": [
+        "Zoekopdrachten": [
             "Takeout/Mijn activiteit/Zoeken/",
             "Takeout/My Activity/Search/",
             "Takeout/Mi actividad/Búsqueda/",
@@ -332,7 +332,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/Etkinliğim/Arama/",
             "Takeout/我的活动/搜索/"
         ],
-        "discover": [
+        "Google Discover": [
             "Takeout/Mijn activiteit/Discover/",
             "Takeout/My Activity/Discover/",
             "Takeout/Mi actividad/Descubrir/",
@@ -341,7 +341,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/Etkinliğim/Keşfet/",
             "Takeout/我的活动/发现/"
         ],
-        "browser_history": [
+        "Browsergeschiedenis": [
             "Takeout/Mijn activiteit/Chrome/",
             "Takeout/My Activity/Chrome/",
             "Takeout/Mi actividad/Chrome/",
@@ -350,7 +350,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/Etkinliğim/Chrome/",
             "Takeout/我的活动/Chrome/"
         ],
-        "google_news": [
+        "Google News": [
             "Takeout/Mijn activiteit/Google Nieuws/",
             "Takeout/My Activity/Google News/",
             "Takeout/Mi actividad/Google Noticias/",
@@ -359,7 +359,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/Etkinliğim/Google Haberler/",
             "Takeout/我的活动/Google 新闻/"
         ],
-        "news": [
+        "Nieuwsbetrokkenheid": [
             "Takeout/Mijn activiteit/Nieuws/",
             "Takeout/My Activity/News/",
             "Takeout/Mi actividad/Noticias/",
@@ -368,7 +368,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/Etkinliğim/Haberler/",
             "Takeout/我的活动/新闻/"
         ],
-        "video_search": [
+        "Video Zoekopdrachten": [
             "Takeout/Mijn activiteit/Video_s zoeken/",
             "Takeout/My Activity/Video Search/",
             "Takeout/Mi actividad/Búsqueda de videos/",
@@ -377,7 +377,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/Etkinliğim/Video Arama/",
             "Takeout/我的活动/视频搜索/"
         ],
-        "youtube": [
+        "YouTube Kijkgeschiedenis": [
             "Takeout/Mijn activiteit/YouTube/",
             "Takeout/My Activity/YouTube/",
             "Takeout/Mi actividad/YouTube/",
@@ -386,7 +386,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/Etkinliğim/YouTube/",
             "Takeout/我的活动/YouTube/"
         ],
-        "youtube_comment": [
+        "YouTube Reacties": [
             "Takeout/YouTube en YouTube Music/reacties/",
             "Takeout/YouTube and YouTube Music/comments/",
             "Takeout/YouTube y YouTube Music/comentarios/",
@@ -395,7 +395,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/YouTube ve YouTube Music/yorumlar/",
             "Takeout/YouTube 和 YouTube Music/评论/"
         ],
-        "youtube_subscription": [
+        "YouTube Abonnementen": [
             "Takeout/YouTube en YouTube Music/abonnementen/",
             "Takeout/YouTube and YouTube Music/subscriptions/",
             "Takeout/YouTube y YouTube Music/suscripciones/",
@@ -429,8 +429,8 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
         with zipfile.ZipFile(google_zip, "r") as zf:
             for info in zf.infolist():
                 file_path = info.filename.lower()  # Convert the file path to lowercase
-    
-                for data_type, paths in base_paths.items():
+                
+                for Type, paths in base_paths.items():
                     for base_path in paths:
                         if file_path.startswith(base_path.lower()):  # Convert base path to lowercase
                             if info.filename.startswith('__MACOSX/') or info.filename.startswith('._'):
@@ -439,7 +439,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
                             try:
                                 with zf.open(info.filename) as file:
                                     raw_data = file.read()
-                                    
+                                    file_size_gb = info.file_size / (1024 ** 3)  # Convert bytes to GB
                                     # Attempt to decode using UTF-8 first
                                     try:
                                         decoded_data = raw_data.decode('utf-8')
@@ -454,44 +454,44 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
                                     if info.filename.endswith('.json'):
                                         try:
                                             json_data = json.loads(decoded_data)
-                                            data = parse_json_content(json_data, data_type)
+                                            data = parse_json_content(json_data, Type)
                                         except (UnicodeDecodeError, json.JSONDecodeError) as e:
-                                            logger.error(f"Error processing JSON file {info.filename} with encoding {encoding}: {e}")
+                                            logger.error(f"Error processing JSON file {info.filename} with encoding {encoding}: {e}. File size: {file_size_gb} GB.")
                                             continue
     
                                     # Handle HTML files
                                     elif info.filename.endswith('.html'):
                                         try:
-                                            data = parse_html_content(decoded_data, data_type)
+                                            data = parse_html_content(decoded_data, Type)
                                         except UnicodeDecodeError as e:
-                                            logger.error(f"Error processing HTML file {info.filename} with encoding {encoding}: {e}")
+                                            logger.error(f"Error processing HTML file {info.filename} with encoding {encoding}: {e}. File size: {file_size_gb} GB.")
                                             continue
     
                                     # Handle CSV files
                                     elif info.filename.endswith('.csv'):
                                         try:
-                                            data = parse_csv_content(decoded_data, data_type)
+                                            data = parse_csv_content(decoded_data, Type)
                                         except UnicodeDecodeError as e:
-                                            logger.error(f"Error processing CSV file {info.filename} with encoding {encoding}: {e}")
+                                            logger.error(f"Error processing CSV file {info.filename} with encoding {encoding}: {e}. File size: {file_size_gb} GB.")
                                             continue
     
                                     else:
                                         continue
     
                                     if data:
-                                        if data_type not in extracted_data:
-                                            extracted_data[data_type] = []
-                                        extracted_data[data_type].extend(data)
-                                        logger.info(f"Successfully extracted {data_type} data from {info.filename}")
+                                        if Type not in extracted_data:
+                                            extracted_data[Type] = []
+                                        extracted_data[Type].extend(data)
+                                        logger.info(f"Successfully extracted {Type} data from {info.filename}. File size: {file_size_gb} GB.")
                                     break  # Break the base_path loop if file is processed
                             except Exception as e:
-                                logger.error(f"Error extracting {info.filename} for {data_type}: {e}")
+                                logger.error(f"Error extracting {info.filename} for {Type}: {e}")
                             break  # Break the base_path loop after processing a file
                     else:
                         continue
-                    break  # Break the data_type loop if a matching file is found
+                    break  # Break the Type loop if a matching file is found
             # else:
-                # logger.info(f"No data found for {data_type}")
+                # logger.info(f"No data found for {Type}")
     except zipfile.BadZipFile:
         logger.error("The provided file is not a valid zip file.")
     except Exception as e:
@@ -500,7 +500,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
     return extracted_data
   
   
-def parse_csv_content(csv_content: bytes, data_type: str) -> List[Dict[str, Any]]:
+def parse_csv_content(csv_content: bytes, Type: str) -> List[Dict[str, Any]]:
     """
     Parse the content of a CSV file and return a list of dictionaries for each row.
     Tries to parse by header names first; if headers are not found, uses column positions as fallback.
@@ -516,7 +516,7 @@ def parse_csv_content(csv_content: bytes, data_type: str) -> List[Dict[str, Any]
         headers = [header.lower() for header in headers]
         
         # Logic for YouTube comments
-        if data_type == 'youtube_comment':
+        if Type == 'youtube_comment':
             
             try:
                 # Attempt to find the column indices based on header names
@@ -560,25 +560,25 @@ def parse_csv_content(csv_content: bytes, data_type: str) -> List[Dict[str, Any]
     
                     # Construct the dictionary for this comment
                     records.append({
-                        'data_type': data_type,
-                        'Action': 'Comment',
-                        'title': comment_text,
+                        'Type': Type,
+                        'Actie': comment_text,
                         'URL': f"https://www.youtube.com/watch?v={video_id}",
-                        'Date': helpers.robust_datetime_parser(timestamp),
-                        'details': json.dumps({
+                        'Datum': helpers.robust_datetime_parser(timestamp),
+                        'Details': json.dumps({
                             'comment_id': comment_id,
                             'parent_comment_id': parent_comment_id,
                             'video_id': video_id,
                             'channel_id': channel_id
-                        })
+                        }),
+                'Bron': "Google Gegevens"
                     })
                 # except IndexError as e:
                 #     logger.error(f"IndexError when processing row: {e}")
                 except Exception as e:
-                    logger.error(f"Unexpected error in {data_type} when processing row: {e}")
+                    logger.error(f"Unexpected error in {Type} when processing row: {e}")
 
         # Logic for YouTube subscriptions
-        elif data_type == 'youtube_subscription':
+        elif Type == 'youtube_subscription':
             try:
                 # Define column positions or names based on expected headers for subscriptions
                 channel_name_index = headers.index('channel title') if 'channel title' in headers else headers.index('kanaalnaam')
@@ -601,17 +601,17 @@ def parse_csv_content(csv_content: bytes, data_type: str) -> List[Dict[str, Any]
 
                     # Construct the dictionary for this subscription
                     records.append({
-                        'data_type': data_type,
-                        'Action': 'Subscribtion',
-                        'title': channel_name,
+                        'Type': Type,
+                        'Action': 'Geabonneerd op ' + channel_name,
                         'URL': channel_url,
-                        'Date': '',
-                        'details': json.dumps({})
+                        'Datum': 'Geen Datum',
+                        'Details': "Geen Details",
+                'Bron': "Google Gegevens"
                     })
                 # except IndexError as e:
                 #     logger.error(f"IndexError when processing row: {e}")
                 except Exception as e:
-                    logger.error(f"Unexpected error in {data_type} when processing row: {e}")
+                    logger.error(f"Unexpected error in {Type} when processing row: {e}")
 
     else:
         logger.error("No headers found in CSV file")
@@ -626,9 +626,9 @@ def remove_google_url_prefix(input_string: str) -> str:
     return input_string
 
 
-def parse_html_content(html_content: str, data_type: str) -> List[Dict[str, Any]]:
+def parse_html_content(html_content: str, Type: str) -> List[Dict[str, Any]]:
     parsed_data = []
-    logger.debug(f"Starting HTML parsing for {data_type}")
+    logger.debug(f"Starting HTML parsing for {Type}")
     
     try:
         # logger.debug(f"Length of HTML content: {len(html_content)}")
@@ -641,7 +641,7 @@ def parse_html_content(html_content: str, data_type: str) -> List[Dict[str, Any]
             raise
         
         items = doc.xpath('//div[contains(@class, "outer-cell")]')
-        logger.debug(f"Found {len(items)} items in HTML content for {data_type}")
+        logger.debug(f"Found {len(items)} items in HTML content for {Type}")
 
         for item in items:
             try:
@@ -662,12 +662,12 @@ def parse_html_content(html_content: str, data_type: str) -> List[Dict[str, Any]
                 product = product[0].strip() if product else None
                 
                 parsed_item = {
-                    'data_type': data_type,
-                    'Action': product,
-                    'title': title,
+                    'Type': Type,
+                    'Actie': title,
                     'URL': url,
-                    'Date': helpers.robust_datetime_parser(date_text) if date_text else None,
-                    'details': details
+                    'Datum': helpers.robust_datetime_parser(date_text) if date_text else None,
+                    'Details': details if details else "Geen Details",
+                    'Bron': "Google Gegevens"
                 }
                 parsed_data.append(parsed_item)
                 
@@ -677,10 +677,10 @@ def parse_html_content(html_content: str, data_type: str) -> List[Dict[str, Any]
                 logger.error(f"Unexpected error when parsing item: {e}")
 
     except Exception as e:
-        logger.error(f"Error parsing HTML content of {data_type}. Error: {e}")
+        logger.error(f"Error parsing HTML content of {Type}. Error: {e}")
         raise  # Consider raising the exception to halt further execution during debugging
 
-    logger.debug(f"Finished HTML parsing for {data_type}, parsed {len(parsed_data)} items")
+    logger.debug(f"Finished HTML parsing for {Type}, parsed {len(parsed_data)} items")
     return parsed_data
 
     # parsed_data = []
@@ -708,39 +708,39 @@ def parse_html_content(html_content: str, data_type: str) -> List[Dict[str, Any]
     #         product = product[0].strip() if product else None
     # 
     #         parsed_item = {
-    #             'data_type': product,
+    #             'Type': product,
     #             'Action': 'View',
     #             'title': title if title else None,
     #             'URL': remove_google_url_prefix(url_elements[0].strip()) if url_elements else None,
-    #             'Date': helpers.robust_datetime_parser(date_text) if date_text else None,
-    #             'details': json.dumps({})
+    #             'Datum': helpers.robust_datetime_parser(date_text) if date_text else None,
+    #             'Details': "Geen Details"
     #         }
     # 
     #         parsed_data.append(parsed_item)
     # 
     # except Exception as e:
-    #     logger.error(f"Error parsing HTML content for {data_type}: {e}")
+    #     logger.error(f"Error parsing HTML content for {Type}: {e}")
     # 
     # return parsed_data
     
-def parse_data(data: List[Dict[str, Any]], data_type: str) -> pd.DataFrame:
+def parse_data(data: List[Dict[str, Any]], Type: str) -> pd.DataFrame:
     parsed_data = []
     
     for item in data:
-        parsed_item = {'data_type': data_type}
+        parsed_item = {'Type': Type}
         for key, value in item.items():
-            if key == 'time' or key == 'Date':
+            if key == 'time' or key == 'Datum':
                 try:
                     if isinstance(value, (int, float)):
                         if value > 1e11:  # Likely milliseconds
-                            parsed_item['Date'] = pd.to_datetime(value, unit='ms')
+                            parsed_item['Datum'] = pd.to_datetime(value, unit='ms')
                         else:  # Likely seconds
-                            parsed_item['Date'] = pd.to_datetime(value, unit='s')
+                            parsed_item['Datum'] = pd.to_datetime(value, unit='s')
                     else:
-                        parsed_item['Date'] = pd.to_datetime(value)
+                        parsed_item['Datum'] = pd.to_datetime(value)
                 except:
-                    parsed_item['Date'] = pd.NaT
-            elif key == 'details' and data_type == 'youtube_comment':
+                    parsed_item['Datum'] = pd.NaT
+            elif key == 'details' and Type == 'youtube_comment':
                 parsed_item['details'] = value  # Keep as JSON string for YouTube comments
             elif isinstance(value, list):
                 parsed_item[key] = ', '.join(str(v) for v in value)
@@ -764,10 +764,10 @@ def parse_data(data: List[Dict[str, Any]], data_type: str) -> pd.DataFrame:
     return df
 
 def make_timestamps_consistent(df: pd.DataFrame) -> pd.DataFrame:
-    if 'Date' in df.columns:
-        # df['Date'] = helpers.robust_datetime_parser(df['Date'])
-        df['Date'] = pd.to_datetime(df['Date'], errors='coerce')  # Ensure all dates are converted to datetime
-        df['Date'] = df['Date'].apply(lambda x: x.tz_localize(None) if x is not pd.NaT else x)  # Make all timestamps tz-naive
+    if 'Datum' in df.columns:
+        # df['Datum'] = helpers.robust_datetime_parser(df['Datum'])
+        df['Datum'] = pd.to_datetime(df['Datum'], errors='coerce')  # Ensure all dates are converted to datetime
+        df['Datum'] = df['Datum'].apply(lambda x: x.tz_localize(None) if x is not pd.NaT else x)  # Make all timestamps tz-naive
     return df
   
 # Function to check if a URL should be excluded
@@ -849,13 +849,13 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
     
     
         # Separate data based on the presence of dates
-        for data_type, data in extracted_data.items():
+        for Type, data in extracted_data.items():
             if data:
                 df = pd.DataFrame(data)
                 # Filter out unwanted URLs
                 df = df[~df['URL'].apply(should_exclude_url)]
     
-                if data_type == 'youtube_subscription':
+                if Type == 'youtube_subscription':
                     subscription_data.append(df)
                 else:
                     df = make_timestamps_consistent(df)
@@ -867,18 +867,18 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
         if all_data:
             combined_df = pd.concat(all_data, ignore_index=True)
             
-            required_columns = ['data_type', 'Action', 'title', 'URL', 'Date', 'details']
+            required_columns = ['Type', 'Actie', 'URL', 'Datum', 'Details']
             for col in required_columns:
                 if col not in combined_df.columns:
-                    combined_df[col] = pd.NA
+                    combined_df[col] = "Geen " + col
             
-            combined_df = combined_df.sort_values(by='Date', ascending=False, na_position='last').reset_index(drop=True)
+            combined_df = combined_df.sort_values(by='Datum', ascending=False, na_position='last').reset_index(drop=True)
             
-            combined_df['Date'] = combined_df['Date'].dt.strftime('%Y-%m-%d %H:%M:%S')
+            combined_df['Datum'] = combined_df['Datum'].dt.strftime('%Y-%m-%d %H:%M:%S')
             # combined_df['Count'] = 1
             
             # List of columns to apply the replace_email function
-            columns_to_process = ['title', 'details', 'Action']
+            columns_to_process = ['Details', 'Actie']
             
             # Loop over each column in the list
             for column in columns_to_process:
@@ -894,11 +894,10 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
                 "line", 
                 "Google Activity Over Time", 
                 "Google Activity-activiteit", 
-                "Date", 
+                "Datum", 
                 y_label="Aantal observaties", 
                 date_format="auto"
             )]
-            
             table = props.PropsUIPromptConsentFormTable("google_all_data", table_title, combined_df, visualizations=visses)
             tables_to_render.append(table)
             

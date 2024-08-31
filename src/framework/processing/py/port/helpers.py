@@ -496,11 +496,11 @@ def str_squish(text: str) -> str:
 def get_json_keys(data, prefix=''):
     """
     Retrieve all unique keys and subkeys from a JSON object, combining them with '__' for each sub-level.
-
+    
     Parameters:
     - data (dict): The JSON object (Python dictionary) to traverse.
     - prefix (str): The prefix to use for nested keys (used in recursive calls).
-
+    
     Returns:
     - keys (set): A set of unique key paths.
     """
@@ -508,9 +508,14 @@ def get_json_keys(data, prefix=''):
     
     if isinstance(data, dict):
         for key, value in data.items():
-            # Form the new prefix by appending current key with '__'
+            # Skip keys containing 'badges', 'messages', or 'cookie'
+            if 'badges' in key.lower() or 'messages' in key.lower() or 'cookie' in key.lower():
+                continue
+            
+            # Form the new prefix by appending the current key with '__'
             new_prefix = f"{prefix}__{key}" if prefix else key
             keys.add(new_prefix)
+            
             # Recursively get keys for nested dictionaries
             keys.update(get_json_keys(value, new_prefix))
     elif isinstance(data, list):
@@ -519,6 +524,7 @@ def get_json_keys(data, prefix=''):
             keys.update(get_json_keys(item, prefix))
     
     return keys
+
   
   
   

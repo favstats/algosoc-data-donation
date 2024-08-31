@@ -21,7 +21,7 @@ LOG_STREAM = io.StringIO()
 
 logging.basicConfig(
     ## todo: enable when submitting
-    # stream=LOG_STREAM,
+    stream=LOG_STREAM,
     level=logging.DEBUG,
     format="%(asctime)s --- %(name)s --- %(levelname)s --- %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S%z",
@@ -89,7 +89,7 @@ def process(session_id):
                     yield donate_logs(f"{session_id}-tracking")
     
                     table_list = extraction_fun(file_result.value)
-    
+                    
                     if table_list and len(table_list) > 0:
                         LOGGER.info(f"Successfully processed as {platform_name} data")
                         break
@@ -132,12 +132,19 @@ def process(session_id):
     if table_list and len(table_list) > 0:
         LOGGER.info("Prompt consent")
         yield donate_logs(f"{session_id}-tracking")
-
+        # try:
+        #   LOGGER.info(f"Number of rows before: {table_list[0].shape[0]}")
+        # except Exception as e:
+        #   LOGGER.error(f"error {e}")
         prompt = assemble_tables_into_form(table_list)
         consent_result = yield render_donation_page("Inspecteer uw gegevens", prompt, progress)
 
         if consent_result.__type__ == "PayloadJSON":
             LOGGER.info("Data donated")
+            # try:
+            #   LOGGER.info(f"Number of rows after: {table_list[0].shape[0]}")
+            # except Exception:
+            #   pass
             yield donate_logs(f"{session_id}-tracking")
             yield donate(f"{session_id}-{platform_name}-donation", consent_result.value)
         else:
