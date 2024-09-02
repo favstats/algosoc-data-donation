@@ -172,10 +172,27 @@ def parse_data(data: List[Dict[str, Any]]) -> pd.DataFrame:
             df[col] = pd.NA
     
     return df
+  
+
 
 def extract_facebook_data(facebook_zip: str) -> Dict[str, Any]:
     global DATA_FORMAT
     global the_user
+    global the_username  
+    
+    try:
+        # Extract username from the zip file name
+        zip_filename = Path(facebook_zip).stem  # Extract the base name of the file without extension
+        pattern = r'^(facebook)-([a-zA-Z0-9]+)-(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}-\d{1,2}-\d{4})$'
+        
+        match = re.match(pattern, zip_filename)
+        if match:
+            the_username = match.group(2)  # Extract the username from the pattern
+        else:
+            the_username = None
+    except Exception as e:
+        logger.error(f"Could not find username in file data {str(e)}")
+
 
     # validation = validate(Path(facebook_zip))
     # if validation.status_code is None or validation.status_code.id != 0:
@@ -274,6 +291,24 @@ def parse_advertisers_using_activity(data: Dict[str, Any]) -> List[Dict[str, Any
             logger.error(f"Error parsing 'advertisers_using_your_activity_or_information.html': {str(e)}")
             return []
 
+def replace_username_in_dataframe(df):
+
+    if not the_username:
+        # logger.warning("Username not found; skipping replacement.")
+        return df
+
+    # Function to replace the username in the DataFrame
+    def replace_username(value):
+        if the_username in value:
+            return value.replace(the_username, "the_username")
+        return value
+    
+    # Apply the function to all 'Actie' and 'Details' columns
+    for column in df.columns:
+        if column in ['Actie', 'Details']:
+            df[column] = df[column].apply(replace_username)
+    
+    return df
 
 def parse_comments(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
@@ -1572,7 +1607,11 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
                 combined_df[column] = combined_df[column].apply(lambda x: remove_the_user_from_title(str(x)))
             except Exception as e:
                 logger.warning(f"Could not replace e-mail in column '{column}': {e}")
-
+        
+        try:
+            combined_df = replace_username_in_dataframe(combined_df)
+        except Exception as e:
+            logger.warning(f"Could not replace username: {e}")
         
         
         table_title = props.Translatable({"en": "Facebook Activity Data", "nl": "Facebook Gegevens"})

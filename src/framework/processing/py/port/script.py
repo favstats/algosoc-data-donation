@@ -8,7 +8,6 @@ from pathlib import Path
 
 import port.api.props as props
 import port.helpers as helpers
-import port.youtube as youtube
 import port.validate as validate
 import port.tiktok as tiktok
 import port.facebook as facebook
@@ -21,7 +20,7 @@ LOG_STREAM = io.StringIO()
 
 logging.basicConfig(
     ## todo: enable when submitting
-    stream=LOG_STREAM,
+    # stream=LOG_STREAM,
     level=logging.DEBUG,
     format="%(asctime)s --- %(name)s --- %(levelname)s --- %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S%z",

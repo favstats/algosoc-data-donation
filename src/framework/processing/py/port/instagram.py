@@ -150,6 +150,20 @@ def validate(file: Path) -> ValidateInput:
 
 def extract_instagram_data(instagram_zip: str) -> Dict[str, Any]:
     global DATA_FORMAT
+    global the_username  
+    
+    try:
+        # Extract username from the zip file name
+        zip_filename = Path(facebook_zip).stem  # Extract the base name of the file without extension
+        pattern = r'^(instagram)-([a-zA-Z0-9]+)-(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}-\d{1,2}-\d{4})$'
+        
+        match = re.match(pattern, zip_filename)
+        if match:
+            the_username = match.group(2)  # Extract the username from the pattern
+        else:
+            the_username = None
+    except Exception as e:
+        logger.error(f"Could not find username in file data {str(e)}")
     # validation = validate(Path(instagram_zip))
     # if validation.status_code is None or validation.status_code.id != 0:
     #     logger.error(f"Invalid zip file: {validation.status_code.description if validation.status_code else 'Unknown error'}")
@@ -202,7 +216,24 @@ def extract_instagram_data(instagram_zip: str) -> Dict[str, Any]:
     return data
 
 
+def replace_username_in_dataframe(df):
 
+    if not the_username:
+        # logger.warning("Username not found; skipping replacement.")
+        return df
+
+    # Function to replace the username in the DataFrame
+    def replace_username(value):
+        if the_username in value:
+            return value.replace(the_username, "the_username")
+        return value
+    
+    # Apply the function to all 'Actie' and 'Details' columns
+    for column in df.columns:
+        if column in ['Actie', 'Details']:
+            df[column] = df[column].apply(replace_username)
+    
+    return df
   
 def parse_ads_clicked(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
@@ -1201,7 +1232,7 @@ def parse_posts(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     'Type': 'Posts',
                     'Actie': "'Geplaatst': " + helpers.find_items_bfs(item, "title", "Geen Tekst"),
                     'URL': 'Geen URL',
-                    'Datum': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "creation_timestamp")),
+                    'Datum': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "creation_timestamp", "Geen Datum")),
                     'Bron': 'Instagram: Posts',
                     'Details': 'Geen Details',   # No additional Details
                         'Bron': 'Instagram: Posts'
@@ -1444,6 +1475,11 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
             except Exception as e:
                 logger.warning(f"Could not replace e-mail in column '{column}': {e}")
 
+        
+        try:
+            combined_df = replace_username_in_dataframe(combined_df)
+        except Exception as e:
+            logger.warning(f"Could not replace username: {e}")
         
         table_title = props.Translatable({"en": "Instagram Activity Data", "nl": "Instagram Gegevens"})
         visses = [vis.create_chart(
