@@ -73,6 +73,10 @@ A example such a script is included in this repo: [`script.py`](src/framework/pr
 We recommend you use that script as starting point for your own data donation study.
 You can find another example of such a script in this [repository](https://github.com/d3i-infra/port-d3i-pilot).
 
+### Create a Release
+
+In the data donation task, run the command `npm run release`, this creates a zip file in the `releases` folder, including a timestamp.
+
 ### Port API examples
 
 Below you can find examples on how to use the Port API in your `script.py`
@@ -676,6 +680,8 @@ The consortium is composed of researchers from:
 - Utrecht University
 - Tilburg University
 - Erasmus University Rotterdam
+
+
 
 ### D3I Pilot
 
