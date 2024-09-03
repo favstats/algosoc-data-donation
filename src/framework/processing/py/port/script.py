@@ -230,8 +230,8 @@ def render_large_file_message(platform):
 def retry_confirmation(platform):
     text = props.Translatable(
         {
-            "en": f"Unfortunately, we could not process your {platform} file. If you are sure that you selected the correct file, press Continue. To select a different file, press Try again.",
-            "nl": f"Helaas, kunnen we uw {platform} bestand niet verwerken. Weet u zeker dat u het juiste bestand heeft gekozen? Ga dan verder. Probeer opnieuw als u een ander bestand wilt kiezen."
+            "en": f"Unfortunately, we could not process your file. If you are sure that you selected the correct file, press Continue. To select a different file, press Try again.",
+            "nl": f"Helaas, kunnen we uw bestand niet verwerken. Weet u zeker dat u het juiste bestand heeft gekozen? Ga dan verder. Probeer opnieuw als u een ander bestand wilt kiezen."
         }
     )
     ok = props.Translatable({"en": "Try again", "nl": "Probeer opnieuw"})
