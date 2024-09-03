@@ -75,7 +75,29 @@ You can find another example of such a script in this [repository](https://githu
 
 ### Create a Release
 
-In the data donation task, run the command `npm run release`, this creates a zip file in the `releases` folder, including a timestamp.
+Once you have prepared your project, follow these steps to create the release:
+
+First, navigate to the project directory. Open your terminal and navigate to the root directory of the Port project where your npm configuration file (package.json) is located.
+
+   ```sh
+   cd path/to/port
+   ```
+
+In the data donation task, run the command `npm run release`.
+
+   ```sh
+   npm run release
+   ```
+ 
+After the release process completes, the output file will be placed in the releases folder within your project directory. This folder will contain the newly created ZIP file, which is the packaged version of your application.
+
+ 
+   ```sh
+   releases/
+      └── port_{TIMESTAMP}_{NR}.zip
+   ```  
+
+
 
 ### Port API examples
 
