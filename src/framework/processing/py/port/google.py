@@ -317,7 +317,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
         "Advertentie Data": [
             "Takeout/Mijn activiteit/Advertenties/",
             "Takeout/My Activity/Ads/",
-            "Takeout/Mi actividad/Anuncios/",
+            "Takeout/Mi actividad/Publicidad/",
             "Takeout/Meine Aktivitäten/Anzeigen/",
             "Takeout/أنشطتي/الإعلانات/",
             "Takeout/Etkinliğim/Reklamlar/",
@@ -327,7 +327,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
             "Takeout/Mijn activiteit/Zoeken/",
             "Takeout/My Activity/Search/",
             "Takeout/Mi actividad/Búsqueda/",
-            "Takeout/Meine Aktivitäten/Suchen/",
+            "Takeout/Meine Aktivitäten/Google Suche/",
             "Takeout/أنشطتي/بحث/",
             "Takeout/Etkinliğim/Arama/",
             "Takeout/我的活动/搜索/"
@@ -335,8 +335,8 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
         "Google Discover": [
             "Takeout/Mijn activiteit/Discover/",
             "Takeout/My Activity/Discover/",
-            "Takeout/Mi actividad/Descubrir/",
-            "Takeout/Meine Aktivitäten/Entdecken/",
+            "Takeout/Mi actividad/Discover/",
+            "Takeout/Meine Aktivitäten/Discover/",
             "Takeout/أنشطتي/اكتشف/",
             "Takeout/Etkinliğim/Keşfet/",
             "Takeout/我的活动/发现/"
