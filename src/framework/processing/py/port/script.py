@@ -62,9 +62,11 @@ def process(session_id):
           
               # Perform file size check here
             file_path = Path(file_result.value)  # Get the file path
+            file_size_mb = file_path.stat().st_size / (1024 ** 2)  # Convert bytes to MB
             file_size_gb = file_path.stat().st_size / (1024 ** 3)  # Convert bytes to GB
-            LOGGER.info(f"Uploaded file size: {file_size_gb} GB")
-            if file_size_gb > 1.75:
+
+            LOGGER.info(f"Uploaded file size: {file_size_mb} MB")
+            if file_size_gb > 1.8:
                 LOGGER.warning("File too large; prompt retry_confirmation")
                 # Check if it's the final platform or if it's the last successful validatio
                 yield donate_logs(f"{session_id}-tracking")

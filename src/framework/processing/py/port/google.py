@@ -60,7 +60,7 @@ def parse_json_content(data, Type: str) -> List[Dict[str, Any]]:
             parsed_item = {
                 'Type': Type,
                 'Actie': item.get('title', ''),  # Renamed from 'header'
-                'URL': remove_google_url_prefix(item.get('titleUrl', '')),  # Renamed from 'titleUrl'
+                'URL': remove_google_url_prefix(item.get('titleUrl', 'Geen URL')),  # Renamed from 'titleUrl'
                 'Datum': parsed_time,  # Renamed from 'time'
                 'Details': details_json,
                 'Bron': "Google Gegevens"
@@ -439,7 +439,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
                             try:
                                 with zf.open(info.filename) as file:
                                     raw_data = file.read()
-                                    file_size_gb = info.file_size / (1024 ** 3)  # Convert bytes to GB
+                                    file_size_gb = info.file_size / (1024 ** 2)  # Convert bytes to MB
                                     # Attempt to decode using UTF-8 first
                                     try:
                                         decoded_data = raw_data.decode('utf-8')
@@ -456,7 +456,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
                                             json_data = json.loads(decoded_data)
                                             data = parse_json_content(json_data, Type)
                                         except (UnicodeDecodeError, json.JSONDecodeError) as e:
-                                            logger.error(f"Error processing JSON file {info.filename} with encoding {encoding}: {e}. File size: {file_size_gb} GB.")
+                                            logger.error(f"Error processing JSON file {info.filename} with encoding {encoding}: {e}. File size: {file_size_gb} MB.")
                                             continue
     
                                     # Handle HTML files
@@ -464,7 +464,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
                                         try:
                                             data = parse_html_content(decoded_data, Type)
                                         except UnicodeDecodeError as e:
-                                            logger.error(f"Error processing HTML file {info.filename} with encoding {encoding}: {e}. File size: {file_size_gb} GB.")
+                                            logger.error(f"Error processing HTML file {info.filename} with encoding {encoding}: {e}. File size: {file_size_gb} MB.")
                                             continue
     
                                     # Handle CSV files
@@ -472,7 +472,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
                                         try:
                                             data = parse_csv_content(decoded_data, Type)
                                         except UnicodeDecodeError as e:
-                                            logger.error(f"Error processing CSV file {info.filename} with encoding {encoding}: {e}. File size: {file_size_gb} GB.")
+                                            logger.error(f"Error processing CSV file {info.filename} with encoding {encoding}: {e}. File size: {file_size_gb} MB.")
                                             continue
     
                                     else:
@@ -482,7 +482,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
                                         if Type not in extracted_data:
                                             extracted_data[Type] = []
                                         extracted_data[Type].extend(data)
-                                        logger.info(f"Successfully extracted {Type} data from {info.filename}. File size: {file_size_gb} GB.")
+                                        logger.info(f"Successfully extracted {Type} data from {info.filename}. File size: {file_size_gb} MB.")
                                     break  # Break the base_path loop if file is processed
                             except Exception as e:
                                 logger.error(f"Error extracting {info.filename} for {Type}: {e}")
@@ -516,7 +516,7 @@ def parse_csv_content(csv_content: bytes, Type: str) -> List[Dict[str, Any]]:
         headers = [header.lower() for header in headers]
         
         # Logic for YouTube comments
-        if Type == 'youtube_comment':
+        if Type == 'YouTube Reacties':
             
             try:
                 # Attempt to find the column indices based on header names
@@ -578,7 +578,7 @@ def parse_csv_content(csv_content: bytes, Type: str) -> List[Dict[str, Any]]:
                     logger.error(f"Unexpected error in {Type} when processing row: {e}")
 
         # Logic for YouTube subscriptions
-        elif Type == 'youtube_subscription':
+        elif Type == 'YouTube Abonnementen':
             try:
                 # Define column positions or names based on expected headers for subscriptions
                 channel_name_index = headers.index('channel title') if 'channel title' in headers else headers.index('kanaalnaam')
@@ -602,7 +602,7 @@ def parse_csv_content(csv_content: bytes, Type: str) -> List[Dict[str, Any]]:
                     # Construct the dictionary for this subscription
                     records.append({
                         'Type': Type,
-                        'Action': 'Geabonneerd op ' + channel_name,
+                        'Actie': 'Geabonneerd op ' + channel_name,
                         'URL': channel_url,
                         'Datum': 'Geen Datum',
                         'Details': "Geen Details",
@@ -651,6 +651,9 @@ def parse_html_content(html_content: str, Type: str) -> List[Dict[str, Any]]:
                 
                 url_list = item.xpath('.//a/@href')
                 url = remove_google_url_prefix(url_list[0].strip()) if url_list else None
+                if not url:
+                  url = "Geen URL"
+                
                 
                 date_text_list = item.xpath('.//div[contains(@class, "content-cell")]/text()[last()]')
                 date_text = date_text_list[0].strip() if date_text_list else None
@@ -722,46 +725,6 @@ def parse_html_content(html_content: str, Type: str) -> List[Dict[str, Any]]:
     #     logger.error(f"Error parsing HTML content for {Type}: {e}")
     # 
     # return parsed_data
-    
-def parse_data(data: List[Dict[str, Any]], Type: str) -> pd.DataFrame:
-    parsed_data = []
-    
-    for item in data:
-        parsed_item = {'Type': Type}
-        for key, value in item.items():
-            if key == 'time' or key == 'Datum':
-                try:
-                    if isinstance(value, (int, float)):
-                        if value > 1e11:  # Likely milliseconds
-                            parsed_item['Datum'] = pd.to_datetime(value, unit='ms')
-                        else:  # Likely seconds
-                            parsed_item['Datum'] = pd.to_datetime(value, unit='s')
-                    else:
-                        parsed_item['Datum'] = pd.to_datetime(value)
-                except:
-                    parsed_item['Datum'] = pd.NaT
-            elif key == 'details' and Type == 'youtube_comment':
-                parsed_item['details'] = value  # Keep as JSON string for YouTube comments
-            elif isinstance(value, list):
-                parsed_item[key] = ', '.join(str(v) for v in value)
-            elif isinstance(value, dict):
-                for sub_key, sub_value in value.items():
-                    parsed_item[f"{key}_{sub_key}"] = sub_value
-            else:
-                parsed_item[key] = value
-        
-        parsed_data.append(parsed_item)
-    
-    df = pd.DataFrame(parsed_data)
-    
-    column_mapping = {
-        'header': 'Action',
-        'titleUrl': 'URL',
-        'details_name': 'Ad_Type'
-    }
-    df.rename(columns={old: new for old, new in column_mapping.items() if old in df.columns}, inplace=True)
-    
-    return df
 
 def make_timestamps_consistent(df: pd.DataFrame) -> pd.DataFrame:
     if 'Datum' in df.columns:
@@ -874,7 +837,7 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
             
             combined_df = combined_df.sort_values(by='Datum', ascending=False, na_position='last').reset_index(drop=True)
             
-            combined_df['Datum'] = combined_df['Datum'].dt.strftime('%Y-%m-%d %H:%M:%S')
+            combined_df['Datum'] = combined_df['Datum'].dt.strftime('%Y-%m-%d %H:%M:%S').fillna('Geen Datum')
             # combined_df['Count'] = 1
             
             # List of columns to apply the replace_email function

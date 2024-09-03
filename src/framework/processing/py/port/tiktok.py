@@ -522,7 +522,7 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
                 # combined_df['Count'] = 0  # Add a Count column to the original data
             # combined_df.loc[combined_df['Actie'] == 'HashtagUse', 'Count'] = 0
             # List of columns to apply the replace_email function
-            columns_to_process = ['title', 'details', 'Actie']
+            columns_to_process = ['Details', 'Actie']
             
             # Loop over each column in the list
             for column in columns_to_process:
@@ -533,7 +533,7 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
                     logger.warning(f"Could not replace e-mail in column '{column}': {e}")
 
 
-            combined_df['Datum'] = combined_df['Datum'].dt.strftime('%Y-%m-%d %H:%M:%S')
+            combined_df['Datum'] = combined_df['Datum'].dt.strftime('%Y-%m-%d %H:%M:%S').fillna('Geen Datum')
             
             # combined_df['Count'] = 1  # Add a Count column to the original data
 

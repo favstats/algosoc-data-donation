@@ -704,7 +704,7 @@ def parse_advertisers_interacted_with(data: Dict[str, Any]) -> List[Dict[str, An
         
         return [{
             'Type': 'Advertentie-interactie',
-            'Actie': "'Gereageerd op': " + item.get("title", "No Text") if not item.get("title", "").startswith("http") else "'Gereageerd op': No Text",
+            'Actie': "'Gereageerd op': " + item.get("title", "Geen Tekst") if not item.get("title", "").startswith("http") else "'Gereageerd op': Geen Tekst",
             'URL': item.get("title", "") if item.get("title", "").startswith("http") else 'Geen URL',
             'Datum': helpers.robust_datetime_parser(item.get("timestamp", '')),
             'Details': 'Geen Details',
@@ -731,7 +731,7 @@ def parse_advertisers_interacted_with(data: Dict[str, Any]) -> List[Dict[str, An
     
                 interactions.append({
                     'Type': 'Advertentie-interactie',
-                    'Actie': "'Gereageerd op': " + title if not title.startswith("http") else "'Gereageerd op': No Text",
+                    'Actie': "'Gereageerd op': " + title if not title.startswith("http") else "'Gereageerd op': Geen Tekst",
                     'URL': title if title.startswith("http") else 'Geen URL',
                     'Datum': helpers.robust_datetime_parser(date),
                     'Details': 'Geen Details',

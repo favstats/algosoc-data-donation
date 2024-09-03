@@ -154,7 +154,7 @@ def extract_instagram_data(instagram_zip: str) -> Dict[str, Any]:
     
     try:
         # Extract username from the zip file name
-        zip_filename = Path(facebook_zip).stem  # Extract the base name of the file without extension
+        zip_filename = Path(instagram_zip).stem  # Extract the base name of the file without extension
         pattern = r'^(instagram)-([a-zA-Z0-9]+)-(\d{4}-\d{1,2}-\d{1,2}|\d{1,2}-\d{1,2}-\d{4})$'
         
         match = re.match(pattern, zip_filename)
@@ -1459,7 +1459,7 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
                   logger.info(f"Error filtering dates before 2000: {e}")
 
           combined_df = combined_df.sort_values(by='Datum', ascending=False, na_position='last').reset_index(drop=True)
-          combined_df['Datum'] = combined_df['Datum'].dt.strftime('%Y-%m-%d %H:%M:%S')
+          combined_df['Datum'] = combined_df['Datum'].dt.strftime('%Y-%m-%d %H:%M:%S').fillna('Geen Datum')
         except Exception as e:
           logger.error(f"Error parsing or sorting date: {str(e)}")
         # combined_df['Count'] = 1
