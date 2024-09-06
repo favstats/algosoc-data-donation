@@ -93,9 +93,6 @@ export const TableContainer = ({
         <div key="Title" className="flex sm:flex-row justify-between w-full gap-1 mb-2">
           <Title4 text={table.title} margin="" />
 
-          {unfilteredRows > 0 ? (
-            <SearchBar placeholder={text.searchPlaceholder} search={search} onSearch={setSearch} />
-          ) : null}
         </div>
         <div
           key="Description"
@@ -115,18 +112,11 @@ export const TableContainer = ({
             dataTypeFilter={dataTypeFilter}
           />
 
-          <button
-            key={show ? 'animate' : ''}
-            className={`flex end gap-3 animate-fadeIn ${unfilteredRows === 0 ? 'hidden' : ''}`}
-            onClick={() => setShow(!show)}
-          >
-            <div key="zoomIcon" className="text-primary">
-              {show ? zoomOutIcon : zoomInIcon}
-            </div>
-            <div key="zoomText" className="text-right hidden md:block">
-              {show ? text.hideTable : text.showTable}
-            </div>
-          </button>
+
+
+  {unfilteredRows > 0 ? (
+    <SearchBar placeholder={text.searchPlaceholder} search={search} onSearch={setSearch} />
+  ) : null}
         </div>
         <div key="Table" className="w-full">
           <div className="">

@@ -20,7 +20,7 @@ LOG_STREAM = io.StringIO()
 
 logging.basicConfig(
     ## todo: enable when submitting
-    stream=LOG_STREAM,
+    # stream=LOG_STREAM,
     level=logging.DEBUG,
     format="%(asctime)s --- %(name)s --- %(levelname)s --- %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S%z",
@@ -42,8 +42,11 @@ def process(session_id):
         ("TikTok", tiktok.process_tiktok_data, tiktok.validate)
     ]
 
-    # Randomize the order of the platforms
-    random.shuffle(platforms)
+    ### SET THE PLATFORM TO BE DONATED:
+    # "Google", "Facebook", "Instagram", "TikTok"
+    current_platform = "Google"
+    # Sort platforms to ensure current_platform is checked first
+    platforms = [platform for platform in platforms if platform[0] == current_platform]
 
     subflows = len(platforms)
     steps = 2
@@ -82,6 +85,7 @@ def process(session_id):
                   
             table_list = None  # Initialize table_list before the loop
             for idx, (platform_name, extraction_fun, validation_fun) in enumerate(platforms):
+
                 LOGGER.info(f"Attempting to process as {platform_name} data")
                 validation = validation_fun(file_result.value)
                 
@@ -95,7 +99,7 @@ def process(session_id):
                         LOGGER.info(f"Successfully processed as {platform_name} data")
                         break
                 else:
-                    LOGGER.info(f"Not a valid {platform_name} zip; trying next platform")
+                    LOGGER.info(f"Not a valid {platform_name} zip")
  
             ### this part would trigger if the right files are found but parsing fails for some reason
             if (not table_list or len(table_list) == 0) and validation.status_code.id == 0:
@@ -114,7 +118,7 @@ def process(session_id):
                 for p in validation.validated_paths:
                     LOGGER.debug("Found: %s in zip", p)
                 yield donate_logs(f"{session_id}-tracking")
-                retry_result = yield render_donation_page("Submitted File Invalid", retry_confirmation("Social Media"), progress)
+                retry_result = yield render_donation_page("Ingediend bestand ongeldig", retry_confirmation("Social Media"), progress)
     
                 if retry_result.__type__ == "PayloadTrue":
                     continue
