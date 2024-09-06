@@ -447,7 +447,7 @@ class PropsUIPageDonation:
         dict["platform"] = self.platform
         dict["header"] = self.header.toDict()
         dict["body"] = self.body.toDict()
-        dict["footer"] = self.translate_footer()
+        # dict["footer"] = self.translate_footer()
         return dict
     
 
