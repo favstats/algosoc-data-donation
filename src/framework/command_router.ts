@@ -1,4 +1,4 @@
-import { Command, Response, isCommandSystem, isCommandUI, CommandUI, CommandSystem } from './types/commands'
+import { Command, Response, isCommandSystem, isCommandUI, CommandUI, CommandSystem, isCommandSystemExit } from './types/commands'
 import { CommandHandler, Bridge, VisualisationEngine } from './types/modules'
 
 export default class CommandRouter implements CommandHandler {
@@ -24,7 +24,12 @@ export default class CommandRouter implements CommandHandler {
 
   onCommandSystem (command: CommandSystem, resolve: (response: Response) => void): void {
     this.bridge.send(command)
-    resolve({ __type__: 'Response', command, payload: { __type__: 'PayloadVoid', value: undefined } })
+
+    if (isCommandSystemExit(command)) {
+      console.log('[CommandRouter] Application exit')
+    } else {
+      resolve({ __type__: 'Response', command, payload: { __type__: 'PayloadVoid', value: undefined } })
+    }
   }
 
   onCommandUI (command: CommandUI, reject: (reason?: any) => void): void {
