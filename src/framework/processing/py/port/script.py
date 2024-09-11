@@ -44,7 +44,7 @@ def process(session_id):
 
     ### SET THE PLATFORM TO BE DONATED:
     # "Google", "Facebook", "Instagram", "TikTok"
-    current_platform = "Google"
+    current_platform = "TikTok"
     # Sort platforms to ensure current_platform is checked first
     platforms = [platform for platform in platforms if platform[0] == current_platform]
 
@@ -57,7 +57,7 @@ def process(session_id):
         LOGGER.info("Prompt for file")
         yield donate_logs(f"{session_id}-tracking")
     
-        promptFile = prompt_file("application/zip", "Social Media")
+        promptFile = prompt_file("application/zip", current_platform)
         file_result = yield render_donation_page("Welkom", promptFile, progress)
     
         LOGGER.info("Uploaded a file")
@@ -73,7 +73,7 @@ def process(session_id):
                 LOGGER.warning("File too large; prompt retry_confirmation")
                 # Check if it's the final platform or if it's the last successful validatio
                 yield donate_logs(f"{session_id}-tracking")
-                retry_result = yield render_donation_page("Bestand te groot", render_large_file_message("Social Media"), progress)
+                retry_result = yield render_donation_page("Uw bestand is te groot", render_large_file_message("Social Media"), progress)
     
                 if retry_result.__type__ == "PayloadTrue":
                     continue
@@ -118,7 +118,7 @@ def process(session_id):
                 for p in validation.validated_paths:
                     LOGGER.debug("Found: %s in zip", p)
                 yield donate_logs(f"{session_id}-tracking")
-                retry_result = yield render_donation_page("Ingediend bestand ongeldig", retry_confirmation("Social Media"), progress)
+                retry_result = yield render_donation_page("Onverwacht bestand", retry_confirmation("Social Media"), progress)
     
                 if retry_result.__type__ == "PayloadTrue":
                     continue
@@ -185,8 +185,8 @@ def create_empty_table(platform_name: str) -> props.PropsUIPromptConsentFormTabl
     Show something in case no data was extracted
     """
     title = props.Translatable({
-       "en": "Er ging niks mis, maar we konden niks vinden",
-       "nl": "Er ging niks mis, maar we konden niks vinden"
+       "en": "Er zijn geen gegevens gevonden in uw pakket. Dat is niet erg. U kunt op ‘Ja, doneer’ klikken om het lege pakketje alsnog te doneren. Dan weten we dat dit gelukt is.",
+       "nl": "Er zijn geen gegevens gevonden in uw pakket. Dat is niet erg. U kunt op ‘Ja, doneer’ klikken om het lege pakketje alsnog te doneren. Dan weten we dat dit gelukt is."
     })
     df = pd.DataFrame(["No data found"], columns=["No data found"])
     table = props.PropsUIPromptConsentFormTable(f"{platform_name}_no_data_found", title, df)
@@ -210,32 +210,31 @@ def render_donation_page(platform, body, progress):
   
   
 
-
 def render_large_file_message(platform):
     text = props.Translatable({
         "en": "Sorry, the file you submitted was too large. \n\n\n Please download this software to reduce the file size of your zip file and submit again:",
-        "nl": "Sorry, het bestand dat u heeft ingediend is te groot.  \n\n\n  Download deze software om de bestandsgrootte van uw zip-bestand te verkleinen en dien het opnieuw in:"
+        "nl": "We kunnen uw bestand op dit moment niet verwerken. \n\n\n Hier is een oplossing voor. Neem contact op met de helpdesk van Centerdata op het gratis nummer 0800-0231415, of stuur een e-mail naar info@centerpanel.nl. We helpen u dan graag verder."
     })
     link_text = props.Translatable({
         "en": "Click here to download the CleanZIP software",
-        "nl": "Klik hier om de CleanZIP-software te downloaden"
+        "nl": "Stuur een e-mail naar info@centerpanel.nl"
     })
-    link_url = "https://favstats.github.io/CleanZIP/"
+    link_url = "mailto:info@centerpanel.nl"
     ok = props.Translatable({"en": "Try again", "nl": "Probeer opnieuw"})
     cancel = props.Translatable({"en": "Continue without donating", "nl": "Verder zonder te doneren"})
-    optional_text = props.Translatable({
-        "en": "(Optional) You can also try to manually remove large files (video, audio, images) from your zip file and repackage it.",
-        "nl": "(Optioneel) U kunt ook proberen grote bestanden (video, audio, afbeeldingen) handmatig uit uw zip-bestand te verwijderen en het vervolgens opnieuw in te pakken."
-
-    })
-    return props.PropsUIPromptConfirmWithLink(text, link_text, link_url, ok, cancel, optional_text=optional_text)
+    # optional_text = props.Translatable({
+    #     "en": "(Optional) You can also try to manually remove large files (video, audio, images) from your zip file and repackage it.",
+    #     "nl": "(Optioneel) U kunt ook proberen grote bestanden (video, audio, afbeeldingen) handmatig uit uw zip-bestand te verwijderen en het vervolgens opnieuw in te pakken."
+    # 
+    # })
+    return props.PropsUIPromptConfirmWithLink(text, link_text, link_url, ok, cancel)
 
 
 def retry_confirmation(platform):
     text = props.Translatable(
         {
             "en": f"Unfortunately, we could not process your file. If you are sure that you selected the correct file, press Continue. To select a different file, press Try again.",
-            "nl": f"Helaas, kunnen we uw bestand niet verwerken. Weet u zeker dat u het juiste bestand heeft gekozen? Ga dan verder. Probeer opnieuw als u een ander bestand wilt kiezen."
+            "nl": f"We kunnen uw bestand op dit moment niet verwerken. Mogelijk hebt u een ander soort bestand gebruikt. Weet u zeker dat u het juiste bestand hebt gekozen? Ga dan verder. Klik op ‘Probeer opnieuw’ als u een ander bestand wilt kiezen."
         }
     )
     ok = props.Translatable({"en": "Try again", "nl": "Probeer opnieuw"})
@@ -244,13 +243,45 @@ def retry_confirmation(platform):
 
 
 def prompt_file(extensions, platform):
-    description = props.Translatable(
-        {
-            "nl": "Volg de download instructies en kies het bestand dat u opgeslagen heeft op uw apparaat. Dit kan even duren, afhankelijk van de grootte van uw inzending. Gelieve geduldig te zijn.",
-            "en": "Please follow the download instructions and choose the file that you stored on your device. This might take a while depending on the size of your submission, please be patient."
-        }
-    )
+    if platform == "Google":
+        description = props.Translatable(
+            {
+                "nl": "Kies het Google bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan even duren, afhankelijk van hoe groot het is. Heb dan even geduld. Tip: de naam van het Google bestand begint met 'takeout-' en staat in de map op uw computer waar u het hebt opgeslagen.",
+                "en": "Choose the Google file that you requested and saved on your computer in the previous steps. Processing your file may take a while depending on the size. Please be patient. Tip: The name of the Google file starts with 'takeout-' and can be found in the folder where you saved it."
+            }
+        )
+    elif platform == "Facebook":
+        description = props.Translatable(
+            {
+                "nl": "Kies het Facebook bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan even duren, afhankelijk van hoe groot het is. Heb dan even geduld. Tip: de naam van het Facebook bestand begint met 'facebook-' en staat in de map op uw computer waar u het hebt opgeslagen.",
+                "en": "Choose the Facebook file that you requested and saved on your computer in the previous steps. Processing your file may take a while depending on the size. Please be patient. Tip: The name of the Facebook file starts with 'facebook-' and can be found in the folder where you saved it."
+            }
+        )
+    elif platform == "Instagram":
+        description = props.Translatable(
+            {
+                "nl": "Kies het Instagram bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan even duren, afhankelijk van hoe groot het is. Heb dan even geduld. Tip: de naam van het Instagram bestand begint met 'instagram-' en staat in de map op uw computer waar u het hebt opgeslagen.",
+                "en": "Choose the Instagram file that you requested and saved on your computer in the previous steps. Processing your file may take a while depending on the size. Please be patient. Tip: The name of the Instagram file starts with 'instagram-' and can be found in the folder where you saved it."
+            }
+        )
+    elif platform == "TikTok":
+        description = props.Translatable(
+            {
+                "nl": "Kies het TikTok bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan even duren, afhankelijk van hoe groot het is. Heb dan even geduld. Tip: de naam van het TikTok bestand begint met 'TikTok_Data_' en staat in de map op uw computer waar u het hebt opgeslagen.",
+                "en": "Choose the TikTok file that you requested and saved on your computer in the previous steps. Processing your file may take a while depending on the size. Please be patient. Tip: The name of the TikTok file starts with 'TikTok_Data_' and can be found in the folder where you saved it."
+            }
+        )
+    else:
+        # Fallback if platform is not recognized
+        description = props.Translatable(
+            {
+                "nl": "Volg de download instructies en kies het bestand dat u opgeslagen heeft op uw apparaat. Dit kan even duren, afhankelijk van de grootte van uw inzending. Gelieve geduldig te zijn.",
+                "en": "Please follow the download instructions and choose the file that you stored on your device. This might take a while depending on the size of your submission, please be patient."
+            }
+        )
+
     return props.PropsUIPromptFileInput(description, extensions)
+
 
 
 def donate(key, json_string):

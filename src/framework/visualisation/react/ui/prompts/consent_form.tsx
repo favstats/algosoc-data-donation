@@ -233,9 +233,5 @@ const description = new TextBundle()
   )
   .add(
     'nl',
-    'Hieronder ziet u een tabel met de opgeschoonde gegevens uit uw datapakket.\n' +
-    'Voordat u deze met ons deelt, kunt u bekijken wat er in de tabellen staat en beslissen wat u niet met ons wilt delen.\n' +
-    'U kunt vermeldingen verwijderen door op het selectievakje ernaast te klikken en op "verwijderen" te klikken. Navigeer met behulp van het menu onder "Type" en de zoekfunctie.\n' +
-    'Zodra u alles hebt gecontroleerd, klikt u op doneren.'
-  );
+    'Hieronder ziet u de gegevens die uit uw datapakketje gehaald worden. Op dit moment zijn er nog geen gegevens gedeeld met de onderzoekers van het Centerpanel. Voordat u deze gegevens deelt, kunt u ze bekijken en beslissen wat u wel of niet wilt delen. U kunt gegevens verwijderen door op het selectievakje ernaast te klikken en op Verwijder te klikken. Als u alles hebt gecontroleerd, klik dan op doneren onderaan de pagina.');
 

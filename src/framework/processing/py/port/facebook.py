@@ -1617,10 +1617,10 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         table_title = props.Translatable({"en": "Facebook Activity Data", "nl": "Facebook Gegevens"})
         visses = [vis.create_chart(
             "line", 
+            "Facebook Activiteit", 
             "Facebook Activity Over Time", 
-            "Facebook-activiteit", 
             "Datum", 
-            y_label="Aantal observaties", 
+            y_label="Aantal keren gekeken", 
             date_format="auto"
         )]
         

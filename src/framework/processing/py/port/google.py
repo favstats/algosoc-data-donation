@@ -855,10 +855,10 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
             table_title = props.Translatable({"en": "Google Activity Data", "nl": "Google Gegevens"})
             visses = [vis.create_chart(
                 "line", 
-                "Google Activity Over Time", 
+                "Google Activiteit", 
                 "Google Activity-activiteit", 
                 "Datum", 
-                y_label="Aantal observaties", 
+                y_label="Aantal keren gekeken", 
                 date_format="auto"
             )]
             table = props.PropsUIPromptConsentFormTable("google_all_data", table_title, combined_df, visualizations=visses)

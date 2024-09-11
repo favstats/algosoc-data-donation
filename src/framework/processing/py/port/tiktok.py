@@ -452,7 +452,7 @@ def parse_data(data: List[Dict[str, Any]]) -> pd.DataFrame:
 
 def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentFormTable]:
     logger = logging.getLogger("process_tiktok_data")
-    logger.info("Starting to extract TikTok data from {tiktok_file}.")   
+    logger.info("Starting to extract TikTok data.")   
 
     
     extracted_data = extract_tiktok_data(tiktok_file)
@@ -534,17 +534,15 @@ def process_tiktok_data(tiktok_file: str) -> List[props.PropsUIPromptConsentForm
 
 
             combined_df['Datum'] = combined_df['Datum'].dt.strftime('%Y-%m-%d %H:%M:%S').fillna('Geen Datum')
-            
-            # combined_df['Count'] = 1  # Add a Count column to the original data
 
             # Create a single table with all data
             table_title = props.Translatable({"en": "TikTok Activity Data", "nl": "TikTok Gegevens"})
             visses = [vis.create_chart(
               "line", 
-              "TikTok Video Browsing Over Time", 
+              "TikTok Activiteit", 
               "TikTok-activiteit", 
               "Datum", 
-              y_label="Aantal observaties", 
+              y_label="Aantal keren gekeken", 
               date_format="auto"#, 
               # group_by="Action", 
               # df=combined_df.groupby('Actie')['Count'].sum().reset_index()

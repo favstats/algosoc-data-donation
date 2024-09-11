@@ -1484,10 +1484,10 @@ def process_instagram_data(instagram_zip: str) -> List[props.PropsUIPromptConsen
         table_title = props.Translatable({"en": "Instagram Activity Data", "nl": "Instagram Gegevens"})
         visses = [vis.create_chart(
             "line", 
-            "Instagram Activity Over Time", 
-            "Instagram Activity Over Time", 
+            "Instagram Activiteit", 
+            "Instagram Activiteit", 
             'Datum', 
-            y_label="Aantal observaties", 
+            y_label="Aantal keren gekeken", 
             date_format="auto"
         )]
 
