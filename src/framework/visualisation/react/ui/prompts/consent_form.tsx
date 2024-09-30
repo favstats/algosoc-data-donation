@@ -20,7 +20,7 @@ import useUnloadWarning from '../hooks/useUnloadWarning'
 
 import { TableContainer } from '../elements/table_container'
 
-type Props = Weak<PropsUIPromptConsentForm> & ReactFactoryContext
+type Props = Weak<PropsUIPromptConsentForm> & ReactFactoryContext & { dynamicList?: JSX.Element }
 
 export const ConsentForm = (props: Props): JSX.Element => {
   useUnloadWarning()
@@ -47,71 +47,46 @@ export const ConsentForm = (props: Props): JSX.Element => {
     })
   }, [])
 
-  function rowCell(dataFrame: any, column: string, row: number): string {
-    const text = String(dataFrame[column][`${row}`])
-    return text
-  }
+  return (
+    <>
+      <div className="max-w-3xl">
+        <BodyLarge text={description} />
+        {/* Insert the dynamic list */}
+        {props.dynamicList && (
+          <div>
+            {props.dynamicList}
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col gap-16 w-full">
+        <div className="grid gap-8 max-w-full">
+          {tables.map((table) => {
+            return (
+              <TableContainer
+                key={table.id}
+                id={table.id}
+                table={table}
+                updateTable={updateTable}
+                locale={locale}
+              />
+            )
+          })}
+        </div>
+        <div>
+          <BodyLarge margin="" text={donateQuestion} />
 
-  function columnNames(dataFrame: any): string[] {
-    return Object.keys(dataFrame)
-  }
-
-  function columnCount(dataFrame: any): number {
-    return columnNames(dataFrame).length
-  }
-
-  function rowCount(dataFrame: any): number {
-    if (columnCount(dataFrame) === 0) {
-      return 0
-    } else {
-      const firstColumn = dataFrame[columnNames(dataFrame)[0]]
-      return Object.keys(firstColumn).length - 1
-    }
-  }
-
-  function rows(data: any): PropsUITableRow[] {
-    const result: PropsUITableRow[] = []
-    const n = rowCount(data)
-    for (let row = 0; row <= n; row++) {
-      const id = `${row}`
-      const cells = columnNames(data).map((column: string) => rowCell(data, column, row))
-      result.push({ __type__: 'PropsUITableRow', id, cells })
-    }
-    return result
-  }
-
-  function parseTables(
-    tablesData: PropsUIPromptConsentFormTable[]
-  ): Array<PropsUITable & TableContext> {
-    return tablesData.map((table) => parseTable(table))
-  }
-
-  function parseTable(tableData: PropsUIPromptConsentFormTable): PropsUITable & TableContext {
-    const id = tableData.id
-    const title = Translator.translate(tableData.title, props.locale)
-    const description =
-      tableData.description !== undefined
-        ? Translator.translate(tableData.description, props.locale)
-        : ''
-    const deletedRowCount = 0
-    const dataFrame = JSON.parse(tableData.data_frame)
-    const headCells = columnNames(dataFrame).map((column: string) => column)
-    const head: PropsUITableHead = { __type__: 'PropsUITableHead', cells: headCells }
-    const body: PropsUITableBody = { __type__: 'PropsUITableBody', rows: rows(dataFrame) }
-    return {
-      __type__: 'PropsUITable',
-      id,
-      head,
-      body,
-      title,
-      description,
-      deletedRowCount,
-      annotations: [],
-      originalBody: body,
-      deletedRows: [],
-      visualizations: tableData.visualizations
-    }
-  }
+          <div className="flex flex-row gap-4 mt-4 mb-4">
+            <PrimaryButton
+              label={donateButton}
+              onClick={handleDonate}
+              color="bg-success text-white"
+            />
+            <LabelButton label={cancelButton} onClick={handleCancel} color="text-grey1" />
+          </div>
+        </div>
+      </div>
+    </>
+  )
 
   function handleDonate(): void {
     const value = serializeConsentData()
@@ -163,40 +138,67 @@ export const ConsentForm = (props: Props): JSX.Element => {
     return _.fromPairs(_.zip(keys, values))
   }
 
-  return (
-    <>
-      <div className="max-w-3xl">
-        <BodyLarge text={description} />
-      </div>
-      <div className="flex flex-col gap-16 w-full">
-        <div className="grid gap-8 max-w-full">
-          {tables.map((table) => {
-            return (
-              <TableContainer
-                key={table.id}
-                id={table.id}
-                table={table}
-                updateTable={updateTable}
-                locale={locale}
-              />
-            )
-          })}
-        </div>
-        <div>
-          <BodyLarge margin="" text={donateQuestion} />
+  function rowCell(dataFrame: any, column: string, row: number): string {
+    return String(dataFrame[column][`${row}`])
+  }
 
-          <div className="flex flex-row gap-4 mt-4 mb-4">
-            <PrimaryButton
-              label={donateButton}
-              onClick={handleDonate}
-              color="bg-success text-white"
-            />
-            <LabelButton label={cancelButton} onClick={handleCancel} color="text-grey1" />
-          </div>
-        </div>
-      </div>
-    </>
-  )
+  function columnNames(dataFrame: any): string[] {
+    return Object.keys(dataFrame)
+  }
+
+  function columnCount(dataFrame: any): number {
+    return columnNames(dataFrame).length
+  }
+
+  function rowCount(dataFrame: any): number {
+    if (columnCount(dataFrame) === 0) {
+      return 0
+    }
+    const firstColumn = dataFrame[columnNames(dataFrame)[0]]
+    return Object.keys(firstColumn).length - 1
+  }
+
+  function rows(data: any): PropsUITableRow[] {
+    const result: PropsUITableRow[] = []
+    const n = rowCount(data)
+    for (let row = 0; row <= n; row++) {
+      const id = `${row}`
+      const cells = columnNames(data).map((column: string) => rowCell(data, column, row))
+      result.push({ __type__: 'PropsUITableRow', id, cells })
+    }
+    return result
+  }
+
+  function parseTables(
+    tablesData: PropsUIPromptConsentFormTable[]
+  ): Array<PropsUITable & TableContext> {
+    return tablesData.map((table) => parseTable(table))
+  }
+
+  function parseTable(tableData: PropsUIPromptConsentFormTable): PropsUITable & TableContext {
+    const id = tableData.id
+    const title = Translator.translate(tableData.title, props.locale)
+    const description = tableData.description
+      ? Translator.translate(tableData.description, props.locale)
+      : ''
+    const dataFrame = JSON.parse(tableData.data_frame)
+    const headCells = columnNames(dataFrame).map((column: string) => column)
+    const head: PropsUITableHead = { __type__: 'PropsUITableHead', cells: headCells }
+    const body: PropsUITableBody = { __type__: 'PropsUITableBody', rows: rows(dataFrame) }
+    return {
+      __type__: 'PropsUITable',
+      id,
+      head,
+      body,
+      title,
+      description,
+      deletedRowCount: 0,
+      annotations: [],
+      originalBody: body,
+      deletedRows: [],
+      visualizations: tableData.visualizations
+    }
+  }
 }
 
 interface Copy {
@@ -233,5 +235,5 @@ const description = new TextBundle()
   )
   .add(
     'nl',
-    'Hieronder ziet u de gegevens die uit uw datapakketje gehaald worden. Op dit moment zijn er nog geen gegevens gedeeld met de onderzoekers van het Centerpanel. Voordat u deze gegevens deelt, kunt u ze bekijken en beslissen wat u wel of niet wilt delen. U kunt gegevens verwijderen door op het selectievakje ernaast te klikken en op Verwijder te klikken. Als u alles hebt gecontroleerd, klik dan op doneren onderaan de pagina.');
-
+    'Hieronder ziet u de gegevens die uit uw datapakketje gehaald worden. Op dit moment zijn er nog geen gegevens gedeeld met de onderzoekers van het Centerpanel. Voordat u deze gegevens deelt, kunt u ze bekijken en beslissen wat u wel of niet wilt delen. U kunt gegevens verwijderen door op het selectievakje ernaast te klikken en op Verwijder te klikken. Als u alles hebt gecontroleerd, klik dan op doneren onderaan de pagina.'
+  )

@@ -2,6 +2,7 @@ import logging
 import json
 import io
 import random
+import re
 from typing import Optional, Literal
 import pandas as pd
 from pathlib import Path
@@ -115,8 +116,21 @@ def process(session_id):
                 # Check if it's the final platform or if it's the last successful validation
                 LOGGER.error("All platforms failed. Showing file names now.")
                 validation = validation_fun(file_result.value)
-                for p in validation.validated_paths:
-                    LOGGER.debug("Found: %s in zip", p)
+                
+                try: 
+                  filtered_paths = [
+                      p for p in validation.validated_paths 
+                      if re.search(r'\.(json|html|csv)$', p) and not re.search(r'^\d+\.(json|html|csv)$', p.split('/')[-1])
+                  ]
+                  
+                  # Concatenate and log the filtered paths
+                  if filtered_paths:
+                      LOGGER.debug(f"Paths: {', '.join(filtered_paths[:30])}")
+                  else:
+                      LOGGER.debug("No valid file paths found")
+                except Exception as e:
+                  LOGGER.error(f"error {e}")
+        
                 yield donate_logs(f"{session_id}-tracking")
                 retry_result = yield render_donation_page("Onverwacht bestand", retry_confirmation("Social Media"), progress)
     
