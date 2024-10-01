@@ -52,17 +52,18 @@ export const ConsentForm = (props: Props): JSX.Element => {
     <>
 
       <div className="max-w-3xl">
-      <FormattedBodyLarge>
-        Hieronder ziet u de gegevens die uit uw datapakket zijn gehaald. Op dit moment zijn er nog geen gegevens gedeeld met Centerdata. Voordat u deze gegevens deelt, kunt u ze bekijken en beslissen wat u wel of niet wilt delen.<br /><br />
-        
-        U kunt gegevens verwijderen door op het selectievakje ernaast te klikken en vervolgens op Verwijder te klikken. 
-        Zodra u alles hebt gecontroleerd, klikt u onderaan de pagina op <b>doneren</b>.<br /><br />
-        
-        U kunt eenvoudig zoeken naar trefwoorden die u interesseren met behulp van de zoekfunctie in de rechterbovenhoek. 
-        Gebruik dit om beter te begrijpen welke informatie in deze pakketten zit. Het is best indrukwekkend hoeveel informatie deze bedrijven van ons verzamelen, en het kan heel interessant zijn om dit te verkennen!<br /><br />
-        
-        U kunt ook specifieke categorieën van gegevens selecteren om te bekijken door op de 'filter'-knop te klikken. Hier zijn de soorten gegevens die u kunt bekijken:
-      </FormattedBodyLarge>
+<FormattedBodyLarge>
+  Hieronder ziet u de gegevens die uit uw datapakket zijn gehaald. Op dit moment zijn er nog geen gegevens gedeeld met Centerdata. 
+  Voordat u deze gegevens deelt, kunt u deze bekijken en beslissen wat u wel of niet wilt delen. 
+  U kunt gegevens verwijderen door op het selectievakje ernaast te klikken en op Verwijderen te klikken. 
+  Zodra u alles hebt gecontroleerd, klikt u onderaan de pagina op <b>Doneren</b>.<br /><br />
+  
+  U kunt eenvoudig zoeken naar trefwoorden met behulp van de zoekfunctie rechtsboven. 
+  U kunt dit gebruiken om beter te begrijpen welke informatie in deze pakketten is opgenomen. 
+  Het is verrassend hoeveel informatie deze bedrijven van ons opslaan en het kan heel interessant zijn om dit te verkennen!<br /><br />
+  
+  U kunt ook specifieke categorieën selecteren om verder te verkennen met behulp van de 'filter'-knop. Dit zijn de categorieën die u kunt bekijken:
+</FormattedBodyLarge>
         {/* Insert the dynamic list */}
         {props.dynamicList && (
           <div>
