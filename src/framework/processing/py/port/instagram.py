@@ -1090,7 +1090,7 @@ def parse_posted_reels_insights(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           return []
       
       return [{
-          'Type': 'instagram_posted_reel',
+          'Type': 'Reels',
           'Actie': "'Geplaatst': " + reel['string_map_data'].get('Caption', {}).get('value', '') or reel['media_map_data']['Media Thumbnail'].get('title', ''),
           'URL': 'Geen URL',
           'Datum': helpers.robust_datetime_parser(reel['string_map_data']['Upload Timestamp']['timestamp']),
@@ -1167,7 +1167,7 @@ def parse_posted_reels_insights(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                             saves = ''
                         
                         reel_data = {
-                            'Type': 'instagram_posted_reel',
+                            'Type': 'Reels',
                             'Actie': title,
                             'URL': 'Geen URL',
                             'Datum': date,
@@ -1293,7 +1293,7 @@ def parse_reels(data: Dict[str, Any]) -> List[Dict[str, Any]]:
           'Actie': "'Geplaatst': " + helpers.find_items_bfs(item, "title", "Geen Tekst"),
           'URL': 'Geen URL',
           'Datum': helpers.robust_datetime_parser(helpers.find_items_bfs(item, "creation_timestamp")),
-          'Bron': 'instagram_reel',
+          'Bron': 'Instagram Reels',
           'Details': 'Geen Details',   # No additional Details
                         'Bron': 'Instagram: Reels'
       } for item in posts]
@@ -1312,7 +1312,7 @@ def parse_reels(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     else (post.xpath('div/text()')[0].strip() if post.xpath('div/text()') else ''),
               'URL': 'Geen URL',
               'Datum': helpers.robust_datetime_parser(post.xpath('div[last()]/text()')[0] if post.xpath('div[last()]/text()') else ''),
-              'Bron': 'instagram_reel',
+              'Bron': 'Instagram Reels',
               'Details': 'Geen Details',   # No additional Details
                         'Bron': 'Instagram: Reels'
           } for post in posts]

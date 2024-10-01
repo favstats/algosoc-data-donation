@@ -386,18 +386,22 @@ def parse_ad_info(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         ad_key = "Ad Interests"
 
     ad_interests = helpers.find_items_bfs(data, ad_key)
-    if not ad_interests:
-      return []
+    if not ad_interests or not isinstance(ad_interests, str):
+        return []
+
+    # Split the single string into individual interests
     return [
         {
             'Type': 'Advertentie Info',
-            'Actie': "'Info voor targeting': " + interest,
+            'Actie': "'Info voor targeting': " + interest.strip(),  # Strip any extra whitespace
             'URL': 'Geen URL',
             'Datum': 'Geen Datum',
             'Details': "Geen Details",
             'Bron': "TikTok: Ad Interests"
-        } for interest in ad_interests if isinstance(interest, str)
+        }
+        for interest in ad_interests.split(',')  # Split by comma and iterate over individual interests
     ]
+
     
 def parse_ad_ca(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
@@ -410,7 +414,7 @@ def parse_ad_ca(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       return []
     return [
         {
-            'Type': 'Advertentie Data',
+            'Type': 'Advertentie Info',
             'Actie': "'Gebruikte jouw gegevens': " + interest.get("Source", 'Unknown uploader'),
             'URL': 'Geen URL',
             'Datum': interest.get("TimeStamp", interest.get("Date", '')),

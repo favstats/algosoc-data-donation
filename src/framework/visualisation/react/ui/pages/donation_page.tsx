@@ -53,18 +53,40 @@ export const DonationPage = (props: Props): JSX.Element => {
 
 
   const typeDescriptions: { [key: string]: string } = {
-    'Advertentie Data': '(this is data about your advertisements)',
-    'Advertentie Info': '(this is additional information about your ads)',
+    'Advertentie Info': '(this is data about your advertisements)',
     'Gevolgde Accounts': '(these are the accounts you follow)',
     'Hashtags': '(this is the hashtags you have used)',
     'Kijkgeschiedenis': '(this is your video watch history)',
-    'Likes': '(these are your liked videos)',
+    'Likes': '(these are your liked content)',
     'Reacties': '(these are your comments)',
     'Shares': '(this represents shared content)',
     'Zoekopdrachten': '(this is your search history)',
-    // Add more types and descriptions here if needed
-  }
+    'Browsergeschiedenis': '(this is your browser history from Chrome)',
+    'Google News': '(this is data about your activity on Google News)',
+    'Nieuwsbetrokkenheid': '(this represents your engagement with news articles)',
+    'Video Zoekopdrachten': '(this is your video search history)',
+    'YouTube Kijkgeschiedenis': '(this is your YouTube watch history)',
+    'YouTube Reacties': '(these are the comments you made on YouTube videos)',
+    'YouTube Abonnementen': '(this represents your YouTube subscriptions)',
+    
+    'Gelikete Posts': '(this is data about posts you liked or reacted to)',
+    'Posts': '(this is data about posts you made)',
+    'Groepspost': '(this is data about your posts in groups)',
+    'Groepsreactie': '(this is data about your comments in groups)',
+    'Groepslidmaatschap': '(this is data about the groups you have joined)',
+    'Volgsuggesties': '(this is data about accounts suggested to you to follow)',
+    'Onlangs bezocht': '(this is data about pages, profiles, events, or groups you recently visited)',
+    'AdPreference': '(this is data about your preferences regarding advertisements)',
+    'Info Used to Target You': '(this is data used by advertisers to target you)',
+    'Events': '(this is data about events you interacted with)',
+    'Subscription Status': '(this is data about your subscription status, such as for opting out of ads)',
+    // Instagram-Specific Types
+    'Reels': '(this is data about Reels you posted or watched)',
+    'Gelikete Stories': '(this is data about stories you liked)',
+    'Posts die zijn bekeken': '(this is data about posts you have seen)',
 
+
+  }
 
   // Create the dynamic list for the consent form with bullet points and adjust spacing
   const dynamicList = uniqueTypes.length > 0 ? (

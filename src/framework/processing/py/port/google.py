@@ -314,7 +314,7 @@ def extract_zip_content(google_zip: str) -> Dict[str, Any]:
 
 
     base_paths = {
-        "Advertentie Data": [
+        "Advertentie Info": [
             "Takeout/Mijn activiteit/Advertenties/",
             "Takeout/My Activity/Ads/",
             "Takeout/Mi actividad/Publicidad/",

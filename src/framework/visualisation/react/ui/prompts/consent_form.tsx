@@ -10,6 +10,7 @@ import {
 import { PropsUIPromptConsentForm, PropsUIPromptConsentFormTable } from '../../../../types/prompts'
 import { LabelButton, PrimaryButton } from '../elements/button'
 import { BodyLarge } from '../elements/text'
+import { FormattedBodyLarge } from '../elements/text'
 import TextBundle from '../../../../text_bundle'
 import { Translator } from '../../../../translator'
 import { ReactFactoryContext } from '../../factory'
@@ -49,8 +50,19 @@ export const ConsentForm = (props: Props): JSX.Element => {
 
   return (
     <>
+
       <div className="max-w-3xl">
-        <BodyLarge text={description} />
+      <FormattedBodyLarge>
+        Hieronder ziet u de gegevens die uit uw datapakket zijn gehaald. Op dit moment zijn er nog geen gegevens gedeeld met Centerdata. Voordat u deze gegevens deelt, kunt u ze bekijken en beslissen wat u wel of niet wilt delen.<br /><br />
+        
+        U kunt gegevens verwijderen door op het selectievakje ernaast te klikken en vervolgens op Verwijder te klikken. 
+        Zodra u alles hebt gecontroleerd, klikt u onderaan de pagina op <b>doneren</b>.<br /><br />
+        
+        U kunt eenvoudig zoeken naar trefwoorden die u interesseren met behulp van de zoekfunctie in de rechterbovenhoek. 
+        Gebruik dit om beter te begrijpen welke informatie in deze pakketten zit. Het is best indrukwekkend hoeveel informatie deze bedrijven van ons verzamelen, en het kan heel interessant zijn om dit te verkennen!<br /><br />
+        
+        U kunt ook specifieke categorieën van gegevens selecteren om te bekijken door op de 'filter'-knop te klikken. Hier zijn de soorten gegevens die u kunt bekijken:
+      </FormattedBodyLarge>
         {/* Insert the dynamic list */}
         {props.dynamicList && (
           <div>

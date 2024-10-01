@@ -241,7 +241,7 @@ def parse_advertisers_using_activity(data: Dict[str, Any]) -> List[Dict[str, Any
         if not advertisers:
           return []
         return [{
-            'Type': 'Advertentie Data',
+            'Type': 'Advertentie Info',
             'Actie': "'Gebruikte jouw gegevens': " + advertiser.get("advertiser_name", ""),
             'URL': 'Geen URL',
             'Datum': 'Geen Datum',
@@ -273,7 +273,7 @@ def parse_advertisers_using_activity(data: Dict[str, Any]) -> List[Dict[str, Any
                 has_in_person_store_visit = columns[3].strip() == 'x' if len(columns) > 3 else False
 
                 results.append({
-                    'Type': 'Advertentie Data',
+                    'Type': 'Advertentie Info',
                     'Actie': "'Gebruikte jouw gegevens': " + title,
                     'URL': 'Geen URL',
                     'Datum': 'Geen Datum',
@@ -562,7 +562,7 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             left_value = pref.get("label", "")
             right_value = pref.get("value", "")
             Actie_type = 'AdPreference'
-            Type = 'Advertentie Data'
+            Type = 'Advertentie Info'
             title = left_value
             
             if Actie_type == 'AdPreference':
@@ -579,7 +579,7 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         ad_interests_dat = find_structure(preferences_dat)
         for pref in ad_interests_dat:
             Actie_type = 'Info Used to Target You'
-            Type = 'Advertentie Data'
+            Type = 'Advertentie Info'
             title = helpers.find_items_bfs(pref, "value")
             if title:
                   preferences.append({
@@ -593,7 +593,7 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             
         return preferences
         # return [{
-        #     'Type': 'Advertentie Data',
+        #     'Type': 'Advertentie Info',
         #     'Actie': 'AdPreference',
         #     'title': pref.get("label", ""),
         #     'URL': 'Geen URL',
@@ -617,11 +617,11 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                   left_value = row.xpath('./td[1]//text()')[0].strip() if row.xpath('./td[1]//text()') else ""
                   right_value = row.xpath('./td[2]//text()')[0].strip() if row.xpath('./td[2]//text()') else ""
                   Actie_type = 'AdPreference'
-                  Type = 'Advertentie Data'
+                  Type = 'Advertentie Info'
                   title = left_value
                   if left_value in name_keys:
                       Actie_type = 'Info Used to Target You'
-                      Type = 'Advertentie Data'
+                      Type = 'Advertentie Info'
                       title = right_value
                       right_value = ""
                   
@@ -664,7 +664,7 @@ def parse_ads_personalization_consent(data: Dict[str, Any]) -> List[Dict[str, An
           return []
         
         return [{
-            'Type': 'Advertentie Data',
+            'Type': 'Advertentie Info',
             'Actie': 'Advertentiepersonalisatie: ' + pref.get("value", ""),
             'URL': 'Geen URL',
             'Datum': 'Geen Datum',
@@ -703,7 +703,7 @@ def parse_advertisers_interacted_with(data: Dict[str, Any]) -> List[Dict[str, An
         
         
         return [{
-            'Type': 'Advertentie-interactie',
+            'Type': 'Advertentie Info',
             'Actie': "'Gereageerd op': " + item.get("title", "Geen Tekst") if not item.get("title", "").startswith("http") else "'Gereageerd op': Geen Tekst",
             'URL': item.get("title", "") if item.get("title", "").startswith("http") else 'Geen URL',
             'Datum': helpers.robust_datetime_parser(item.get("timestamp", '')),
@@ -730,7 +730,7 @@ def parse_advertisers_interacted_with(data: Dict[str, Any]) -> List[Dict[str, An
                 date = date_element[0].strip() if date_element else ""
     
                 interactions.append({
-                    'Type': 'Advertentie-interactie',
+                    'Type': 'Advertentie Info',
                     'Actie': "'Gereageerd op': " + title if not title.startswith("http") else "'Gereageerd op': Geen Tekst",
                     'URL': title if title.startswith("http") else 'Geen URL',
                     'Datum': helpers.robust_datetime_parser(date),
@@ -755,7 +755,7 @@ def parse_ads_interests(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
         
         return [{
-            'Type': 'Advertentie Data',
+            'Type': 'Advertentie Info',
             'Actie': "'Info voor targeting': " + category,
             'URL': 'Geen URL',
             'Datum': 'Geen Datum',
@@ -781,7 +781,7 @@ def parse_ads_interests(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                 # Only add entries with non-empty titles
                 if title:
                     results.append({
-                        'Type': 'Advertentie Data',
+                        'Type': 'Advertentie Info',
                         'Actie': "'Info voor targeting': " + title,
                         'URL': 'Geen URL',  # No URL is present in this structure
                         'Datum': 'Geen Datum',  # No Date information is provided
@@ -809,7 +809,7 @@ def parse_other_categories_used(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             return []
         
         return [{
-            'Type': 'Advertentie Data',
+            'Type': 'Advertentie Info',
             'Actie': "'Info voor targeting': " + category,
             'URL': 'Geen URL',
             'Datum': 'Geen Datum',
@@ -835,7 +835,7 @@ def parse_other_categories_used(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
                 if title:  # Only add non-empty titles
                     results.append({
-                        'Type': 'Advertentie Data',
+                        'Type': 'Advertentie Info',
                         'Actie': "'Info voor targeting': " + title,
                         'URL': 'Geen URL',  # No URL is present in this structure
                         'Datum': 'Geen Datum',  # No Date information is provided
@@ -1057,7 +1057,7 @@ def parse_subscription_for_no_ads(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             return []
         
         return [{
-            'Type': 'Advertentie Data',
+            'Type': 'Advertentie Info',
             'Actie': "Uw status van advertentie-opt-out abonnement" + ": " + sub.get("value", ""),
             'URL': 'Geen URL',
             'Datum': 'Geen Datum',
@@ -1082,7 +1082,7 @@ def parse_subscription_for_no_ads(data: Dict[str, Any]) -> List[Dict[str, Any]]:
               value = row.xpath('.//td[2]/text()')[0].strip() if row.xpath('.//td[2]/text()') else ""
               
               subscriptions.append({
-                  'Type': 'Advertentie Data',
+                  'Type': 'Advertentie Info',
                   'Actie': "Uw status van advertentie-opt-out abonnement" + ": " + value,
                   'URL': 'Geen URL',
                   'Datum': 'Geen Datum',

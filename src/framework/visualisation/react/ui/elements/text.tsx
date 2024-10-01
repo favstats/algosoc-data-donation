@@ -1,5 +1,22 @@
+import React, { ReactNode } from 'react';
 import { Weak } from '../../../../helpers'
 import { PropsUITextBodyLarge, PropsUITextBodyMedium, PropsUITextBodySmall, PropsUITextLabel, PropsUITextCaption, PropsUITextTitle0, PropsUITextTitle1, PropsUITextTitle2, PropsUITextTitle3, PropsUITextTitle4, PropsUITextTitle6 } from '../../../../types/elements'
+
+
+
+interface FormattedBodyLargeProps {
+  children: ReactNode;
+  color?: string;
+  margin?: string;
+}
+
+export const FormattedBodyLarge = ({ children, color = 'text-grey1', margin = 'mb-6 md:mb-8 lg:mb-10' }: FormattedBodyLargeProps) => {
+  return (
+    <div className={`text-bodylarge font-body ${color} ${margin}`}>
+      {children}
+    </div>
+  );
+};
 
 export const BodyLarge = ({ text, color = 'text-grey1', margin = 'mb-6 md:mb-8 lg:mb-10' }: Weak<PropsUITextBodyLarge>): JSX.Element => {
   return (
