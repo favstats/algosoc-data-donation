@@ -54,6 +54,7 @@ export const DonationPage = (props: Props): JSX.Element => {
 
   const typeDescriptions: { [key: string]: string } = {
     'Advertentie Info': '(dit zijn gegevens over de advertenties die u heeft gezien en advertentie-instellingen)',
+    'Advertentie Data': '(dit zijn gegevens over de advertenties die u heeft gezien en advertentie-instellingen)',
     'Gevolgde Accounts': '(dit zijn de accounts die u volgt)',
     'Hashtags': '(dit zijn de hashtags die u heeft gebruikt)',
     'Kijkgeschiedenis': '(dit is uw videokijkgeschiedenis)',
@@ -85,7 +86,14 @@ export const DonationPage = (props: Props): JSX.Element => {
     'Reels': '(dit zijn gegevens over Reels die u heeft gepost)',
     'Gelikete Stories': '(dit zijn gegevens over stories die u heeft geliket)',
     'Posts die zijn bekeken': '(dit zijn gegevens over posts die u heeft bekeken)',
+    'Vind ik leuk Reacties': '(dit is de content die u heeft geliket)',
+    'Gezien Posts': '(dit zijn gegevens over posts die u heeft bekeken)',
+    'Gezien Advertenties': '(dit zijn gegevens over advertenties die u heeft bekeken)',
 
+    
+    "Favoriete Videos": "(gegevens over video's die u heeft geliket of gereageerd op)",
+    "Favoriete Hashtags": '(gegevens over hashtags die u heeft geliket)',
+    'Stories': '(dit zijn gegevens over de stories die u heeft gemaakt)',
 
 
   }
