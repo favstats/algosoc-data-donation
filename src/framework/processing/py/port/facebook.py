@@ -1612,7 +1612,32 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
             combined_df = replace_username_in_dataframe(combined_df)
         except Exception as e:
             logger.warning(f"Could not replace username: {e}")
+
+        # Global variable to store the actor name
+        global_actor_name = None
+
+        def get_actor(df):
+            pattern = r"^([\w\s\.\d_\-']+?)\s+(heeft|vindt|likes|liked|replied|reacted|placed|commented)"
+            for text in df['Actie']:
+                match = re.search(pattern, text, re.UNICODE)
+                if match:
+                    return match.group(1).strip()
+            return None
         
+        def replace_actor_in_dataframe(df, actor_name):
+            if actor_name:
+                for column in ['Actie', 'Details']:
+                    df[column] = df[column].str.replace(actor_name, "the_user", regex=False)
+            return df
+
+        try:
+            actor_name = get_actor(combined_df)
+            if actor_name:
+                combined_df = replace_actor_in_dataframe(combined_df, actor_name)
+                logger.info("Replaced user name.")
+        except Exception as e:
+            logger.warning(f"Could not replace name: {e}") 
+
         
         table_title = props.Translatable({"en": "Facebook Activity Data", "nl": "Facebook Gegevens"})
         visses = [vis.create_chart(

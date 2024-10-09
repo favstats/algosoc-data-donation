@@ -788,12 +788,56 @@ def should_exclude_url(url: str) -> bool:
             return True
         # Check if URL refers to a porn website
         domain = re.findall(r'://(?:www\.)?([^/]+)', url)
-        if domain and any(porn_site in domain[0] for porn_site in porn_websites):
-            return True
+        if domain:
+            domain_name = domain[0].lower()  # Lowercase the domain only after extraction
+            if any(porn_site in domain_name for porn_site in porn_websites) or "porn" in domain_name or "xxx" in domain_name:
+                return True
         return False
     except Exception as e:
         return False
 
+def detect_explicit_content(text: str) -> bool:
+    try:
+
+        # List of common keywords associated with explicit content
+        explicit_keywords = [
+        "porn", "xxx", "sex", "erotic",  "kinky", "fetish",
+        "hot girls", "camgirl", "onlyfans", "lingerie", "adult video",
+        "adult industry", "exotic dancer", 
+        # Added popular names
+        "abella danger", "adriana chechik", "aimi yoshikawa", "amarna miller", 
+        "angela white", "anna polina", "anri okita", "arabelle raphael", 
+        "ariana marie", "august ames", "ayu sakurai", "belle knox", "bonnie rotten", 
+        "brett rossi", "carter cruise", "casey calvert", "chanel preston", 
+        "charlotte sartre", "chloe cherry", "christy mack", "dakota skye", 
+        "ebony mystique", "ela darling", "emily willis", "eva elfie", 
+        "gianna dior", "ginger banks", "iori kogawa", "jia lissa", "jessie andrews", 
+        "jessie rogers", "julia alexandratou", "kaho shibuya", "kendra sunderland", 
+        "lana rhoades", "lasirena69", "lauren phillips", "lizz tayler", 
+        "maitland ward", "mana sakura", "megan barton-hanson", "melissa bulanhagui", 
+        "mercedes carrera", "mia khalifa", "mia magma", "mia malkova", 
+        "nadia ali", "rebecca more", "remy lacroix", "renee gracie", 
+        "reya sunshine", "rika hoshimi", "riley reid", "saki hatsumi", 
+        "samantha bentley", "sara tommasi", "scarlet young", "siew pui yi", 
+        "siouxsie q", "sophie anderson", "tasha reign", "tsusaka aoi", 
+        "valentina nappi", "whitney wright", "alvin tan", "arad winwin", 
+        "armond rizzo", "austin wolf", "billy santoro", "brendon miller", 
+        "griffin barrows", "jordi el niño polla", "matthew camp", "rocco steele", 
+        "ty mitchell", "amouranth", "belle delphine", "cara cunningham", 
+        "nang mwe san", "projekt melody"
+        ]
+        
+        # Create a regex pattern that looks for any of these keywords in a case-insensitive way
+        explicit_pattern = re.compile(r'(?:' + '|'.join(map(re.escape, explicit_keywords)) + r')', re.IGNORECASE)
+        
+        # Search for the pattern in the text
+        if explicit_pattern.search(text):
+            return True  # Explicit content detected
+        else:
+            return False  # No explicit content detected
+    except Exception as e:
+        return False
+      
 def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormTable]:
     logger.info("Starting to extract Google data.")   
     try:
@@ -816,7 +860,11 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
             if data:
                 df = pd.DataFrame(data)
                 # Filter out unwanted URLs
-                df = df[~df['URL'].apply(should_exclude_url)]
+                # Combine URL and Actie checks into a single boolean mask
+                mask = ~(df['URL'].apply(should_exclude_url) | df['Actie'].apply(detect_explicit_content))
+                
+                # Apply the mask to filter the DataFrame
+                df = df[mask]
     
                 if Type == 'youtube_subscription':
                     subscription_data.append(df)
