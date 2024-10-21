@@ -1626,8 +1626,14 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         
         def replace_actor_in_dataframe(df, actor_name):
             if actor_name:
-                for column in ['Actie', 'Details']:
-                    df[column] = df[column].str.replace(actor_name, "the_user", regex=False)
+                lower_actor_name = actor_name.lower()  # Convert the actor name to lowercase
+                for index, row in df.iterrows():
+                    # Check for the lowercase actor name in both 'Actie' and 'Details' columns
+                    if lower_actor_name in row['Actie'].lower() or lower_actor_name in row['Details'].lower():
+                        # Replace the actor name in a case-insensitive way
+                        df.at[index, 'Actie'] = re.sub(re.escape(actor_name), "the_user", row['Actie'], flags=re.IGNORECASE)
+                        df.at[index, 'Details'] = re.sub(re.escape(actor_name), "the_user", row['Details'], flags=re.IGNORECASE)
+                        df.at[index, 'URL'] = "Geen URL"  # Set URL to "Geen URL" for this specific row
             return df
 
         try:

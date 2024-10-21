@@ -487,7 +487,7 @@ def parse_videos_watched(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     date_text = helpers.robust_datetime_parser(date.strip()) if date else ''
 
                     parsed_item = {
-                        'Type': 'instagram_videos_watched',
+                        'Type': 'Gezien Posts',
                         'Actie': "'Bekeken:' " + title_text,
                         'URL': 'Geen URL',
                         'Datum': date_text,
