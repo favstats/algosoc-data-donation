@@ -45,7 +45,7 @@ def process(session_id):
 
     ### SET THE PLATFORM TO BE DONATED:
     # "Google", "Facebook", "Instagram", "TikTok"
-    current_platform = "Google"
+    current_platform = "Facebook"
     # Sort platforms to ensure current_platform is checked first
     platforms = [platform for platform in platforms if platform[0] == current_platform]
 

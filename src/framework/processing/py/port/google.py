@@ -11,6 +11,7 @@ from pathlib import Path
 from lxml import html  # Make sure this import is present
 import csv
 import re
+from functools import partial
 import port.api.props as props
 import port.helpers as helpers
 import port.vis as vis
@@ -743,44 +744,71 @@ def should_exclude_url(url: str) -> bool:
     
         # List of popular porn websites (only domains, without "www." or "https://")
         porn_websites = [
-            "pornhub.com", "xvideos.com", "xnxx.com", "redtube.com", "xhamster.com", "deloris-ai",
-            "youporn.com", "tube8.com", "spankbang.com", "youjizz.com", "fapdu.com", "9xbuddy.xyz",
-            "brazzers.com", "mofos.com", "naughtyamerica.com", "bangbros.com", "deepmode.ai",
-            "pornmd.com", "clips4sale.com", "camsoda.com", "chaturbate.com", "casualdating1.com",
-            "myfreecams.com", "livejasmin.com", "streamate.com", "bongacams.com", "deepmode.ai",
-            "onlyfans.com", "adultfriendfinder.com", "sextube.com", "beeg.com", "akg01.com",
-            "porn.com", "xtube.com", "slutload.com", "tnaflix.com", "pornhubpremium.com",
-            "javhd.com", "realitykings.com", "metart.com", "eroprofile.com", "nudelive.com",
-            "fantasti.cc", "hclips.com", "alphaporno.com", "ashemaletube.com", "hdpornvideo.xxx",
-            "playvid.com", "4tube.com", "javfinder.com", "pornbb.org", "sex.com", "hentaigasm.com",
-            "hentaistream.com", "adulttime.com", "wicked.com", "dogfartnetwork.com",
-            "keezmovies.com", "xempire.com", "alotporn.com", "familyporn.tv", "pornrips.com",
-            "thumzilla.com", "madthumbs.com", "drtuber.com", "pornhd.com", "upornia.com",
-            "fapdu.com", "freeones.com", "twistys.com", "3movs.com", "vporn.com", "candy.ai",
-            "porndoe.com", "pornhd.com", "hdtube.porn", "recurbate.com", "tubegalore.com",
-            "porndig.com", "h2porn.com", "lobstertube.com", "nuvid.com", "sexvid.xxx",
-            "xhamsterlive.com", "playboy.tv", "cams.com", "badoinkvr.com", "vrporn.com",
-            "vrcosplayx.com", "metartx.com", "hegre-art.com", "joymii.com", "goodporn.to",
-            "spankwire.com", "homepornking.com", "pornrabbit.com", "megapornx.com", "tingo.ai",
-            
-            "jizzbunker.com", "eporner.com", "cam4.com", "sexier.com", "adultempire.com", "basedlabs.ai",
-            "joysporn.com", "slutroulette.com", "bigxvideos.com", "hotmovs.com", "milfporn.xxx",
-            
-            # Dutch Porn Websites
-            "kinky.nl", "geilevrouwen.nl", "sexfilms.nl", "nlporno.com", 
-            "echtneuken.nl", "viva.nl", "sexjobs.nl", "vagina.nl", "binkdate.nl", "chatgirl.nl",
-        
-            # Gay Porn Websites
-            "men.com", "gaytube.com", "justusboys.com", "gaymaletube.com", "dudetube.com",
-            "nextdoorstudios.com", "cockyboys.com", "helixstudios.net", "hothouse.com", "corbinfisher.com",
-        
-            # Lesbian Porn Websites
-            "girlsway.com", "naughtylady.com", "bellesa.co", "sweetsinner.com", "transangelsnetwork.com",
-            "girlfriendsfilms.com", "thelesbianexperience.com", "wifelovers.com", "wearehairy.com", "lucasentertainment.com",
-        
-            # Trans Porn Websites
-            "shemale.xxx", "groobygirls.com", "ts-dating.com", "tgirls.com", "trannytube.tv",
-            "transgenderpornstar.com", "trans500.com", "pure-ts.com", "transangels.com", "tgirlporn.tv"
+    "mail.google.com/mail", "porn", "xhamster",
+    "erotic", "kinky", "fetish", "jerk off",
+    "camgirl",  "hentai", "gangbang",  "femdom",
+    "onlyfans", "fansly",  "threesome", "sex worker",
+    "prostitute", "escort service",
+    "strip club", "exotic dancer", "not safe for work",
+
+    "pornhub.com", "xvideos.com", "xnxx.com", "redtube.com", "xhamster.com", "deloris.ai", "edttmar.com",
+    "youporn.com", "tube8.com", "spankbang.com", "youjizz.com", "fapdu.com", "9xbuddy.xyz", 
+    "brazzers.com", "mofos.com", "naughtyamerica.com", "bangbros.com", "4kporn.xxx", "crmentjg.com",
+    "pornmd.com", "clips4sale.com", "camsoda.com", "chaturbate.com", "casualdating1.com",
+    "myfreecams.com", "livejasmin.com", "streamate.com", "bongacams.com", "deepmode.ai",
+    "onlyfans.com", "adultfriendfinder.com", "sextube.com", "beeg.com", "akg01.com",
+    "porn.com", "xtube.com", "slutload.com", "tnaflix.com", "pornhubpremium.com",
+    "javhd.com", "realitykings.com", "metart.com", "eroprofile.com", "nudelive.com",
+    "fantasti.cc", "hclips.com", "alphaporno.com", "ashemaletube.com", "hdpornvideo.xxx",
+    "playvid.com", "4tube.com", "javfinder.com", "pornbb.org", "sex.com", "hentaigasm.com",
+    "hentaistream.com", "adulttime.com", "wicked.com", "dogfartnetwork.com", "faphouse.com",
+    "keezmovies.com", "xempire.com", "alotporn.com", "familyporn.tv", "pornrips.com",
+    "thumzilla.com", "madthumbs.com", "drtuber.com", "pornhd.com", "upornia.com",
+    "fapdu.com", "freeones.com", "twistys.com", "3movs.com", "vporn.com", "candy.ai",
+    "porndoe.com", "pornhd.com", "hdtube.porn", "recurbate.com", "tubegalore.com",
+    "porndig.com", "h2porn.com", "lobstertube.com", "nuvid.com", "sexvid.xxx", "literotica.com",
+    "xhamsterlive.com", "playboy.tv", "cams.com", "badoinkvr.com", "vrporn.com",
+    "vrcosplayx.com", "metartx.com", "hegre-art.com", "joymii.com", "goodporn.to",
+    "spankwire.com", "homepornking.com", "pornrabbit.com", "megapornx.com", "tingo.ai",
+
+    "jizzbunker.com", "eporner.com", "cam4.com", "sexier.com", "adultempire.com", "basedlabs.ai",
+    "joysporn.com", "slutroulette.com", "bigxvideos.com", "hotmovs.com", "milfporn.xxx", "fuq.com",
+
+    "siswet", "taylor sands", "naughty celeste",
+    "esperanza del horno", "alyx star", "penny barber", "princess lili",
+    "natasha nice", "angela white", "joey mills", "austin young",
+    "legrand wolf", "viktor rom", "malik delgaty", "daisy taylor",
+    "emma rose", "jessy dubai", "jade venus", "izzy wilde", "melody pleasure",
+    "esluna love", "romy indy", "zara whites", "yasie lee", "tracy oba",
+    "iori kogawa", "jia lissa", "jessie andrews", "jessie rogers",
+    "julia alexandratou", "kaho shibuya", "kendra sunderland", "lana rhoades",
+    "lasirena69", "lauren phillips", "lizz tayler", "maitland ward",
+    "mana sakura", "megan barton hanson", "melissa bulanhagui", "mercedes carrera",
+    "mia khalifa", "mia magma", "mia malkova", "nadia ali", "rebecca more",
+    "remy lacroix", "renee gracie", "reya sunshine", "rika hoshimi",
+    "riley reid", "saki hatsumi", "samantha bentley", "sara tommasi",
+    "scarlet young", "siew pui yi", "siouxsie q", "sophie anderson",
+    "tasha reign", "tsusaka aoi", "valentina nappi", "whitney wright",
+    "alvin tan", "arad winwin", "armond rizzo", "austin wolf", "billy santoro",
+    "brendon miller", "griffin barrows", "jordi el nino polla",
+    "matthew camp", "rocco steele", "ty mitchell", "amouranth", "belle delphine",
+    "cara cunningham", "nang mwe san", "projekt melody",
+
+    # Dutch Porn Websites
+    "kinky.nl", "geilevrouwen.nl", "sexfilms.nl", "nlporno.com", "lottelust.nl",
+    "echtneuken.nl", "viva.nl", "sexjobs.nl", "vagina.nl", "binkdate.nl", "chatgirl.nl",
+
+    # Gay Porn Websites
+    "https://men.com", "www.men.com", "gaytube.com", "justusboys.com", "gaymaletube.com", "dudetube.com",
+    "nextdoorstudios.com", "cockyboys.com", "helixstudios.net", "hothouse.com", "corbinfisher.com",
+
+    # Lesbian Porn Websites
+    "girlsway.com", "naughtylady.com", "bellesa.co", "sweetsinner.com", "transangelsnetwork.com",
+    "girlfriendsfilms.com", "thelesbianexperience.com", "wifelovers.com", "wearehairy.com", "lucasentertainment.com",
+
+    # Trans Porn Websites
+    "shemale.xxx", "groobygirls.com", "ts-dating.com", "tgirls.com", "trannytube.tv",
+    "transgenderpornstar.com", "trans500.com", "pure-ts.com", "transangels.com", "tgirlporn.tv"
         ]
     
       
@@ -796,301 +824,94 @@ def should_exclude_url(url: str) -> bool:
         return False
     except Exception as e:
         return False
+      
 
-def detect_explicit_content(text: str) -> bool:
-    try:
+explicit_keywords = [
+      "outlook.live.com", "mail.google.com/mail", "mail.kpnmail.nl",
+      "outlook.office365.com", "porn",
+      "pornhub", "xhamster", "youporn",
+      "erotic", "kinky", "fetish", "jerk off",
+     "camgirl",  "hentai", "gangbang",  "femdom",
+     "onlyfans", "fansly",  "threesome", "adult video", "adult movie",
+     "adult escort", "prostitute", "escort service", "sex worker",
+     "stripper", "strip club", "exotic dancer",
+     "not safe for work", 
 
-        # List of common keywords associated with explicit content
-        explicit_keywords = [
-        "porn", "pornhub", "xhamster", "xnxx", "xxx", "sex", "erotic", "kinky", "fetish",
-        "camgirl", "webcam", "cam site", "cam show",
-        "onlyfans", "fansly", "premium snapchat",
-        "lingerie", "sexy lingerie", "boudoir",
-        "adult video", "adult movie", "adult industry",
-        "escort", "prostitute", "escort service", "sex worker",
-        "stripper", "strip club", "exotic dancer",
-        "nsfw", "not safe for work", 
-        "nudes", "sexting", "snapchat nudes",
-        "adult chat", "sex chat", "dirty chat",
-        "bukkake", "gangbang", "threesome",
-        "fetlife", "bdsm", "dominatrix", 
-        "masturbation", "gooning", "fap", "jerk off", "nudity",
-        "hentai", "anime porn", "doujin",
-        "webcam model", "pornstar", "adult actress",
-         "hotwife", 
-        "pegging", "rimming", 
-         "incest",
-        "cheating wife", "cheating husband",
-        "fetish videos", "foot fetish",
-        # Adult Subreddits
-        "gonewild",
-        "r/boobs", "r/ass", "r/thick", "r/bigtits",
-        "r/altgonewild", "r/gonewild30plus", "r/milf",
-        "r/legalteens", "r/collegesluts", "r/bdsm",
-        "r/cumsluts", "r/dirtypenpals", "r/cocktits",
-        "r/dirtysnapchat", "r/snapchatnudes", "r/horny",
-        "r/camwhores", "r/onlyfansgirls", "r/feetpics",
-        "r/swingersgw", "r/hotWife", "r/cuckoldcommunity",
-        "r/brothel", "r/sexworkers", "r/strippers",
-        "r/fetish", "r/Femdom", "r/chubby",
-        "r/sissy", "r/cuckold", "r/amateurporn",
-        "r/threesomes", "r/hotwife", "r/ladybonersgw",
-        "r/pornvids", "r/freefapvideos", "r/unitedporn",
-        "r/dirtyr4r", "r/nsfwhumor", "r/hentai",
-        "r/hentai_gif", "r/hentai_videos", "r/hentai_porn",
-        "r/celebnsfw", "r/celeb_gonewild",
-        "r/wifesharing", "r/cuckquean", "r/cuckoldplace",
-        "r/hotwives", "xxx", "sex", "erotic",  "kinky", "fetish", "asianporn",
-        "hot girls", "theporndude", "nsfw", "camgirl", "gooncaves",
-        "onlyfans", "lingerie", "adult video", "Comic Book Girl 19",
-        "adult industry", "exotic dancer", "15 seconds to fap",
-        # Added popular names
-        "taylor sands", "porno travel tv", "naughty celeste", 
-        "esperanza del horno", "kalisi ink", "romy indy", "ellie leen", 
-        "kate haven", "chelsey lanette", "sarah calanthe", "esadora", 
-        "delicious liv", "verona van de leur", "saskia steele", "cyberly crush", 
-        "nayomi sharp", "sofia valentine", "zara whites", "helen duval", 
-        "mandy slim", "gammabia", "sarah fonteyna", "mistress kym", "esluna love", 
-        "chrystal sinn", "terri summers", "linda lush", "cherryflowerxxx", 
-        "jentina small", "julie mandrews", "deidre holland", "susi star", 
-        "leayummy", "nude chrissy", "zoe davis", "ivey passion", "bibi bugatti", 
-        "melody pleasure", "jenna joy", "leona queen", "assbandida", 
-        "melizza more", "venus et vulcanus", "bobbi eden", "emily crystal", 
-        "tiffany roxx", "milena star", "kyla king", "britt angel", "himiwako", 
-        "spermanneke", "liddy", "kate more", "ownedasian", "ilse de rooij", 
-        "jolee jordan", "debbie van gils", "swing babe", "stella michaells", 
-        "britney dutch", "nathalie kitten", "foxxy angel", "tina starr", 
-        "bibi diamond", "kayla crawford", "mona summers", "vickiluv", 
-        "marianne moist", "wendy somer", "suraya jamal", "curly chloe", 
-        "scarlett hope", "lilimissarab", "chica la roxxx", "marlenadi", 
-        "sintia stone", "angela ts sissy", "dutch dirty games", "silver forrest", 
-        "myella", "chamo 1972", "wildestkitten", "kim holland", "charisma gold", 
-        "samanthakiss", "debby pleasure", "angelina e", "wet denise", 
-        "teresa dumore", "mature kim", "ivana hyde", "zeeuwskoppel1972", 
-        "joy latoya", "laura lust", "anna lynx", "jane von deffa", "joy draiki", 
-        "sofia britt putalocura", "bunny jane", "pixie pink", "noortje", 
-        "veronica doll", "daphne laat", "ana maria221", "lynn lynx", 
-        "pauline teutscher", "romee strijd", "trixi heinenn", "passiekoppel", 
-        "raven", "meesteresnoir", "slutty granny", "lisa brunet", "suraya stars", 
-        "lemon haze", "teresa du more", "wet_denise", "diana van laar", 
-        "sweet rebel", "natasja less", "vivanica", "jenny joy", "mrs amsterdam", 
-        "carmen joy", "little ductapegirl lilly", "vera delightfull", 
-        "creampie sophie", "saphira m", "mistress tirza", "natalie visser", 
-        "didi devil", "nina van dick", "sasha fears", "danique", "arienh", 
-        "hailey haze", "dirty lee", "goldykim", "juliette squirt", "elvira princess", 
-        "victoria fox", "oma von lizzy", "miss blazy", "mishi", "nora sparkle", 
-        "linastarr", "sophieheels", "niffy noon", "shirly wild", "morgan", 
-        "dutch jewel", "slave mila", "candy35", "sylvia milf", "chayenne shea", 
-        "footfetisdom", "guilbert by orm", "denise star", "alyx star", 
-        "princess lili", "natasha nice", "penny barber", "angela white", 
-        "mia khalifa", "coco lovelock", "abigaiil morris", "dani daniels", 
-        "eliza ibarra", "brandi love", "siri", "abella danger", "cory chase", 
-        "leana lovings", "cherie deville", "jordi el nino polla", "emily willis", 
-        "sunny leone", "ava addams", "blake blossom", "dee williams", 
-        "valentina nappi", "kenzie reeves", "sophia leone", "lauren phillips", 
-        "riley reid", "syren demer", "reagan foxx", "camilla creampie", 
-        "lena paul", "danny d", "alexis fawx", "krissy lynn", "julia ann", 
-        "dirty tina", "sheena ryder", "hazel moore", "kate rich", "gina gerson", 
-        "alex adams", "tim deen", "adriana chechik", "veronica leal", 
-        "gali diva", "carmela clutch", "violet myers", "chanel preston", 
-        "mia malkova", "lexi lore", "alexis crystal", "ariella ferrera", 
-        "lana rhoades", "brianna beach", "aubree valentine", "lilly hall", 
-        "lila lovely", "anissa kate", "ryan keely", "lexi luna", "johnny sins", 
-        "daynia xxx", "cathy heaven", "rachael cavalli", "anny aurora", 
-        "india summer", "bella gray", "julia north", "chloe surreal", 
-        "rae lil black", "juan el caballo loco", "cherry kiss", "lulu chu", 
-        "melody marks", "angel wicky", "sofia lee", "casey calvert", 
-        "miho ichiki", "jodi west", "veronica avluv", "nicole aniston", 
-        "phoenix marie", "j-mac", "ricky spanish", "jasmine jae", "kay parker", 
-        "codi vore", "tiffany tatum", "mariska x", "brittany bardot", 
-        "leah gotti", "nina hartley", "xxlayna marie", "jane wilde", 
-        "lisa ann", "karlee grey", "andi james", "olivia sparkle", "christie stevens", 
-        "ella knox", "jax slayher", "whitney wright", "manuel ferrara", 
-        "alina lopez", "alura jenson", "amirah adara", "gabbie carter", 
-        "shane diesel", "elsa jean", "bunny colby", "mandy muse", "jia lissa", 
-        "kendra lust", "anna claire clouds", "steve holmes", "stacy cruz", 
-        "leo ahsoka", "sharon white", "fae love", "shalina devine", "elena koshka", 
-        "eva elfie", "sexy susi", "molly little", "alex magni", "london river", 
-        "bella rolland", "sara jay", "ryan madison", "diana douglas", 
-        "dana vespoli", "piper perri", "nadia ali", "montse swinger", 
-        "gia derza", "hailey rose", "lia louise", "lilian black", "bea dumas", 
-        "eveline dellai", "melanie hicks", "katty west", "eva notty", 
-        "jennifer white", "nickey huntsman", "nuria millan", "egon kowalski", 
-        "maria wars", "salome gil", "sheila ortega", "xander corvus", 
-        "kylie rocket", "kyler quinn", "tejashwini", "nicole dupapillon", 
-        "kira noir", "adria rae", "kenzie taylor", "crystal rush", "savannah bond", 
-        "blaire ivory", "may thai", "sally d'angelo", "eveline magic", 
-        "reiko kobayakawa", "jaye summers", "ryan conner", "mona wales", 
-        "nicole murkovski", "jenna starr", "gal ritchie", "chloe temple", 
-        "gia paige", "payton preslee", "james deen", "octavia red", "bridgette b", 
-        "shooting star", "violet starr", "romi rain", "pristine edge", 
-        "vanessa vega", "vanna bardot", "brigitte lahaie", "molly maracas", 
-        "kristen scott", "ginger mi", "kenna james", "nikky thorne", 
-        "charlie forde", "charles dera", "janet mason", "shione cooper", 
-        "rocco siffredi", "alex coal", "ellie nova", "emma hix", "aletta ocean", 
-        "anna polina", "carolina sweets", "jessica ryan", "kendra sunderland", 
-        "kathia nobili", "mick blue", "yui hatano", "anna de ville", 
-        "karla kush", "aften opal", "haley spades", "luna star", "sucharita", 
-        "seth gamble", "armani black", "britney amber", "sophie dee", 
-        "stella cox", "molly jane", "jimmy michaels", "kagney linn karter", 
-        "jasmine black", "jessica bangkok", "tina kay", "laney grey", 
-        "isiah maxwell", "sybil a kailena", "sensual jane", "koko blond", 
-        "clea gaultier", "angie faith", "luca ferrero", "margot von teese", 
-        "tyler nixon", "liv revamped", "maitland ward", "vanessa cage", 
-        "jenny stella", "shay sights", "chanel camryn", "alyssa hart", 
-        "alex legend", "austin young", "joey mills", "legrand wolf", 
-        "viktor rom", "malik delgaty", "roman todd", "dakota lovell", 
-        "dante colle", "devin franco", "jax thirio", "jack bailey", "drew sebastian", 
-        "spikey dee", "rocco steele", "drake von", "manuel skye", "felix fox", 
-        "chris damned", "joel someone", "sergeant miles", "brody kayman", 
-        "tim kruger", "armond rizzo", "jayden marcos", "killian knox", 
-        "skylar finchh", "arad winwin", "dakota payne", "allen king", 
-        "bastian karim", "jack valor", "jake preston", "johnny rapid", 
-        "reece scott", "sam ledger", "trevor brooks", "adam snow", "lance charger", 
-        "zayne bright", "heathen halo", "dirk caber", "shae reynolds", 
-        "sean xavier", "michael boston", "foxy alex", "jay magnus", "diego sans", 
-        "dale savage", "jordan starr", "carter woods", "beau butler", 
-        "sir peter", "joaquin santana", "bruce jones", "william seed", 
-        "lawson james", "tony keit", "markus kage", "santi noguera", 
-        "tomas brand", "dallas steele", "trevor harris", "cole church", 
-        "nick capra", "jonah wheeler", "rafael alencar", "pierce paris", 
-        "ashton summers", "reese rideout", "romeo davis", "sebastian kane", 
-        "andy star", "alex mecum", "troye dean", "drew dixon", "jack hunter", 
-        "teddy torres", "johnny ford", "calvin banks", "mateo tomas", 
-        "dillon diaz", "greg dixxon", "eddie patrick", "ray diesel", 
-        "justin matthews", "ty roderick", "bo sinn", "alex madriz", "marco napoli", 
-        "sean ford", "derek kage", "cade maddox", "kyle michaels", "mason lear", 
-        "gabriel clark", "aaron trainer", "bishop angus", "cain marko", 
-        "nick floyd", "rob quin", "antonio biaggi", "jeremy bilding", 
-        "elliot finn", "sam narcis", "draven navarro", "ruslan angelo", 
-        "juven", "brian bonds", "cole blue", "adam russo", "adrian hart", 
-        "allen silver", "john thomas", "dani robles", "andre donovan", 
-        "hugo antonin", "jack dixon", "dylan hayes", "tommy defendi", 
-        "michael lucas", "jake nicola", "michael del ray", "skyy knox", 
-        "max sargent", "will angell", "carter dane", "dylan james", "kyler moss", 
-        "dalton riley", "jack waters", "alex roman", "riley mitchel", 
-        "kenzo alvarez", "colby keller", "sharok", "solomon aspen", "oliver carter", 
-        "colby jansen", "rico marlon", "marcus mcneil", "matt hughes", 
-        "cutler x", "dean young", "connor maguire", "leon giok", "ricky larkin", 
-        "angel rivers", "paul wagner", "brad kalvo", "leo louis", "roxas caelum", 
-        "cyrus stark", "jordan lake", "krave melanin", "tony genius", 
-        "vincent o'reilly", "tannor reed", "rafael carreras", "sean duran", 
-        "timmy cole", "jake olsen", "adam killian", "brock banks", "ryan bones", 
-        "wesley woods", "kane fox", "miguel rey", "gabriel cross", "damien crosse", 
-        "jace reed", "angel rivera", "adam veller", "archi gold", "blake mitchell", 
-        "daniel hausser", "muscled madison", "ryder owens", "ben huller", 
-        "devin trez", "jeffrey lloyd", "jake morgan", "jake cruise", 
-        "jj knight", "beno eker", "jay taylor", "alpha wolfe", "gabe bradshaw", 
-        "rodrigo amor", "rick kelson", "matthew figata", "damian night", 
-        "maverick sun", "scott carter", "marco paris", "billy santoro", 
-        "paul canon", "joel tamir", "lito cruz", "kyle fletcher", "johnny b", 
-        "jaxton wheeler", "donovin rece", "will braun", "atlas grant", 
-        "bad boi benvi", "koldo goran", "harrison todd", "donte thick", 
-        "dom king", "tyler tanner", "christian wilde", "luke hudson", 
-        "amone bane", "archie paige", "ryan rose", "vander pulaski", 
-        "thiagui twink", "masyn thorne", "colton reece", "richard lennox", 
-        "hans berlin", "sage roux", "adam ramzi", "curtis cameron", "leo grand", 
-        "rocky vallarta", "diego mattos", "bryan slater", "nate grimes", 
-        "stas landon", "micah martinez", "bobby blake", "elijah zayne", 
-        "dolf dietrich", "ethan tate", "max konnor", "edward terrant", 
-        "gerasim spartak", "kam stone", "antony carter", "daisy taylor", 
-        "emma rose", "jade venus", "jessy dubai", "ariel demure", "ella hollywood", 
-        "eva maxim", "natalie mars", "izzy wilde", "korra del rio", "chanel santini", 
-        "khloe kay", "erica cherry", "aubrey kate", "christian xxx", 
-        "brittney kade", "yasmin dornelles", "casey kisses", "kim wagner", 
-        "kasey kei", "mariana cordoba", "zariah aura", "ts foxxxy", "crystal thayer", 
-        "tori easton", "venus lux", "gabrielly ferraz", "shiri allwood", 
-        "gracie jane", "aspen brooks", "bella trix", "domino presley", 
-        "lola morena", "bella salvatore", "ember fiera", "ramon monstercock", 
-        "angellica good", "lena kelly", "gia itzel", "kapri sun", "raphaella ferrari", 
-        "kimber lee", "grazyeli silva", "bianca hills", "jenna jaden", 
-        "cherry mavrik", "autumn rain", "nina lawless", "miran", "kellie shaw", 
-        "melanie brooks", "mariana lins", "kayleigh coxx", "sabina steele", 
-        "delia delions", "chanel noir", "lianna lawson", "marcelle herrera", 
-        "alexa scout", "carol penelope", "stacy lynn", "mia isabella", 
-        "lludy fortune", "ivory mayhem", "sabrina suzuki", "carrie emberlyn", 
-        "camilla jolie", "natassia dreams", "nicolly pantoja", "katie fox", 
-        "sarina valentina", "sydney summers", "barbara perez", "marissa minx", 
-        "annabelle lane", "joanna jet", "alice marques", "jamie french", 
-        "melissa pozzi", "janelle fennec", "alisia rae", "jessica fox", 
-        "jhoany wilker", "andylynn payne", "keyla marques", "joey michaels", 
-        "janie blade", "sofia bun", "vanniall", "melissa leal", "asia belle", 
-        "angeles cid", "sara salazar", "bianka nascimento", "nikki north", 
-        "kendall penny", "magaly vaz", "evelin frazao", "bailey paris", 
-        "adriana rodrigues", "jenna creed", "jane marie", "jenna gargles", 
-        "yasmin lee", "fernanda cristine", "haven rose", "bailey jay", 
-        "nataly souza", "chelsea marie", "nikki vicious", "jenny flowers", 
-        "andrea montoya", "isa lawrence", "jessica blake", "valkyria domina", 
-        "zoe fuckpuppet", "jonelle brooks", "lizzy laynez", "juliana leal", 
-        "maira dimov", "leilani li", "beatriz andrade", "allison dale", 
-        "jessy bells", "vaniity", "kalliny nomura", "chris epic", "walleska sargentely", 
-        "walkiria drumond", "luna love", "dana delvey", "sapphire young", 
-        "rosy pinheiro", "claire tenebrarum", "kate zoha", "sabrina prezotte", 
-        "carla novaes", "neci archer", "roberta cortes", "avery angel", 
-        "kendra sinclaire", "sasha de sade", "vitoria neves", "paloma veiga", 
-        "isabella fontaleni", "kimber haven", "bruna butterfly", "mia maffia", 
-        "celine dijjon", "lia dotada", "luana alves", "mos b", "suzanna holmes", 
-        "aylla gattina", "nadia love", "paula long", "graziela cinturinha", 
-        "andressa paiva", "olivia would", "thea daze", "laura ferraz", 
-        "kai bailey", "victor hugo", "danni daniels", "summer hart", 
-        "kalli grace", "pietra radi", "bella de la fuente", "gloria voguel", 
-        "livi doll", "gabi ink", "hanna rios", "amanda fialho", "carla cardille", 
-        "eva lin", "deborah mastronelly", "bruna castro", "luana pacheco", 
-        "veronika havenna", "kelly klaymour", "isabelly ferreira", "morgan bailey", 
-        "janny costa", "emma indica", "hime marie", "ts madison", "renata davila", 
-        "tyra scott", "adrieli pinheiro", "beatrix doll", "honey foxxx", 
-        "india taina", "kawaii fiona", "agata lopes", "chelsea poe", 
-        "ava holt", "estella duarte", "juliana souza", "genesis green", 
-        "pixi lust", "taryn elizabeth", "rachel nova", "thaysa carvalho", 
-        "giovana portylla", "juliette stray", "sasha strokes", "foxy angel", 
-        "lizbeth kyo", "arianna vogue", "aimee fawx", "bianca meirelles", 
-        "dani peterson", "vanessa jhons", "yago ribeiro", "danielle foxxx", 
-        "mireya rinaldi", "thaysa lopes", "penelope jolie", "roxxie moth", 
-        "naomi chi", "jordyn starstruck", "rachael belle", "ciboulette", 
-        "jasmine lotus", "liberty harkness", "mandy mitchell", "luna rose", 
-        "sunshyne monroe", "natalia coxxx", "eva paradis", "julia alves", 
-        "variety itsol", "yuria misaki", "clara ludovice", "anastasia kessler", 
-        "cheffie", "nathalie hardcore", "alexis fox", "curved marvin", 
-        "heidi besk", "dominatrix dinah", "sasha", "stella maas", "cataleya solvage", 
-        "noa livia", "georgina verbaan", "beau hesling", "trixie fox", 
-        "esther heart", "ancilla tilia", "ariana angel", "emy george", 
-        "yasie lee", "celine maxima", "tracy oba", "sebriena star", "tanya de vries", 
-        "rose de jong", "sandy cage", "sasha xiphias", "logan moore", 
-        "peto coast", "kris blent", "diego summers", "nathan devos", 
-        "braxton boyd", "toby dutch", "rick van sant", "johan kane", 
-        "scott miller", "dominique hansson", "jp philips", "dylan greene", 
-        "tommy skylar", "abella danger", "adriana chechik", "aimi yoshikawa", 
-        "amarna miller", "angela white", "anna polina", "anri okita", 
-        "arabelle raphael", "honey_sunshine", "ariana marie", "august ames", 
-        "ayu sakurai", "belle knox", "bonnie rotten", "brett rossi", 
-        "carter cruise", "casey calvert", "chanel preston", "charlotte sartre", 
-        "chloe cherry", "christy mack", "dakota skye", "eve sweet", "ebony mystique", 
-        "ela darling", "emily willis", "eva elfie", "gianna dior", "ginger banks", 
-        "iori kogawa", "jia lissa", "jessie andrews", "jessie rogers", 
-        "julia alexandratou", "kaho shibuya", "kendra sunderland", "lana rhoades", 
-        "lasirena69", "lauren phillips", "lizz tayler", "maitland ward", 
-        "mana sakura", "megan barton-hanson", "melissa bulanhagui", "mercedes carrera", 
-        "mia khalifa", "mia magma", "mia malkova", "nadia ali", "rebecca more", 
-        "remy lacroix", "renee gracie", "reya sunshine", "rika hoshimi", 
-        "riley reid", "saki hatsumi", "samantha bentley", "sara tommasi", 
-        "scarlet young", "siew pui yi", "siouxsie q", "sophie anderson", 
-        "tasha reign", "tsusaka aoi", "valentina nappi", "whitney wright", 
-        "alvin tan", "arad winwin", "armond rizzo", "austin wolf", "billy santoro", 
-        "brendon miller", "griffin barrows", "jordi el niño polla", 
-        "matthew camp", "rocco steele", "ty mitchell", "amouranth", "belle delphine", 
-        "cara cunningham", "nang mwe san", "projekt melody"
-        ]
-        
-        # Create a regex pattern that looks for any of these keywords in a case-insensitive way
-        explicit_pattern = re.compile(r'(?:' + '|'.join(map(re.escape, explicit_keywords)) + r')', re.IGNORECASE)
-        
-        # Search for the pattern in the text
-        if explicit_pattern.search(text):
-            return True  # Explicit content detected
-        else:
-            return False  # No explicit content detected
-    except Exception as e:
-        return False
+     "pornhub.com", "xvideos.com", "xnxx.com", "redtube.com", "xhamster.com", "deloris.ai",
+     "youporn.com", "tube8.com", "spankbang.com", "youjizz.com", "fapdu.com", "9xbuddy.xyz",
+     "brazzers.com", "mofos.com", "naughtyamerica.com", "bangbros.com", 
+     "pornmd.com", "clips4sale.com", "camsoda.com", "chaturbate.com", "casualdating1.com",
+     "myfreecams.com", "livejasmin.com", "streamate.com", "bongacams.com", "deepmode.ai",
+     "onlyfans.com", "adultfriendfinder.com", "sextube.com", "beeg.com", "akg01.com",
+     "porn.com", "xtube.com", "slutload.com", "tnaflix.com", "pornhubpremium.com",
+     "javhd.com", "realitykings.com", "metart.com", "eroprofile.com", "nudelive.com",
+     "fantasti.cc", "hclips.com", "alphaporno.com", "ashemaletube.com", "hdpornvideo.xxx",
+     "playvid.com", "4tube.com", "javfinder.com", "pornbb.org", "sex.com", "hentaigasm.com",
+     "hentaistream.com", "adulttime.com", "wicked.com", "dogfartnetwork.com", "stripchat.com",
+     "keezmovies.com", "xempire.com", "alotporn.com", "familyporn.tv", "pornrips.com",
+     "thumzilla.com", "madthumbs.com", "drtuber.com", "pornhd.com", "upornia.com",
+     "fapdu.com", "freeones.com", "twistys.com", "3movs.com", "vporn.com", "candy.ai",
+     "porndoe.com", "pornhd.com", "hdtube.porn", "recurbate.com", "tubegalore.com",
+     "porndig.com", "h2porn.com", "lobstertube.com", "nuvid.com", "sexvid.xxx",
+     "xhamsterlive.com", "playboy.tv", "cams.com", "badoinkvr.com", "vrporn.com",
+     "vrcosplayx.com", "metartx.com", "hegre-art.com", "joymii.com", "goodporn.to",
+     "spankwire.com", "homepornking.com", "pornrabbit.com", "megapornx.com", "tingo.ai",
+       "boy18tube.com",	
+       "crazyporn.xxx",	
+       "fapnfuck.com",
+       "fetishbank.net",
+       "gonzoxxxmovies.com",
+       "ixxx.com",
+       "nedporno.com",
+       "pornogemist.nl"	
+       "pornxday.com",
+       "webcamsex.nl",
+     
+     "jizzbunker.com", "eporner.com", "cam4.com", "sexier.com", "adultempire.com", "basedlabs.ai",
+     "joysporn.com", "slutroulette.com", "bigxvideos.com", "hotmovs.com", "milfporn.xxx",
+
+     "siswet", "taylor sands", "naughty celeste",
+     "esperanza del horno", "alyx star", "penny barber", "princess lili",
+     "natasha nice", "angela white", "joey mills", "austin young",
+     "legrand wolf", "viktor rom", "malik delgaty", "daisy taylor",
+     "emma rose", "jessy dubai", "jade venus", "izzy wilde", "melody pleasure",
+     "esluna love", "romy indy", "zara whites", "yasie lee", "tracy oba",
+     "nathalie kitten", "sebriena star", "tanya de vries", "logan moore",
+     "abella danger", "adriana chechik", "aimi yoshikawa", "amarna miller",
+     "angela white", "anna polina", "anri okita", "arabelle raphael",
+     "honey_sunshine", "ariana marie", "august ames", "ayu sakurai",
+     "belle knox", "bonnie rotten", "brett rossi", "carter cruise",
+     "casey calvert", "chanel preston", "charlotte sartre", "chloe cherry",
+     "christy mack", "dakota skye", "eve sweet", "ebony mystique",
+     "ela darling", "emily willis", "eva elfie", "gianna dior", "ginger banks",
+     "iori kogawa", "jia lissa", "jessie andrews", "jessie rogers",
+     "julia alexandratou", "kaho shibuya", "kendra sunderland", "lana rhoades",
+     "lasirena69", "lauren phillips", "lizz tayler", "maitland ward",
+     "mia khalifa", "mia magma", "mia malkova", "nadia ali", "rebecca more",
+     "remy lacroix", "renee gracie", "reya sunshine", "rika hoshimi",
+     "riley reid", "saki hatsumi", "samantha bentley", "sara tommasi",
+     "tasha reign", "tsusaka aoi", "valentina nappi", "whitney wright",
+     "brendon miller", "griffin barrows", "jordi el nino polla",
+     "matthew camp", "rocco steele", "ty mitchell", "amouranth", "belle delphine",
+     "cara cunningham", "nang mwe san", "projekt melody",
+     
+     # Dutch Porn Websites
+     "kinky.nl", "geilevrouwen.nl", "sexfilms.nl", "nlporno.com", 
+     "echtneuken.nl", "viva.nl", "sexjobs.nl", "vagina.nl", "binkdate.nl", "chatgirl.nl",
+ 
+     # Gay Porn Websites
+     "www.men.com", "gaytube.com", "justusboys.com", "gaymaletube.com", "dudetube.com",
+     "nextdoorstudios.com", "cockyboys.com", "helixstudios.net", "hothouse.com", "corbinfisher.com",
+ 
+     # Lesbian Porn Websites
+     "girlsway.com", "naughtylady.com", "bellesa.co", "sweetsinner.com", "transangelsnetwork.com",
+     "girlfriendsfilms.com", "thelesbianexperience.com", "wifelovers.com", "wearehairy.com", "lucasentertainment.com",
+ 
+     # Trans Porn Websites
+     "shemale.xxx", "groobygirls.com", "ts-dating.com", "tgirls.com", "trannytube.tv",
+     "transgenderpornstar.com", "trans500.com", "pure-ts.com", "transangels.com", "tgirlporn.tv"
+]    
+
       
 def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormTable]:
     logger.info("Starting to extract Google data.")   
@@ -1107,20 +928,91 @@ def process_google_data(google_zip: str) -> List[props.PropsUIPromptConsentFormT
         all_data = []
         subscription_data = []
         
+ 
     
-    
+  
+        
+        def create_optimized_filter(keywords):
+            """
+            Creates an optimized filtering function for explicit content.
+            """
+            # Join keywords with | for single regex compilation
+            pattern = '|'.join(map(re.escape, keywords))
+            
+            # Compile pattern once with flags
+            regex = re.compile(pattern, re.IGNORECASE)
+            
+            # Create a fast checking function
+            def check_content(text):
+                if pd.isna(text):
+                    return False
+                return bool(regex.search(str(text)))
+            
+            return check_content
+        
+        def filter_explicit_content(df, columns_to_check, keywords):
+            """
+            Efficiently filters explicit content from specified DataFrame columns.
+            
+            Args:
+                df: pandas DataFrame to filter
+                columns_to_check: list of column names to check
+                keywords: list of keywords to filter
+            
+            Returns:
+                Filtered DataFrame
+            """
+            # Create the optimized filter function
+            content_filter = create_optimized_filter(keywords)
+            
+            # Create mask for each column using vectorized operations
+            masks = []
+            for col in columns_to_check:
+                # Convert column to string type if needed
+                if df[col].dtype != 'string':
+                    series = df[col].astype('string')
+                else:
+                    series = df[col]
+                    
+                # Apply the filter function using vectorized operation
+                mask = series.apply(content_filter)
+                masks.append(mask)
+            
+            # Combine all masks using logical OR
+            final_mask = pd.concat(masks, axis=1).any(axis=1)
+            
+            # Return filtered DataFrame (negating the mask to keep clean content)
+            return df[~final_mask]
+  
+  
         # Separate data based on the presence of dates
         for Type, data in extracted_data.items():
             if data:
                 df = pd.DataFrame(data)
                 # Filter out unwanted URLs
                 # Combine URL and Actie checks into a single boolean mask
-                mask = ~(df['URL'].apply(should_exclude_url) | df['Actie'].apply(detect_explicit_content))
+                # mask = ~df.apply(lambda row: detect_explicit_content(row['URL']) or detect_explicit_content(row['Actie']), axis=1)
+
+                # Compile the regex pattern for all keywords
+                # explicit_pattern = re.compile(r'(?:' + '|'.join(map(re.escape, explicit_keywords)) + r')', re.IGNORECASE)
                 
+                # Vectorized check for explicit content using str.contains()
+                # mask_url = df['URL'].str.contains(explicit_pattern, na=False)
+                # mask_actie = df['Actie'].str.contains(explicit_pattern, na=False)
+                
+                # Combine masks and negate to filter
+                # mask = ~(mask_url | mask_actie)
+
                 # Apply the mask to filter the DataFrame
-                df = df[mask]
+                # df = df[mask]
+                if Type == "Browsergeschiedenis" or Type == "Zoekopdrachten" or Type == "Video Zoekopdrachten" or Type == "Advertentie Info":
+                    df = filter_explicit_content(
+                        df,
+                        columns_to_check=['URL', 'Actie'],
+                        keywords=explicit_keywords
+                    )
     
-                if Type == 'youtube_subscription':
+                if Type == 'YouTube Abonnementen':
                     subscription_data.append(df)
                 else:
                     df = make_timestamps_consistent(df)

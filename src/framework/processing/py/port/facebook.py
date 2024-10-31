@@ -453,7 +453,7 @@ def parse_likes_and_reactions(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
   
   
-## todo: this isnt working for the large html
+## missing: this isnt working for the large html
 def parse_your_search_history(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         # searches = data.get("your_search_history.json", {}).get("searches_v2", [])
@@ -655,7 +655,7 @@ def parse_ad_preferences(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             logger.error(f"Error parsing 'ad_preferences.html': {str(e)}")
             return []
       
-## todo: havent found a valid html
+## missing: havent found a valid html
 def parse_ads_personalization_consent(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         preferences = data.get("ads_personalization_consent.json", {}).get("label_values", [])
@@ -799,7 +799,6 @@ def parse_ads_interests(data: Dict[str, Any]) -> List[Dict[str, Any]]:
 
 
 
-## todo: review the data type
 def parse_other_categories_used(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         categories = data.get("other_categories_used_to_reach_you.json", {})
@@ -947,7 +946,7 @@ def parse_recently_viewed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         return parsed_data
       
       
-## todo: events parsing not working for html
+## missing: events parsing not working for html
 def parse_recently_visited(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         visited = data.get("recently_visited.json", {}).get("visited_things_v2", [])
@@ -1096,7 +1095,7 @@ def parse_subscription_for_no_ads(data: Dict[str, Any]) -> List[Dict[str, Any]]:
             logger.error(f"Error parsing 'subscription_for_no_ads.html': {str(e)}")
             return []      
 
-### todo: no html
+### missing: no html
 def parse_events(data: Dict[str, Any]) -> List[Dict[str, Any]]:
     if DATA_FORMAT == "json":
         # follows = data.get("who_you've_followed.jsoeventsn", {}).get("events_joined", [])
@@ -1617,7 +1616,7 @@ def process_facebook_data(facebook_zip: str) -> List[props.PropsUIPromptConsentF
         global_actor_name = None
 
         def get_actor(df):
-            pattern = r"^([\w\s\.\d_\-']+?)\s+(heeft|vindt|likes|liked|replied|reacted|placed|commented)"
+            pattern = r"^([\w\s\.\d_\-']+?)\s+(heeft|vindt|vond|likes|liked|replied|reacted|placed|commented)"
             for text in df['Actie']:
                 match = re.search(pattern, text, re.UNICODE)
                 if match:
