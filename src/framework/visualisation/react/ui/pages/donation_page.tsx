@@ -53,61 +53,72 @@ export const DonationPage = (props: Props): JSX.Element => {
 
 
   const typeDescriptions: { [key: string]: string } = {
-    'Advertentie Info': '(dit zijn gegevens over de advertenties die u heeft gezien en advertentie-instellingen)',
-    'Advertentie Data': '(dit zijn gegevens over de advertenties die u heeft gezien en advertentie-instellingen)',
-    'Gevolgde Accounts': '(dit zijn de accounts die u volgt)',
-    'Hashtags': '(dit zijn de hashtags die u heeft gebruikt)',
-    'Kijkgeschiedenis': '(dit is uw videokijkgeschiedenis)',
-    'Likes': '(dit is de content die u heeft geliket)',
-    'Reacties': '(dit zijn uw reacties)',
-    'Shares': '(dit vertegenwoordigt gedeelde content)',
-    'Zoekopdrachten': '(dit is uw zoekgeschiedenis)',
-    'Browsergeschiedenis': '(dit is uw browsegeschiedenis van Chrome)',
-    'Google News': '(dit zijn gegevens over uw activiteit op Google News)',
-    'Nieuwsbetrokkenheid': '(dit vertegenwoordigt uw betrokkenheid bij nieuwsartikelen)',
-    'Video Zoekopdrachten': '(dit is uw videozoekgeschiedenis)',
-    'YouTube Kijkgeschiedenis': '(dit is uw YouTube-kijkgeschiedenis)',
-    'YouTube Reacties': "(dit zijn de reacties die u heeft geplaatst op YouTube-video's)",
-    'YouTube Abonnementen': '(dit vertegenwoordigt uw YouTube-abonnementen)',
+    'Advertentie Info': 'De advertenties waar u interactie mee hebt gehad en uw advertentie voorkeuren.',
+    'Advertentie Data': 'De advertenties waar u interactie mee hebt gehad en uw advertentie voorkeuren.',
+    'Gevolgde Accounts': 'De accounts die u volgt op deze sociale media.',
+    'Hashtags': 'De hashtags die u gebruikt hebt.',
+    'Kijkgeschiedenis': "De video's die u bekeken hebt.",
+    'Likes': 'De video’s die u hebt geliket.',
+    'Reacties': 'Uw reacties op berichten van anderen, inclusief de gebruikersnaam van de persoon die het   bericht heeft gepost.',
+    'Shares': 'De video’s die u hebt gedeeld en op welke manier u deze gedeeld hebt.',
+    'Zoekopdrachten': 'De zoekopdrachten die u gedaan hebt.',
+    'Browsergeschiedenis': 'De websites die u met Google Chrome heeft bezocht op alle apparaten die aan uw   Google-account zijn gekoppeld.',
+    'Google News': 'De artikelen die u via Google News hebt bekeken en de meldingen die u van Google News hebt   ontvangen.',
+    'Nieuwsbetrokkenheid': 'Nieuwsartikelen die u hebt gelezen op externe websites bijv. de Telegraaf of   Volkskrant.',
+    'Video Zoekopdrachten': 'De exacte zoekopdrachten naar video’s die u hebt gedaan via Google, en de video’s   die u hebt bekeken via deze zoekopdrachten.',
+    'YouTube Kijkgeschiedenis': 'De video’s die u hebt bekeken op YouTube.',
+    'YouTube Reacties': 'Uw exacte reacties op YouTube-video’s van anderen, inclusief de video waarop u   gereageerd heeft.',
+    'YouTube Abonnementen': 'De YouTube-kanalen waarop u geabonneerd bent.',
     
-    'Gelikete Posts': '(dit zijn gegevens over de posts die u heeft geliket of op gereageerd)',
-    'Posts': '(dit zijn gegevens over de posts die u heeft gemaakt)',
-    'Groepspost': '(dit zijn gegevens over uw posts in groepen)',
-    'Groepsreactie': '(dit zijn gegevens over uw reacties in groepen)',
-    'Groepslidmaatschap': '(dit zijn gegevens over de groepen waar u lid van bent geworden)',
-    'Volgsuggesties': '(dit zijn gegevens over accounts die aan u zijn voorgesteld om te volgen)',
-    'Onlangs bezocht': "(dit zijn gegevens over pagina's, profielen, evenementen of groepen die u recentelijk heeft bezocht)",
-
-    'AdPreference': '(dit zijn gegevens over uw voorkeuren met betrekking tot advertenties)',
-    'Info Used to Target You': '(dit zijn gegevens die door adverteerders worden gebruikt om u te targeten)',
-    'Events': '(dit zijn gegevens over evenementen waarmee u heeft interactie gehad)',
-    'Subscription Status': '(dit zijn gegevens over uw abonnementsstatus, zoals het afmelden voor advertenties)',
-    // Instagram-Specific Types
-    'Reels': '(dit zijn gegevens over Reels die u heeft gepost)',
-    'Gelikete Stories': '(dit zijn gegevens over stories die u heeft geliket)',
-    'Posts die zijn bekeken': '(dit zijn gegevens over posts die u heeft bekeken)',
-    'Vind ik leuk Reacties': '(dit is de content die u heeft geliket)',
-    'Gezien Posts': '(dit zijn gegevens over posts die u heeft bekeken)',
-    'Gezien Advertenties': '(dit zijn gegevens over advertenties die u heeft bekeken)',
-
+    'Gelikete Posts': 'De posts van anderen die u hebt geliket of op gereageerd hebt.',
+    'Posts': 'De posts die u hebt geplaatst inclusief de tekst die u gebruikt hebt maar zonder eventuele foto’s   of video’s.',
+    'Groepspost': 'De posts die u hebt geplaatst in besloten groepen inclusief de tekst die u gebruikt hebt   maar zonder eventuele foto’s of video’s. Bevat ook de naam van de besloten groep waarin u gereageerd hebt.',
+    'Groepsreactie': 'Uw reacties op berichten van anderen in besloten groepen, inclusief de gebruikersnaam   van de persoon die het bericht heeft gepost. Bevat ook de naam van de besloten groep waarin u gereageerd hebt  .',
+    'Groepslidmaatschap': 'De besloten groepen waar u lid bent van geworden of hebt verlaten.',
+    'Volgsuggesties': 'De accounts die door het platform aan u voorgesteld zijn om te volgen.',
+    'Onlangs bezocht': 'De pagina’s, profielen, evenementen of groepen die u onlangs bezocht hebt op Facebook.'  ,
     
-    "Favoriete Videos": "(gegevens over video's die u heeft geliket of gereageerd op)",
-    "Favoriete Hashtags": '(gegevens over hashtags die u heeft geliket)',
-    'Stories': '(dit zijn gegevens over de stories die u heeft gemaakt)',
+    'Events': 'De Facebook-evenementenpagina’s die u bezocht of bekeken hebt.',
+    'Subscription Status': 'Uw eventuele abonnementsstatus, zoals het afmelden voor advertenties.',
+    
+    'Reels': 'De reels die u hebt geplaatst inclusief de tekst die u gebruikt hebt maar zonder eventuele foto’s   of video’s.',
+    'Gelikete Stories': 'De accounts waarvan u stories hebt geliket.',
+    'Posts die zijn bekeken': 'De posts die u hebt bekeken, inclusief een link naar de post.',
+    'Vind ik leuk Reacties': 'Reacties die u hebt geliket, inclusief een link naar de reactie.',
+    'Posts gezien': 'De posts die u hebt bekeken, inclusief de gebruikersnaam van de persoon die de post   geplaatst heeft.',
+    'Advertenties gezien': 'De advertenties die u hebt bekeken, inclusief de gebruikersnaam van de persoon die   de advertentie geplaatst heeft.',
+    
+    'Favoriete Videos': 'De video’s die u als favoriet hebt opgeslagen.',
+    'Favoriete Hashtags': 'De hashtags die u als favoriet hebt opgeslagen.',
+    'Stories': 'De stories die u hebt geplaatst inclusief de tekst die u gebruikt hebt maar zonder eventuele foto’s of video’s.',
+    'Aangeklikte Advertenties': 'De advertenties die u hebt aangeklikt.',
+    'Google Discover': 'Google Discover inhoud die u hebt aangeklikt.',
+    'Advertentie-interactie': 'De advertenties waar u op gereageerd hebt.'
+    
+    
 
 
   }
 
-  // Create the dynamic list for the consent form with bullet points and adjust spacing
+
+
+  // Create the dynamic list for the consent form with bolded type and sublist
   const dynamicList = uniqueTypes.length > 0 ? (
-    <ul style={{ marginBottom: '1.5em', paddingLeft: '1.2em' }}>
+    <div style={{ marginBottom: '1.5em', paddingLeft: '1.2em' }}>
       {uniqueTypes.map((type: string, index: number) => (
-        <li key={index} style={{ listStyleType: 'disc', marginBottom: '0.2em' }}>
-          {type} {typeDescriptions[type] || '(no description available)'}
-        </li>
+        <div key={index} style={{ marginBottom: '0.5em' }}>
+          <em><strong>{type}</strong></em>
+          {typeDescriptions[type] ? (
+            <ul style={{ paddingLeft: '1.2em', listStyleType: 'square' }}>
+              <li>{typeDescriptions[type]}</li>
+            </ul>
+          ) : (
+            '(Geen beschrijving beschikbaar)'
+          )}
+        </div>
       ))}
-    </ul>
-  ) : <p>Geen relevante gegevenstypen beschikbaar om weer te geven.</p>
+    </div>
+  ) : <p>Geen relevante gegevenstypen beschikbaar om weer te geven.</p>;
 
 
   function renderBody (props: Props): JSX.Element {

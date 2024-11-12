@@ -1102,7 +1102,7 @@ def parse_events(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         events = helpers.find_items_bfs(data, "event_responses_v2")
         if not events:
             return []
-        print(evens)
+          
         return [{
             'Type': 'Events',
             'title': "'Event': " + event.get("name", ""),

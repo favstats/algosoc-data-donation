@@ -314,7 +314,7 @@ def parse_ads_viewed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
         if not ads:
             return []
         return [{
-            'Type': 'Gezien Advertenties',
+            'Type': 'Advertenties gezien',
             'Actie': "'Bekeken:' " + ad.get("string_map_data", {}).get("Author", {}).get("value", "Unknown Ad"),
             'URL': 'Geen URL',
             'Datum': helpers.robust_datetime_parser(ad.get("string_map_data", {}).get("Time", {}).get("timestamp", 0)),
@@ -353,7 +353,7 @@ def parse_ads_viewed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     date_text = helpers.robust_datetime_parser(date.strip()) if date else ''
 
                     parsed_item = {
-                        'Type': 'Gezien Advertenties',
+                        'Type': 'Advertenties gezien',
                         'Actie': "'Bekeken:' " + title_text,
                         'URL': 'Geen URL',
                         'Datum': date_text,
@@ -382,7 +382,7 @@ def parse_posts_viewed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       if not posts:
         return []
       return [{
-          'Type': 'Gezien Posts',
+          'Type': 'Posts gezien',
           'Actie': "'Bekeken:' " + post.get("string_map_data", {}).get("Author", {}).get("value", "Geen Auteur"),
           'URL': 'Geen URL',
           'Datum': helpers.robust_datetime_parser(post.get("string_map_data", {}).get("Time", {}).get("timestamp", 0)),
@@ -421,7 +421,7 @@ def parse_posts_viewed(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     date_text = helpers.robust_datetime_parser(date.strip()) if date else ''
 
                     parsed_item = {
-                        'Type': 'Gezien Posts',
+                        'Type': 'Posts gezien',
                         'Actie': "'Bekeken:' " + title_text,
                         'URL': 'Geen URL',
                         'Datum': date_text,
@@ -448,7 +448,7 @@ def parse_videos_watched(data: Dict[str, Any]) -> List[Dict[str, Any]]:
       if not videos:
         return []
       return [{
-          'Type': 'Gezien Posts',
+          'Type': 'Posts gezien',
           'Actie': "'Bekeken:' " + video.get("string_map_data", {}).get("Author", {}).get("value", "Geen Auteur"),
           'URL': 'Geen URL',
           'Datum': helpers.robust_datetime_parser(video.get("string_map_data", {}).get("Time", {}).get("timestamp", 0)),
@@ -487,7 +487,7 @@ def parse_videos_watched(data: Dict[str, Any]) -> List[Dict[str, Any]]:
                     date_text = helpers.robust_datetime_parser(date.strip()) if date else ''
 
                     parsed_item = {
-                        'Type': 'Gezien Posts',
+                        'Type': 'Posts gezien',
                         'Actie': "'Bekeken:' " + title_text,
                         'URL': 'Geen URL',
                         'Datum': date_text,
