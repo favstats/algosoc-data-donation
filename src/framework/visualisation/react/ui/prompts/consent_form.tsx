@@ -53,16 +53,11 @@ export const ConsentForm = (props: Props): JSX.Element => {
 
       <div className="max-w-3xl">
 <FormattedBodyLarge>
-  Hieronder ziet u de gegevens die uit uw datapakket zijn gehaald. Op dit moment zijn er nog geen gegevens gedeeld met Centerdata. 
-  Voordat u deze gegevens deelt, kunt u deze bekijken en beslissen wat u wel of niet wilt delen. 
-  U kunt gegevens verwijderen door op het selectievakje ernaast te klikken en op Verwijderen te klikken. 
-  Zodra u alles hebt gecontroleerd, klikt u onderaan de pagina op <b>Doneren</b>.<br /><br />
+  In de tabel hieronder staan de gegevens die uit uw bestand zijn gehaald. U kunt ze nu eerst bekijken en kiezen wat u wel of niet wilt delen. Verwijder gegevens door op het vakje links ernaast te klikken en op ‘Verwijderen’ te drukken.<br /><br />
   
-  U kunt eenvoudig zoeken naar trefwoorden met behulp van de zoekfunctie rechtsboven. 
-  U kunt dit gebruiken om beter te begrijpen welke informatie in deze pakketten is opgenomen. 
-  Het is verrassend hoeveel informatie deze bedrijven van ons opslaan en het kan heel interessant zijn om dit te verkennen!<br /><br />
+ Met de zoekfunctie rechts bovenin de tabel kunt u gemakkelijk trefwoorden zoeken. Zoek bijvoorbeeld eens op een naam of website die u kent. U kunt ook categorieën bekijken met de 'filter'-knop links bovenin de tabel. Het is interessant om te zien hoeveel gegevens bedrijven van ons opslaan!<br /><br />
   
-  U kunt ook specifieke categorieën selecteren om verder te verkennen met behulp van de 'filter'-knop. Dit zijn de categorieën die u kunt bekijken:
+  Als u alles hebt gecontroleerd klikt u onderaan deze pagina op ‘Ja, Doneer’. Als u toch niet wilt doneren klikt u op ‘Nee’.
 </FormattedBodyLarge>
         {/* Insert the dynamic list */}
         {props.dynamicList && (

@@ -10,6 +10,59 @@ import { BodyLarge, BodySmall } from '../elements/text'
 
 type Props = Weak<PropsUIPromptFileInput> & ReactFactoryContext
 
+function renderWithFormattedText(text: string): JSX.Element[] {
+  // First, split by `\n\n` to create paragraphs
+  const paragraphs = text.split('\n\n');
+  const elements: JSX.Element[] = [];
+
+  paragraphs.forEach((paragraph, index) => {
+    // Split each paragraph by `[b]`, `[/b]`, `[em]`, and `[/em]` markers
+    const parts = paragraph.split(/(\[b\]|\[\/b\]|\[em\]|\[\/em\])/);
+    const paragraphElements: JSX.Element[] = [];
+
+    let isBold = false;
+    let isItalic = false;
+
+    parts.forEach((part: string) => {
+      if (part === "[b]") {
+        isBold = true;
+      } else if (part === "[/b]") {
+        isBold = false;
+      } else if (part === "[em]") {
+        isItalic = true;
+      } else if (part === "[/em]") {
+        isItalic = false;
+      } else {
+        // Apply bold and/or italic styles as needed
+        let formattedPart = <span key={paragraphElements.length}>{part}</span>;
+        
+        if (isBold && isItalic) {
+          formattedPart = <strong key={paragraphElements.length}><em>{part}</em></strong>;
+        } else if (isBold) {
+          formattedPart = <strong key={paragraphElements.length}>{part}</strong>;
+        } else if (isItalic) {
+          formattedPart = <em key={paragraphElements.length}>{part}</em>;
+        }
+
+        paragraphElements.push(formattedPart);
+      }
+    });
+
+    // Wrap the processed paragraph parts in a <p> tag
+    elements.push(<p key={index}>{paragraphElements}</p>);
+
+    // Add a line break after each paragraph except the last one
+    if (index < paragraphs.length - 1) {
+      elements.push(<br key={`br-${index}`} />);
+    }
+  });
+
+  return elements;
+}
+
+
+
+
 export const FileInput = (props: Props): JSX.Element => {
   const [waiting, setWaiting] = React.useState<boolean>(false)
   const [selectedFile, setSelectedFile] = React.useState<File>()
@@ -41,12 +94,15 @@ export const FileInput = (props: Props): JSX.Element => {
   return (
     <>
       <div id='select-panel' className='max-w-3xl'>
-        <div className='flex-wrap text-bodylarge font-body text-grey1 text-left'>{description}</div>
+        {/* Updated to render with bold text */}
+        <div className='flex-wrap text-bodylarge font-body text-grey1 text-left'>
+          {renderWithFormattedText(description)}
+        </div>
         <div className='mt-8' />
         <div className='p-6 border-grey4 border-2 rounded'>
           <input ref={input} id='input' type='file' className='hidden' accept={extensions} onChange={handleSelect} />
           <div className='flex flex-row gap-4 items-center'>
-            <BodyLarge text={selectedFile?.name ?? placeholder} margin='' color={selectedFile === undefined ? 'text-grey2' : 'textgrey1'} />
+            <BodyLarge text={selectedFile?.name ?? placeholder} margin='' color={selectedFile === undefined ? 'text-grey2' : 'text-grey1'} />
             <div className='flex-grow' />
             <PrimaryButton onClick={handleClick} label={selectButton} color='bg-tertiary text-grey1' />
           </div>
@@ -63,6 +119,8 @@ export const FileInput = (props: Props): JSX.Element => {
     </>
   )
 }
+
+
 
 interface Copy {
   description: string

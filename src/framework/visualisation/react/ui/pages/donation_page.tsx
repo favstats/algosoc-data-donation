@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Weak } from '../../../../helpers'
 import TextBundle from '../../../../text_bundle'
 import { Translator } from '../../../../translator'
@@ -28,9 +28,18 @@ import { Progress } from '../elements/progress'
 
 type Props = Weak<PropsUIPageDonation> & ReactFactoryContext
 
+
+
 export const DonationPage = (props: Props): JSX.Element => {
   const { title, forwardButton } = prepareCopy(props)
   const { locale, resolve } = props
+
+  // Move useState and toggleTable inside the component
+  const [isExpanded, setIsExpanded] = useState(false);
+  const toggleTable = () => {
+    setIsExpanded(!isExpanded);
+  };
+
 
   // Generate the dynamic list of data types
   const uniqueTypes = useMemo(() => {
@@ -102,23 +111,73 @@ export const DonationPage = (props: Props): JSX.Element => {
 
 
 
-  // Create the dynamic list for the consent form with bolded type and sublist
-  const dynamicList = uniqueTypes.length > 0 ? (
-    <div style={{ marginBottom: '1.5em', paddingLeft: '1.2em' }}>
-      {uniqueTypes.map((type: string, index: number) => (
-        <div key={index} style={{ marginBottom: '0.5em' }}>
-          <em><strong>{type}</strong></em>
-          {typeDescriptions[type] ? (
-            <ul style={{ paddingLeft: '1.2em', listStyleType: 'square' }}>
-              <li>{typeDescriptions[type]}</li>
-            </ul>
-          ) : (
-            '(Geen beschrijving beschikbaar)'
-          )}
-        </div>
-      ))}
+  const dynamicTable = (
+    <div>
+      <button
+        onClick={toggleTable}
+        style={{
+          cursor: 'pointer',
+          marginBottom: '1em',
+          display: 'flex',
+          alignItems: 'center',
+          border: 'none',
+          background: 'none',
+          padding: 0,
+          fontSize: '1em',
+          color: '#007BFF'
+        }}
+      >
+        {isExpanded ? 'Verberg gegevensdetails' : 'Klik hier voor meer informatie over de gegevens die u zou doneren'}
+        <span
+          style={{
+            display: 'inline-block',
+            marginLeft: '0.5em',
+            transition: 'transform 0.3s',
+            transform: isExpanded ? 'rotate(90deg)' : 'rotate(0deg)'
+          }}
+        >
+          ▶
+        </span>
+      </button>
+  
+      {isExpanded && (
+        <>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: 'left', padding: '0.5em', borderBottom: '1px solid #ddd' }}>Type</th>
+                <th style={{ textAlign: 'left', padding: '0.5em', borderBottom: '1px solid #ddd' }}>Beschrijving</th>
+              </tr>
+            </thead>
+            <tbody>
+              {uniqueTypes.length > 0 ? (
+                uniqueTypes.sort().map((type: string, index: number) => (
+                  <tr key={index}>
+                    <td style={{ padding: '0.5em', borderBottom: '1px solid #ddd' }}>
+                      <strong><em>{type}</em></strong>
+                    </td>
+                    <td style={{ padding: '0.5em', borderBottom: '1px solid #ddd' }}>
+                      {typeDescriptions[type] ? typeDescriptions[type] : '(Geen beschrijving beschikbaar)'}
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={2} style={{ padding: '0.5em', textAlign: 'center' }}>
+                    Geen relevante gegevenstypen beschikbaar om weer te geven.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </>
+      )}
+    <br /> {/* Add a line break here */}
     </div>
-  ) : <p>Geen relevante gegevenstypen beschikbaar om weer te geven.</p>;
+  );
+
+
+
 
 
   function renderBody (props: Props): JSX.Element {
@@ -132,7 +191,7 @@ export const DonationPage = (props: Props): JSX.Element => {
       return <Confirm {...body} {...context} />
     }
     if (isPropsUIPromptConsentForm(body)) {
-      return <ConsentForm {...body} locale={locale} resolve={resolve} dynamicList={dynamicList} />
+      return <ConsentForm {...body} locale={locale} resolve={resolve} dynamicList={dynamicTable} />
     }
     if (isPropsUIPromptRadioInput(body)) {
       return <RadioInput {...body} {...context} />

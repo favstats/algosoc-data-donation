@@ -734,169 +734,70 @@ def make_timestamps_consistent(df: pd.DataFrame) -> pd.DataFrame:
         df['Datum'] = df['Datum'].apply(lambda x: x.tz_localize(None) if x is not pd.NaT else x)  # Make all timestamps tz-naive
     return df
   
-# Function to check if a URL should be excluded
-def should_exclude_url(url: str) -> bool:
-    try:
-        # List of URLs to exclude
-        exclude_prefixes = [
-            "https://mail.google.com/mail"
-        ]
-    
-        # List of popular porn websites (only domains, without "www." or "https://")
-        porn_websites = [
-    "mail.google.com/mail", "porn", "xhamster",
-    "erotic", "kinky", "fetish", "jerk off",
-    "camgirl",  "hentai", "gangbang",  "femdom",
-    "onlyfans", "fansly",  "threesome", "sex worker",
-    "prostitute", "escort service",
-    "strip club", "exotic dancer", "not safe for work",
-
-    "pornhub.com", "xvideos.com", "xnxx.com", "redtube.com", "xhamster.com", "deloris.ai", "edttmar.com",
-    "youporn.com", "tube8.com", "spankbang.com", "youjizz.com", "fapdu.com", "9xbuddy.xyz", 
-    "brazzers.com", "mofos.com", "naughtyamerica.com", "bangbros.com", "4kporn.xxx", "crmentjg.com",
-    "pornmd.com", "clips4sale.com", "camsoda.com", "chaturbate.com", "casualdating1.com",
-    "myfreecams.com", "livejasmin.com", "streamate.com", "bongacams.com", "deepmode.ai",
-    "onlyfans.com", "adultfriendfinder.com", "sextube.com", "beeg.com", "akg01.com",
-    "porn.com", "xtube.com", "slutload.com", "tnaflix.com", "pornhubpremium.com",
-    "javhd.com", "realitykings.com", "metart.com", "eroprofile.com", "nudelive.com",
-    "fantasti.cc", "hclips.com", "alphaporno.com", "ashemaletube.com", "hdpornvideo.xxx",
-    "playvid.com", "4tube.com", "javfinder.com", "pornbb.org", "sex.com", "hentaigasm.com",
-    "hentaistream.com", "adulttime.com", "wicked.com", "dogfartnetwork.com", "faphouse.com",
-    "keezmovies.com", "xempire.com", "alotporn.com", "familyporn.tv", "pornrips.com",
-    "thumzilla.com", "madthumbs.com", "drtuber.com", "pornhd.com", "upornia.com",
-    "fapdu.com", "freeones.com", "twistys.com", "3movs.com", "vporn.com", "candy.ai",
-    "porndoe.com", "pornhd.com", "hdtube.porn", "recurbate.com", "tubegalore.com",
-    "porndig.com", "h2porn.com", "lobstertube.com", "nuvid.com", "sexvid.xxx", "literotica.com",
-    "xhamsterlive.com", "playboy.tv", "cams.com", "badoinkvr.com", "vrporn.com",
-    "vrcosplayx.com", "metartx.com", "hegre-art.com", "joymii.com", "goodporn.to",
-    "spankwire.com", "homepornking.com", "pornrabbit.com", "megapornx.com", "tingo.ai",
-
-    "jizzbunker.com", "eporner.com", "cam4.com", "sexier.com", "adultempire.com", "basedlabs.ai",
-    "joysporn.com", "slutroulette.com", "bigxvideos.com", "hotmovs.com", "milfporn.xxx", "fuq.com",
-
-    "siswet", "taylor sands", "naughty celeste",
-    "esperanza del horno", "alyx star", "penny barber", "princess lili",
-    "natasha nice", "angela white", "joey mills", "austin young",
-    "legrand wolf", "viktor rom", "malik delgaty", "daisy taylor",
-    "emma rose", "jessy dubai", "jade venus", "izzy wilde", "melody pleasure",
-    "esluna love", "romy indy", "zara whites", "yasie lee", "tracy oba",
-    "iori kogawa", "jia lissa", "jessie andrews", "jessie rogers",
-    "julia alexandratou", "kaho shibuya", "kendra sunderland", "lana rhoades",
-    "lasirena69", "lauren phillips", "lizz tayler", "maitland ward",
-    "mana sakura", "megan barton hanson", "melissa bulanhagui", "mercedes carrera",
-    "mia khalifa", "mia magma", "mia malkova", "nadia ali", "rebecca more",
-    "remy lacroix", "renee gracie", "reya sunshine", "rika hoshimi",
-    "riley reid", "saki hatsumi", "samantha bentley", "sara tommasi",
-    "scarlet young", "siew pui yi", "siouxsie q", "sophie anderson",
-    "tasha reign", "tsusaka aoi", "valentina nappi", "whitney wright",
-    "alvin tan", "arad winwin", "armond rizzo", "austin wolf", "billy santoro",
-    "brendon miller", "griffin barrows", "jordi el nino polla",
-    "matthew camp", "rocco steele", "ty mitchell", "amouranth", "belle delphine",
-    "cara cunningham", "nang mwe san", "projekt melody",
-
-    # Dutch Porn Websites
-    "kinky.nl", "geilevrouwen.nl", "sexfilms.nl", "nlporno.com", "lottelust.nl",
-    "echtneuken.nl", "viva.nl", "sexjobs.nl", "vagina.nl", "binkdate.nl", "chatgirl.nl",
-
-    # Gay Porn Websites
-    "https://men.com", "www.men.com", "gaytube.com", "justusboys.com", "gaymaletube.com", "dudetube.com",
-    "nextdoorstudios.com", "cockyboys.com", "helixstudios.net", "hothouse.com", "corbinfisher.com",
-
-    # Lesbian Porn Websites
-    "girlsway.com", "naughtylady.com", "bellesa.co", "sweetsinner.com", "transangelsnetwork.com",
-    "girlfriendsfilms.com", "thelesbianexperience.com", "wifelovers.com", "wearehairy.com", "lucasentertainment.com",
-
-    # Trans Porn Websites
-    "shemale.xxx", "groobygirls.com", "ts-dating.com", "tgirls.com", "trannytube.tv",
-    "transgenderpornstar.com", "trans500.com", "pure-ts.com", "transangels.com", "tgirlporn.tv"
-        ]
-    
-      
-        # Check if URL starts with any excluded prefixes
-        if any(url.startswith(prefix) for prefix in exclude_prefixes):
-            return True
-        # Check if URL refers to a porn website
-        domain = re.findall(r'://(?:www\.)?([^/]+)', url)
-        if domain:
-            domain_name = domain[0].lower()  # Lowercase the domain only after extraction
-            if any(porn_site in domain_name for porn_site in porn_websites) or "porn" in domain_name or "xxx" in domain_name:
-                return True
-        return False
-    except Exception as e:
-        return False
       
 
 explicit_keywords = [
       "outlook.live.com", "mail.google.com/mail", "mail.kpnmail.nl",
       "outlook.office365.com", "porn",
-      "pornhub", "xhamster", "youporn",
+      "xhamster", 
       "erotic", "kinky", "fetish", "jerk off",
      "camgirl",  "hentai", "gangbang",  "femdom",
      "onlyfans", "fansly",  "threesome", "adult video", "adult movie",
      "adult escort", "prostitute", "escort service", "sex worker",
      "stripper", "strip club", "exotic dancer",
      "not safe for work", 
-
-     "pornhub.com", "xvideos.com", "xnxx.com", "redtube.com", "xhamster.com", "deloris.ai",
-     "youporn.com", "tube8.com", "spankbang.com", "youjizz.com", "fapdu.com", "9xbuddy.xyz",
+     
+     "xvideos.com", "xnxx.com", "redtube.com", "xhamster.com", "deloris.ai",
+      "tube8.com", "spankbang.com", "youjizz.com", "fapdu.com", "9xbuddy.xyz",
      "brazzers.com", "mofos.com", "naughtyamerica.com", "bangbros.com", 
-     "pornmd.com", "clips4sale.com", "camsoda.com", "chaturbate.com", "casualdating1.com",
+      "clips4sale.com", "camsoda.com", "chaturbate.com", "casualdating1.com",
      "myfreecams.com", "livejasmin.com", "streamate.com", "bongacams.com", "deepmode.ai",
      "onlyfans.com", "adultfriendfinder.com", "sextube.com", "beeg.com", "akg01.com",
-     "porn.com", "xtube.com", "slutload.com", "tnaflix.com", "pornhubpremium.com",
+      "xtube.com", "slutload.com", "tnaflix.com", 
      "javhd.com", "realitykings.com", "metart.com", "eroprofile.com", "nudelive.com",
-     "fantasti.cc", "hclips.com", "alphaporno.com", "ashemaletube.com", "hdpornvideo.xxx",
-     "playvid.com", "4tube.com", "javfinder.com", "pornbb.org", "sex.com", "hentaigasm.com",
+     "fantasti.cc", "hclips.com", "ashemaletube.com", 
+     "playvid.com", "4tube.com", "javfinder.com",  "sex.com", "hentaigasm.com",
      "hentaistream.com", "adulttime.com", "wicked.com", "dogfartnetwork.com", "stripchat.com",
-     "keezmovies.com", "xempire.com", "alotporn.com", "familyporn.tv", "pornrips.com",
-     "thumzilla.com", "madthumbs.com", "drtuber.com", "pornhd.com", "upornia.com",
-     "fapdu.com", "freeones.com", "twistys.com", "3movs.com", "vporn.com", "candy.ai",
-     "porndoe.com", "pornhd.com", "hdtube.porn", "recurbate.com", "tubegalore.com",
-     "porndig.com", "h2porn.com", "lobstertube.com", "nuvid.com", "sexvid.xxx",
-     "xhamsterlive.com", "playboy.tv", "cams.com", "badoinkvr.com", "vrporn.com",
-     "vrcosplayx.com", "metartx.com", "hegre-art.com", "joymii.com", "goodporn.to",
-     "spankwire.com", "homepornking.com", "pornrabbit.com", "megapornx.com", "tingo.ai",
+     "keezmovies.com", "xempire.com", 
+     "thumzilla.com", "madthumbs.com", "drtuber.com", 
+     "fapdu.com", "freeones.com", "twistys.com", "3movs.com",  "candy.ai",
+   "recurbate.com", "tubegalore.com",
+    "lobstertube.com", "nuvid.com", "sexvid.xxx",
+     "xhamsterlive.com", "playboy.tv", "cams.com", "badoinkvr.com", 
+     "vrcosplayx.com", "metartx.com", "hegre-art.com", "joymii.com", 
+     "spankwire.com", "tingo.ai",
        "boy18tube.com",	
-       "crazyporn.xxx",	
        "fapnfuck.com",
        "fetishbank.net",
        "gonzoxxxmovies.com",
        "ixxx.com",
-       "nedporno.com",
-       "pornogemist.nl"	
-       "pornxday.com",
        "webcamsex.nl",
      
      "jizzbunker.com", "eporner.com", "cam4.com", "sexier.com", "adultempire.com", "basedlabs.ai",
-     "joysporn.com", "slutroulette.com", "bigxvideos.com", "hotmovs.com", "milfporn.xxx",
+     "joysporn.com", "slutroulette.com", "bigxvideos.com", "hotmovs.com", 
 
      "siswet", "taylor sands", "naughty celeste",
-     "esperanza del horno", "alyx star", "penny barber", "princess lili",
      "natasha nice", "angela white", "joey mills", "austin young",
      "legrand wolf", "viktor rom", "malik delgaty", "daisy taylor",
-     "emma rose", "jessy dubai", "jade venus", "izzy wilde", "melody pleasure",
      "esluna love", "romy indy", "zara whites", "yasie lee", "tracy oba",
      "nathalie kitten", "sebriena star", "tanya de vries", "logan moore",
      "abella danger", "adriana chechik", "aimi yoshikawa", "amarna miller",
      "angela white", "anna polina", "anri okita", "arabelle raphael",
      "honey_sunshine", "ariana marie", "august ames", "ayu sakurai",
      "belle knox", "bonnie rotten", "brett rossi", "carter cruise",
-     "casey calvert", "chanel preston", "charlotte sartre", "chloe cherry",
-     "christy mack", "dakota skye", "eve sweet", "ebony mystique",
-     "ela darling", "emily willis", "eva elfie", "gianna dior", "ginger banks",
-     "iori kogawa", "jia lissa", "jessie andrews", "jessie rogers",
-     "julia alexandratou", "kaho shibuya", "kendra sunderland", "lana rhoades",
+     "casey calvert", "chanel preston", "charlotte sartre",
+     "iori kogawa", "jia lissa", "jessie andrews", "jessie rogers", "lana rhoades",
      "lasirena69", "lauren phillips", "lizz tayler", "maitland ward",
      "mia khalifa", "mia magma", "mia malkova", "nadia ali", "rebecca more",
      "remy lacroix", "renee gracie", "reya sunshine", "rika hoshimi",
      "riley reid", "saki hatsumi", "samantha bentley", "sara tommasi",
-     "tasha reign", "tsusaka aoi", "valentina nappi", "whitney wright",
+     "tasha reign", "tsusaka aoi", "valentina nappi",
      "brendon miller", "griffin barrows", "jordi el nino polla",
      "matthew camp", "rocco steele", "ty mitchell", "amouranth", "belle delphine",
      "cara cunningham", "nang mwe san", "projekt melody",
      
      # Dutch Porn Websites
-     "kinky.nl", "geilevrouwen.nl", "sexfilms.nl", "nlporno.com", 
+     "kinky.nl", "geilevrouwen.nl", "sexfilms.nl",
      "echtneuken.nl", "viva.nl", "sexjobs.nl", "vagina.nl", "binkdate.nl", "chatgirl.nl",
  
      # Gay Porn Websites
@@ -909,7 +810,7 @@ explicit_keywords = [
  
      # Trans Porn Websites
      "shemale.xxx", "groobygirls.com", "ts-dating.com", "tgirls.com", "trannytube.tv",
-     "transgenderpornstar.com", "trans500.com", "pure-ts.com", "transangels.com", "tgirlporn.tv"
+     "trans500.com", "pure-ts.com", "transangels.com"
 ]    
 
       
