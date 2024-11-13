@@ -68,7 +68,8 @@ export const DonationPage = (props: Props): JSX.Element => {
     'Hashtags': 'De hashtags die u gebruikt hebt.',
     'Kijkgeschiedenis': "De video's die u bekeken hebt.",
     'Likes': 'De video’s die u hebt geliket.',
-    'Reacties': 'Uw reacties op berichten van anderen, inclusief de gebruikersnaam van de persoon die het   bericht heeft gepost.',
+    'Reacties': 'Jouw reacties op posts van andere gebruikers, inclusief de gebruikersnaam van het account dat de oorspronkelijke post heeft geplaatst.',
+    
     'Shares': 'De video’s die u hebt gedeeld en op welke manier u deze gedeeld hebt.',
     'Zoekopdrachten': 'De zoekopdrachten die u gedaan hebt.',
     'Browsergeschiedenis': 'De websites die u met Google Chrome heeft bezocht op alle apparaten die aan uw   Google-account zijn gekoppeld.',
@@ -79,10 +80,10 @@ export const DonationPage = (props: Props): JSX.Element => {
     'YouTube Reacties': 'Uw exacte reacties op YouTube-video’s van anderen, inclusief de video waarop u   gereageerd heeft.',
     'YouTube Abonnementen': 'De YouTube-kanalen waarop u geabonneerd bent.',
     
-    'Gelikete Posts': 'De posts van anderen die u hebt geliket of op gereageerd hebt.',
+    'Gelikete Posts': 'De posts die je hebt geliket of waarop je hebt gereageerd, waarbij de inhoud alleen zichtbaar is als de post openbaar is.',
     'Posts': 'De posts die u hebt geplaatst inclusief de tekst die u gebruikt hebt maar zonder eventuele foto’s   of video’s.',
     'Groepspost': 'De posts die u hebt geplaatst in besloten groepen inclusief de tekst die u gebruikt hebt   maar zonder eventuele foto’s of video’s. Bevat ook de naam van de besloten groep waarin u gereageerd hebt.',
-    'Groepsreactie': 'Uw reacties op berichten van anderen in besloten groepen, inclusief de gebruikersnaam   van de persoon die het bericht heeft gepost. Bevat ook de naam van de besloten groep waarin u gereageerd hebt  .',
+    'Groepsreactie': 'Jouw reacties op posts in (besloten) groepen, inclusief de gebruikersnaam van de oorspronkelijke poster en de naam van de groep waarin je hebt gereageerd.',
     'Groepslidmaatschap': 'De besloten groepen waar u lid bent van geworden of hebt verlaten.',
     'Volgsuggesties': 'De accounts die door het platform aan u voorgesteld zijn om te volgen.',
     'Onlangs bezocht': 'De pagina’s, profielen, evenementen of groepen die u onlangs bezocht hebt op Facebook.'  ,
@@ -92,9 +93,9 @@ export const DonationPage = (props: Props): JSX.Element => {
     
     'Reels': 'De reels die u hebt geplaatst inclusief de tekst die u gebruikt hebt maar zonder eventuele foto’s   of video’s.',
     'Gelikete Stories': 'De accounts waarvan u stories hebt geliket.',
-    'Posts die zijn bekeken': 'De posts die u hebt bekeken, inclusief een link naar de post.',
-    'Vind ik leuk Reacties': 'Reacties die u hebt geliket, inclusief een link naar de reactie.',
-    'Posts gezien': 'De posts die u hebt bekeken, inclusief de gebruikersnaam van de persoon die de post   geplaatst heeft.',
+    'Posts die zijn bekeken': 'De accounts waarvan je recent posts hebt bekeken, samen met links naar de posts. Let op: de links zijn alleen toegankelijk als het account openbaar is.',
+    'Vind ik leuk Reacties': 'Reacties die je hebt geliket, inclusief een link naar de post, als deze openbaar is.',
+    'Posts gezien': 'De accounts waarvan je posts hebt gezien.',
     'Advertenties gezien': 'De advertenties die u hebt bekeken, inclusief de gebruikersnaam van de persoon die   de advertentie geplaatst heeft.',
     
     'Favoriete Videos': 'De video’s die u als favoriet hebt opgeslagen.',

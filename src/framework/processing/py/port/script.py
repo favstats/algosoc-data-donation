@@ -45,7 +45,7 @@ def process(session_id):
 
     ### SET THE PLATFORM TO BE DONATED:
     # "Google", "Facebook", "Instagram", "TikTok"
-    current_platform = "Google"
+    current_platform = "Instagram"
     # Sort platforms to ensure current_platform is checked first
     platforms = [platform for platform in platforms if platform[0] == current_platform]
 
@@ -260,28 +260,28 @@ def prompt_file(extensions, platform):
     if platform == "Google":
         description = props.Translatable(
             {
-                "nl": "Kies het Google-bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan even duren. Dit is afhankelijk van hoe groot het is. [em]Heb dan even geduld.[/em]\n\n[b]Tip:[/b] de naam van het Google bestand begint met '[b]takeout-[/b]' en staat in de map op uw computer waar u het hebt opgeslagen.",
+                "nl": "Kies het Google-bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan enkele minuten duren. Dit is afhankelijk van hoe groot het is. Heb dan even geduld en ververs de pagina niet.\n\n[b]Tip:[/b] de naam van het Google-bestand begint met '[b]takeout-[/b]' en staat in de map op uw computer waar u het hebt opgeslagen.",
                 "en": "Choose the Google file that you requested and saved on your computer in the previous steps. Processing your file may take a while depending on the size. Please be patient. Tip: The name of the Google file starts with 'takeout-' and can be found in the folder where you saved it."
             }
         )
     elif platform == "Facebook":
         description = props.Translatable(
             {
-                "nl": "Kies het Facebook-bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan even duren. Dit is afhankelijk van hoe groot het is. [em]Heb dan even geduld.[/em]\n\n[b]Tip:[/b] de naam van het Facebook bestand begint met '[b]facebook-[/b]' en staat in de map op uw computer waar u het hebt opgeslagen.",
+                "nl": "Kies het Facebook-bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan enkele minuten duren. Dit is afhankelijk van hoe groot het is. Heb dan even geduld en ververs de pagina niet.\n\n[b]Tip:[/b] de naam van het Facebook bestand begint met '[b]facebook-[/b]' en staat in de map op uw computer waar u het hebt opgeslagen.",
                 "en": "Choose the Facebook file that you requested and saved on your computer in the previous steps. Processing your file may take a while depending on the size. Please be patient. Tip: The name of the Facebook file starts with 'facebook-' and can be found in the folder where you saved it."
             }
         )
     elif platform == "Instagram":
         description = props.Translatable(
             {
-                "nl": "Kies het Instagram-bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan even duren. Dit is afhankelijk van hoe groot het is. [em]Heb dan even geduld.[/em]\n\n[b]Tip:[/b] de naam van het Instagram bestand begint met '[b]instagram-[/b]' en staat in de map op uw computer waar u het hebt opgeslagen.",
+                "nl": "Kies het Instagram-bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan enkele minuten duren. Dit is afhankelijk van hoe groot het is. Heb dan even geduld en ververs de pagina niet.\n\n[b]Tip:[/b] de naam van het Instagram bestand begint met '[b]instagram-[/b]' en staat in de map op uw computer waar u het hebt opgeslagen.",
                 "en": "Choose the Instagram file that you requested and saved on your computer in the previous steps. Processing your file may take a while depending on the size. Please be patient. Tip: The name of the Instagram file starts with 'instagram-' and can be found in the folder where you saved it."
             }
         )
     elif platform == "TikTok":
         description = props.Translatable(
             {
-                "nl": "Kies het TikTok-bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan even duren. Dit is afhankelijk van hoe groot het is. [em]Heb dan even geduld.[/em]\n\n[b]Tip:[/b] de naam van het TikTok bestand begint met '[b]TikTok_Data_[/b]' en staat in de map op uw computer waar u het hebt opgeslagen.",
+                "nl": "Kies het TikTok-bestand dat u in de vorige stappen hebt aangevraagd en opgeslagen op uw computer. Het verwerken van uw bestand kan enkele minuten duren. Dit is afhankelijk van hoe groot het is. Heb dan even geduld en ververs de pagina niet.\n\n[b]Tip:[/b] de naam van het TikTok bestand begint met '[b]TikTok_Data_[/b]' en staat in de map op uw computer waar u het hebt opgeslagen.",
                 "en": "Choose the TikTok file that you requested and saved on your computer in the previous steps. Processing your file may take a while depending on the size. Please be patient. Tip: The name of the TikTok file starts with 'TikTok_Data_' and can be found in the folder where you saved it."
             }
         )
